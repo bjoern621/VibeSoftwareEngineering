@@ -33,6 +33,15 @@ function MealManagement() {
         name: '',
         description: '',
         price: '',
+        cost: '',
+        stock: '',
+        ingredients: '',
+        nutritionalInfo: {
+            calories: '',
+            protein: '',
+            carbs: '',
+            fat: ''
+        },
         categories: [],
         allergens: []
     });
@@ -82,7 +91,15 @@ function MealManagement() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    price: parseFloat(formData.price)
+                    price: parseFloat(formData.price) || 0,
+                    cost: parseFloat(formData.cost) || 0,
+                    stock: parseInt(formData.stock) || 0,
+                    nutritionalInfo: {
+                        calories: parseInt(formData.nutritionalInfo.calories) || 0,
+                        protein: parseFloat(formData.nutritionalInfo.protein) || 0,
+                        carbs: parseFloat(formData.nutritionalInfo.carbs) || 0,
+                        fat: parseFloat(formData.nutritionalInfo.fat) || 0
+                    }
                 })
             });
 
@@ -137,7 +154,16 @@ function MealManagement() {
         setFormData({
             name: meal.name,
             description: meal.description,
-            price: meal.price.toString(),
+            price: meal.price?.toString() || '',
+            cost: meal.cost?.toString() || '',
+            stock: meal.stock?.toString() || '',
+            ingredients: meal.ingredients || '',
+            nutritionalInfo: {
+                calories: meal.nutritionalInfo?.calories?.toString() || '',
+                protein: meal.nutritionalInfo?.protein?.toString() || '',
+                carbs: meal.nutritionalInfo?.carbs?.toString() || '',
+                fat: meal.nutritionalInfo?.fat?.toString() || ''
+            },
             categories: meal.categories || [],
             allergens: meal.allergens || []
         });
@@ -217,17 +243,118 @@ function MealManagement() {
                             />
                         </div>
 
+                        {/* Preis & Kosten in einer Reihe */}
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Verkaufspreis (€) *</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={formData.price}
+                                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                                    required
+                                    placeholder="z.B. 6.50"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Kosten (€)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={formData.cost}
+                                    onChange={(e) => setFormData({...formData, cost: e.target.value})}
+                                    placeholder="z.B. 3.20"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Bestand</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={formData.stock}
+                                    onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                                    placeholder="z.B. 50"
+                                />
+                            </div>
+                        </div>
+
                         <div className="form-group">
-                            <label>Preis (€) *</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value={formData.price}
-                                onChange={(e) => setFormData({...formData, price: e.target.value})}
-                                required
-                                placeholder="z.B. 4.50"
+                            <label>Zutaten</label>
+                            <textarea
+                                value={formData.ingredients}
+                                onChange={(e) => setFormData({...formData, ingredients: e.target.value})}
+                                placeholder="z.B. Nudeln, Hackfleisch, Tomatensauce, Zwiebeln"
+                                rows="2"
                             />
+                        </div>
+
+                        {/* Nährwertinformationen */}
+                        <div className="form-section">
+                            <h3 className="section-heading">Nährwertinformationen (pro Portion)</h3>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Kalorien (kcal)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={formData.nutritionalInfo.calories}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            nutritionalInfo: {...formData.nutritionalInfo, calories: e.target.value}
+                                        })}
+                                        placeholder="z.B. 650"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Protein (g)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        value={formData.nutritionalInfo.protein}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            nutritionalInfo: {...formData.nutritionalInfo, protein: e.target.value}
+                                        })}
+                                        placeholder="z.B. 28.5"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Kohlenhydrate (g)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        value={formData.nutritionalInfo.carbs}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            nutritionalInfo: {...formData.nutritionalInfo, carbs: e.target.value}
+                                        })}
+                                        placeholder="z.B. 75.0"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Fett (g)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        value={formData.nutritionalInfo.fat}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            nutritionalInfo: {...formData.nutritionalInfo, fat: e.target.value}
+                                        })}
+                                        placeholder="z.B. 18.3"
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         <div className="form-group">
@@ -306,6 +433,52 @@ function MealManagement() {
 
                             {meal.description && (
                                 <p className="meal-description">{meal.description}</p>
+                            )}
+
+                            {/* Kosten & Bestand Info */}
+                            {(meal.cost || meal.stock) && (
+                                <div className="meal-meta">
+                                    {meal.cost && (
+                                        <div className="meta-item">
+                                            <small>💰 Kosten: {meal.cost.toFixed(2)} €</small>
+                                        </div>
+                                    )}
+                                    {meal.stock !== undefined && (
+                                        <div className="meta-item">
+                                            <small>📦 Bestand: {meal.stock}</small>
+                                        </div>
+                                    )}
+                                    {meal.cost && meal.price && (
+                                        <div className="meta-item profit">
+                                            <small>💹 Gewinn: {(meal.price - meal.cost).toFixed(2)} €</small>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Nährwertinformationen */}
+                            {meal.nutritionalInfo && (meal.nutritionalInfo.calories || meal.nutritionalInfo.protein) && (
+                                <div className="meal-nutrition">
+                                    {meal.nutritionalInfo.calories > 0 && (
+                                        <span className="nutrition-item">🔥 {meal.nutritionalInfo.calories} kcal</span>
+                                    )}
+                                    {meal.nutritionalInfo.protein > 0 && (
+                                        <span className="nutrition-item">💪 {meal.nutritionalInfo.protein}g Protein</span>
+                                    )}
+                                    {meal.nutritionalInfo.carbs > 0 && (
+                                        <span className="nutrition-item">🍞 {meal.nutritionalInfo.carbs}g Carbs</span>
+                                    )}
+                                    {meal.nutritionalInfo.fat > 0 && (
+                                        <span className="nutrition-item">🥑 {meal.nutritionalInfo.fat}g Fett</span>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Zutaten */}
+                            {meal.ingredients && (
+                                <div className="meal-ingredients">
+                                    <small><strong>Zutaten:</strong> {meal.ingredients}</small>
+                                </div>
                             )}
 
                             {meal.categories && meal.categories.length > 0 && (
