@@ -1,4 +1,4 @@
-package com.mymensa.backend.meals.common;
+package com.mymensa.backend.common;
 
 public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(String message) {

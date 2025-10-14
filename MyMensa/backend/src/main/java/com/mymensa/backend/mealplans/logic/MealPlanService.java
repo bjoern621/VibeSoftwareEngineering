@@ -1,7 +1,7 @@
 package com.mymensa.backend.mealplans.logic;
 
-import com.mymensa.backend.meals.common.InvalidRequestException;
-import com.mymensa.backend.meals.common.ResourceNotFoundException;
+import com.mymensa.backend.common.InvalidRequestException;
+import com.mymensa.backend.common.ResourceNotFoundException;
 import com.mymensa.backend.meals.dataaccess.MealRepository;
 import com.mymensa.backend.meals.facade.MealDTO;
 import com.mymensa.backend.meals.logic.MealService;

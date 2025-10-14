@@ -1,4 +1,4 @@
-package com.mymensa.backend.meals.common;
+package com.mymensa.backend.common;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
