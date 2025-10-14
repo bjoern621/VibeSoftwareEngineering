@@ -1,0 +1,131 @@
+/* AdminPanel Styling */
+
+.admin-panel {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    padding-bottom: 40px;
+}
+
+.admin-header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 25px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-title-section h1 {
+    color: white;
+    margin: 0 0 5px 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.admin-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-size: 1rem;
+}
+
+.btn-exit {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-exit:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateX(-3px);
+}
+
+.admin-nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 30px 40px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-btn {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 15px 30px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    min-width: 200px;
+}
+
+.admin-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-nav-btn.active {
+    background: white;
+    color: #1e3c72;
+    border-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-content {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+/* Anpassungen für eingebettete Komponenten */
+.admin-content .gradient-header,
+.admin-content .meal-management-container,
+.admin-content .meal-plan-management-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.admin-content .gradient-header {
+    border-radius: 12px 12px 0 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .btn-exit {
+        width: 100%;
+    }
+
+    .admin-nav {
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .admin-nav-btn {
+        width: 100%;
+    }
+
+    .admin-content {
+        padding: 0 15px;
+    }
+}
