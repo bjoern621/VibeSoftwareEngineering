@@ -136,11 +136,22 @@ function WeekView() {
 
   /**
    * Findet die Gerichte für ein bestimmtes Datum
+   * API gibt zurück: { meal: {...}, stock: 50 }
+   * Wir transformieren zu: { ...meal, availableStock: stock }
    */
   const getMealsForDate = (date) => {
     const dateString = date.toISOString().split('T')[0];
     const dayData = meals.find(day => day.date === dateString);
-    return dayData ? dayData.meals : [];
+    
+    if (!dayData || !dayData.meals) {
+      return [];
+    }
+    
+    // Transformiere die API-Struktur: { meal: {...}, stock: 50 } -> { ...meal, availableStock: stock }
+    return dayData.meals.map(entry => ({
+      ...entry.meal,
+      availableStock: entry.stock
+    }));
   };
 
   const weekDates = getWeekDates();
