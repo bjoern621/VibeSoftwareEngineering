@@ -48,7 +48,7 @@ function MealManagement() {
 
     // Verfügbare Kategorien
     const categories = ['Alle', 'Vegetarisch', 'Vegan', 'Halal', 'Glutenfrei'];
-    const availableAllergens = ['Gluten', 'Laktose', 'Nüsse', 'Eier', 'Fisch', 'Soja'];
+    const availableAllergens = ['Gluten', 'Milch/Laktose', 'Nüsse', 'Eier', 'Fisch', 'Soja'];
 
     /**
      * Lädt alle Gerichte vom Backend
