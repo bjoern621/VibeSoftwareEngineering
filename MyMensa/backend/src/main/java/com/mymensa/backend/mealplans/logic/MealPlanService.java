@@ -85,9 +85,10 @@ public class MealPlanService {
     /**
      * Gericht zum Speiseplan hinzufügen oder Bestand aktualisieren
      * PUT /api/meal-plans
+     * @return MealPlanResult mit Response und created-Flag
      */
     @Transactional
-    public MealPlanResponseDTO addOrUpdateMealPlan(MealPlanRequestDTO requestDTO) {
+    public MealPlanResult addOrUpdateMealPlan(MealPlanRequestDTO requestDTO) {
         // Validierung
         validateMealPlanRequest(requestDTO);
         
@@ -100,6 +101,10 @@ public class MealPlanService {
             ));
         
         // Prüfen ob MealPlan bereits existiert
+        boolean isNew = !mealPlanRepository
+            .findByMealIdAndDate(requestDTO.mealId(), date)
+            .isPresent();
+        
         MealPlan mealPlan = mealPlanRepository
             .findByMealIdAndDate(requestDTO.mealId(), date)
             .orElse(new MealPlan(requestDTO.mealId(), date, requestDTO.stock()));
@@ -112,12 +117,14 @@ public class MealPlanService {
         
         // Response erstellen
         MealDTO mealDTO = mealService.getMealById(requestDTO.mealId());
-        return new MealPlanResponseDTO(
+        MealPlanResponseDTO responseDTO = new MealPlanResponseDTO(
             requestDTO.mealId(),
             requestDTO.date(),
             requestDTO.stock(),
             mealDTO
         );
+        
+        return new MealPlanResult(responseDTO, isNew);
     }
     
     /**

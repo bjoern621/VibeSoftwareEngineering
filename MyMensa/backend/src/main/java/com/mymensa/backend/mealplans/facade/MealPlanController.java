@@ -47,13 +47,19 @@ public class MealPlanController {
      * 
      * @param requestDTO MealPlanRequestDTO mit mealId, date, stock
      * @return MealPlanResponseDTO mit vollständigen Informationen
+     *         201 Created wenn neuer Eintrag, 200 OK wenn Update
      */
     @PutMapping
     public ResponseEntity<MealPlanResponseDTO> addOrUpdateMealPlan(
             @RequestBody MealPlanRequestDTO requestDTO) {
         
-        MealPlanResponseDTO response = mealPlanService.addOrUpdateMealPlan(requestDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        var result = mealPlanService.addOrUpdateMealPlan(requestDTO);
+        
+        if (result.isCreated()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(result.getResponse());
+        } else {
+            return ResponseEntity.ok(result.getResponse());
+        }
     }
     
     /**
