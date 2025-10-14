@@ -190,3 +190,7 @@ INSERT INTO meal_plans (meal_id, date, stock) VALUES (1, '2025-10-24', 60);   --
 INSERT INTO meal_plans (meal_id, date, stock) VALUES (9, '2025-10-24', 45);   -- Vegane Bowl
 INSERT INTO meal_plans (meal_id, date, stock) VALUES (5, '2025-10-24', 35);   -- Glutenfreie Pizza
 INSERT INTO meal_plans (meal_id, date, stock) VALUES (12, '2025-10-24', 30);  -- Schokoladenmousse
+
+-- Reset Auto-Increment-Sequenzen für IDs
+-- H2 verwendet IDENTITY-Spalten, daher müssen wir die Sequenz manuell setzen
+ALTER TABLE meals ALTER COLUMN id RESTART WITH 16;

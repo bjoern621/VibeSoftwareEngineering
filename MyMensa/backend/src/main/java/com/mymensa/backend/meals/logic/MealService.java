@@ -40,6 +40,11 @@ public class MealService {
      * Neues Gericht erstellen
      */
     public MealDTO createMeal(MealDTO mealDTO) {
+        // Bei POST darf keine ID mitgesendet werden
+        if (mealDTO.id() != null) {
+            throw new InvalidRequestException("Bei der Erstellung eines neuen Gerichts darf keine ID angegeben werden");
+        }
+        
         validateMealDTO(mealDTO);
         Meal meal = convertToEntity(mealDTO);
         Meal savedMeal = mealRepository.save(meal);

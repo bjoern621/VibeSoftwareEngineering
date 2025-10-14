@@ -1,5 +1,6 @@
 package com.mymensa.backend.common;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -44,6 +45,32 @@ public class GlobalExceptionHandler {
         errorResponse.put("message", "Erforderlicher Parameter fehlt: " + ex.getParameterName() + " (" + ex.getParameterType() + ")");
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.CONFLICT.value());
+        errorResponse.put("error", "Conflict");
+        
+        String message = "Datenbank-Constraint verletzt";
+        // Try to extract more specific error message
+        if (ex.getMessage() != null) {
+            if (ex.getMessage().contains("PRIMARY KEY") || ex.getMessage().contains("Primärschlüssel")) {
+                message = "Ein Eintrag mit dieser ID existiert bereits";
+            } else if (ex.getMessage().contains("UNIQUE") || ex.getMessage().contains("Eindeutiger Index")) {
+                message = "Ein Eintrag mit diesen Daten existiert bereits (Eindeutigkeits-Constraint verletzt)";
+            } else if (ex.getMessage().contains("FOREIGN KEY")) {
+                message = "Referenzierte Daten existieren nicht (Foreign Key Constraint verletzt)";
+            } else if (ex.getMessage().contains("NOT NULL")) {
+                message = "Erforderliche Felder fehlen (NOT NULL Constraint verletzt)";
+            }
+        }
+        
+        errorResponse.put("message", message);
+        
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
     
     @ExceptionHandler(Exception.class)
