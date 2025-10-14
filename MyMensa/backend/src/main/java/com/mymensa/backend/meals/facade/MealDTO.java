@@ -15,7 +15,6 @@ public record MealDTO(
     String description,
     Float price,         // float as per specification
     Float cost,          // float as per specification
-    Integer stock,       // int as per specification
     String ingredients,
     NutritionalInfoDTO nutritionalInfo,
     List<String> categories,

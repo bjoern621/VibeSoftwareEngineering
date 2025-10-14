@@ -60,7 +60,6 @@ public class MealService {
         existingMeal.setDescription(mealDTO.description());
         existingMeal.setPrice(mealDTO.price());
         existingMeal.setCost(mealDTO.cost());
-        existingMeal.setStock(mealDTO.stock());
         existingMeal.setIngredients(mealDTO.ingredients());
         existingMeal.setNutritionalInfo(convertToNutritionalInfoEntity(mealDTO.nutritionalInfo()));
         existingMeal.setCategories(mealDTO.categories());
@@ -97,9 +96,6 @@ public class MealService {
         if (mealDTO.cost() == null || mealDTO.cost() < 0) {
             throw new InvalidRequestException("Kosten müssen mindestens 0 sein");
         }
-        if (mealDTO.stock() == null || mealDTO.stock() < 0) {
-            throw new InvalidRequestException("Bestand muss mindestens 0 sein");
-        }
         if (mealDTO.ingredients() == null || mealDTO.ingredients().trim().isEmpty()) {
             throw new InvalidRequestException("Zutaten sind erforderlich");
         }
@@ -134,7 +130,6 @@ public class MealService {
             meal.getDescription(),
             meal.getPrice(),
             meal.getCost(),
-            meal.getStock(),
             meal.getIngredients(),
             nutritionalInfoDTO,
             meal.getCategories(),
@@ -153,7 +148,6 @@ public class MealService {
             mealDTO.description(),
             mealDTO.price(),
             mealDTO.cost(),
-            mealDTO.stock(),
             mealDTO.ingredients(),
             nutritionalInfo,
             mealDTO.categories(),

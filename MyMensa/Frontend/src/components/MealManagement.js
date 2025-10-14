@@ -34,7 +34,6 @@ function MealManagement() {
         description: '',
         price: '',
         cost: '',
-        stock: '',
         ingredients: '',
         nutritionalInfo: {
             calories: '',
@@ -93,7 +92,6 @@ function MealManagement() {
                     ...formData,
                     price: parseFloat(formData.price) || 0,
                     cost: parseFloat(formData.cost) || 0,
-                    stock: parseInt(formData.stock) || 0,
                     nutritionalInfo: {
                         calories: parseInt(formData.nutritionalInfo.calories) || 0,
                         protein: parseFloat(formData.nutritionalInfo.protein) || 0,
@@ -156,7 +154,6 @@ function MealManagement() {
             description: meal.description,
             price: meal.price?.toString() || '',
             cost: meal.cost?.toString() || '',
-            stock: meal.stock?.toString() || '',
             ingredients: meal.ingredients || '',
             nutritionalInfo: {
                 calories: meal.nutritionalInfo?.calories?.toString() || '',
@@ -267,17 +264,6 @@ function MealManagement() {
                                     value={formData.cost}
                                     onChange={(e) => setFormData({...formData, cost: e.target.value})}
                                     placeholder="z.B. 3.20"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Bestand</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={formData.stock}
-                                    onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                                    placeholder="z.B. 50"
                                 />
                             </div>
                         </div>

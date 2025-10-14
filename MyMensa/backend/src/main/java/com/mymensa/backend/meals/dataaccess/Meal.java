@@ -23,9 +23,6 @@ public class Meal {
     @Column(nullable = false)
     private Float cost;   // float as per specification
     
-    @Column(nullable = false)
-    private Integer stock;
-    
     @Column(nullable = false, length = 2000)
     private String ingredients;
     
@@ -46,14 +43,13 @@ public class Meal {
     public Meal() {
     }
     
-    public Meal(String name, String description, Float price, Float cost, Integer stock, 
+    public Meal(String name, String description, Float price, Float cost, 
                 String ingredients, NutritionalInfo nutritionalInfo, List<String> categories, 
                 List<String> allergens) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.cost = cost;
-        this.stock = stock;
         this.ingredients = ingredients;
         this.nutritionalInfo = nutritionalInfo;
         this.categories = categories;
@@ -99,14 +95,6 @@ public class Meal {
     
     public void setCost(Float cost) {
         this.cost = cost;
-    }
-    
-    public Integer getStock() {
-        return stock;
-    }
-    
-    public void setStock(Integer stock) {
-        this.stock = stock;
     }
     
     public String getIngredients() {
