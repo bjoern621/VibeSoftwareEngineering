@@ -97,6 +97,19 @@ body {
   text-shadow: none;
 }
 
+/* Admin-Button - visuell hervorgehoben */
+.nav-btn.admin-btn {
+  background-color: rgba(255, 193, 7, 0.3);
+  border-color: rgba(255, 193, 7, 0.8);
+  margin-left: 20px;
+}
+
+.nav-btn.admin-btn:hover {
+  background-color: #ffc107;
+  color: #333;
+  border-color: #ffc107;
+}
+
 /* Hauptinhalt */
 .app-main {
   flex: 1;

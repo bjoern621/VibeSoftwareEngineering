@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import './App.css';
 import WeekView from './components/WeekView';
-import MealManagement from './components/MealManagement';
-import Dashboard from './components/Dashboard';
+import OrderManagement from './components/OrderManagement';
+import AdminPanel from './components/AdminPanel';
 
 function App() {
   // State für die Navigation zwischen den Seiten
   const [currentPage, setCurrentPage] = useState('weekview');
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+
+  // Wenn AdminPanel aktiv ist, zeige nur dieses an
+  if (showAdminPanel) {
+    return <AdminPanel onExit={() => setShowAdminPanel(false)} />;
+  }
 
   return (
     <div className="App">
@@ -24,16 +30,16 @@ function App() {
             📅 Wochenplan
           </button>
           <button
-            className={`nav-btn ${currentPage === 'meals' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('meals')}
+            className={`nav-btn ${currentPage === 'order' ? 'active' : ''}`}
+            onClick={() => setCurrentPage('order')}
           >
-            🍲 Gerichteverwaltung
+            🛒 Bestellen
           </button>
           <button
-            className={`nav-btn ${currentPage === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('dashboard')}
+            className="nav-btn admin-btn"
+            onClick={() => setShowAdminPanel(true)}
           >
-            📊 Dashboard
+            🔧 Verwaltung
           </button>
         </nav>
       </header>
@@ -41,8 +47,7 @@ function App() {
       {/* Hauptinhalt */}
       <main className="app-main">
         {currentPage === 'weekview' && <WeekView />}
-        {currentPage === 'meals' && <MealManagement />}
-        {currentPage === 'dashboard' && <Dashboard />}
+        {currentPage === 'order' && <OrderManagement />}
       </main>
 
       {/* Footer */}
