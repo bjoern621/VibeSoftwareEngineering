@@ -139,20 +139,21 @@
 /* Tag-Header */
 .day-header, .card-header {
   margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+  background: transparent;
 }
 
 .day-name, .card-title {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #333;
   margin: 0 0 5px 0;
 }
 
 .day-date, .text-muted {
   font-size: 14px;
-  color: #999;
+  color: #666;
   margin: 0;
 }
 
