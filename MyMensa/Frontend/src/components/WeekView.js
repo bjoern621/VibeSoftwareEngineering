@@ -28,12 +28,13 @@ function WeekView() {
 
   /**
    * Lädt den Speiseplan vom Backend
-   * Backend Endpoint: GET http://localhost:8080/api/meal-plans/week?startDate=2025-01-13
-   * Erwartete Response: Array mit { date: "2025-01-13", meals: [{id, name, description, price, categories, allergens}] }
+   * Backend Endpoint: GET http://localhost:8080/api/meal-plans?startDate=2025-01-13&endDate=2025-01-17
+   * Erwartete Response: Array mit { date: "2025-01-13", meals: [{ meal: {...}, stock: 50 }] }
    */
-  const getMealPlanForWeek = async (startDate) => {
-    const dateString = startDate.toISOString().split('T')[0];
-    const response = await fetch(`http://localhost:8080/api/meal-plans/week?startDate=${dateString}`);
+  const getMealPlanForWeek = async (startDate, endDate) => {
+    const startDateString = startDate.toISOString().split('T')[0];
+    const endDateString = endDate.toISOString().split('T')[0];
+    const response = await fetch(`http://localhost:8080/api/meal-plans?startDate=${startDateString}&endDate=${endDateString}`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -53,7 +54,8 @@ function WeekView() {
 
       try {
         const weekStart = getWeekStart(weekOffset);
-        const data = await getMealPlanForWeek(weekStart);
+        const weekEnd = getWeekEnd(weekOffset);
+        const data = await getMealPlanForWeek(weekStart, weekEnd);
         setMeals(data);
       } catch (err) {
         setError('Fehler beim Laden des Speiseplans. Bitte versuche es später erneut.');
@@ -79,6 +81,18 @@ function WeekView() {
     monday.setHours(0, 0, 0, 0);
 
     return monday;
+  };
+
+  /**
+   * Berechnet das Enddatum (Freitag) der aktuell angezeigten Woche
+   */
+  const getWeekEnd = (offset) => {
+    const weekStart = getWeekStart(offset);
+    const friday = new Date(weekStart);
+    friday.setDate(weekStart.getDate() + 4); // +4 Tage = Freitag
+    friday.setHours(23, 59, 59, 999);
+
+    return friday;
   };
 
   /**
@@ -211,8 +225,13 @@ function WeekView() {
                         <p className="meal-description text-muted">{meal.description}</p>
                         <div className="meal-info">
                           <span className="meal-price">{meal.price.toFixed(2)} €</span>
+                          {meal.availableStock !== undefined && (
+                            <span className="meal-stock text-muted">
+                              📦 {meal.availableStock} verfügbar
+                            </span>
+                          )}
                           <div className="meal-categories">
-                            {meal.categories.map((cat, idx) => (
+                            {meal.categories && meal.categories.map((cat, idx) => (
                               <span key={idx} className="badge badge-success">
                                 {cat}
                               </span>
@@ -240,4 +259,3 @@ function WeekView() {
 }
 
 export default WeekView;
-
