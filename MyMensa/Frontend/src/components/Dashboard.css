@@ -142,3 +142,43 @@
     font-weight: 600;
     color: #2c3e50;
 }
+
+/* Loading & Error States */
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: #999;
+}
+
+.mt-small {
+    margin-top: 10px;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 50px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin: 20px auto;
+    max-width: 800px;
+    text-align: center;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
