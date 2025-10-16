@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './Dashboard.css';
 
 function Dashboard() {
-    const [financialData, setFinancialData] = useState({ totalRevenue: 0, totalExpense: 0 });
-    const [revenueBreakdown, setRevenueBreakdown] = useState([]);
-    const [expenseBreakdown, setExpenseBreakdown] = useState([]);
+    const [financialData, setFinancialData] = useState({ totalRevenue: 0, totalExpense: 0, profit: 0 });
+    const [mealStats, setMealStats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -23,27 +22,24 @@ function Dashboard() {
         setError(null);
 
         try {
-            // API-Calls parallel ausführen
-            const [financialResponse, revenueResponse, expensesResponse] = await Promise.all([
-                fetch('http://localhost:8080/api/reports/financial'),
-                fetch('http://localhost:8080/api/reports/revenue-by-category'),
-                fetch('http://localhost:8080/api/reports/expenses-by-category')
-            ]);
+            // API-Call zum Backend
+            const response = await fetch('http://localhost:8080/api/dashboard');
 
             // Fehlerbehandlung
-            if (!financialResponse.ok || !revenueResponse.ok || !expensesResponse.ok) {
+            if (!response.ok) {
                 throw new Error('Fehler beim Laden der Dashboard-Daten');
             }
 
             // JSON parsen
-            const financial = await financialResponse.json();
-            const revenue = await revenueResponse.json();
-            const expenses = await expensesResponse.json();
+            const data = await response.json();
 
-            // State aktualisieren
-            setFinancialData(financial);
-            setRevenueBreakdown(revenue);
-            setExpenseBreakdown(expenses);
+            // State aktualisieren mit Backend-Daten
+            setFinancialData({
+                totalRevenue: data.totalRevenue,
+                totalExpense: data.totalExpenses,
+                profit: data.profit
+            });
+            setMealStats(data.mealStats);
 
         } catch (err) {
             console.error('Fehler beim Laden der Dashboard-Daten:', err);
@@ -52,8 +48,6 @@ function Dashboard() {
             setLoading(false);
         }
     };
-
-    const profit = financialData.totalRevenue - financialData.totalExpense;
 
     // Loading State
     if (loading) {
@@ -107,7 +101,7 @@ function Dashboard() {
                     <div className="card card-profit">
                         <h3>Gewinn</h3>
                         <p className="amount">
-                            {profit.toLocaleString('de-DE', {
+                            {financialData.profit.toLocaleString('de-DE', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             })} €
@@ -116,86 +110,55 @@ function Dashboard() {
                 </div>
             </section>
 
-            {/* Einnahmen nach Gericht-Kategorie */}
+            {/* Kombinierte Gerichte-Übersicht */}
             <section className="section">
-                <h2 className="section-title">Einnahmen nach Gericht-Kategorie</h2>
+                <h2 className="section-title">Gerichte Übersicht</h2>
                 <div className="table-container">
                     <table className="data-table">
                         <thead>
                         <tr>
-                            <th>Kategorie</th>
-                            <th>Betrag</th>
-                            <th>Anteil</th>
+                            <th>Gericht</th>
+                            <th>Verkauft</th>
+                            <th>Einnahmen</th>
+                            <th>Ausgaben</th>
+                            <th>Gewinn</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {revenueBreakdown.length === 0 ? (
+                        {mealStats.length === 0 ? (
                             <tr>
-                                <td colSpan="3" className="text-center text-muted">
+                                <td colSpan="5" className="text-center text-muted">
                                     Keine Daten verfügbar
                                 </td>
                             </tr>
                         ) : (
-                            revenueBreakdown.map((item, index) => (
-                                <tr key={index}>
-                                    <td>{item.category}</td>
-                                    <td className="amount-cell">
-                                        {item.amount.toLocaleString('de-DE', {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        })} €
-                                    </td>
-                                    <td>
-                                        {financialData.totalRevenue > 0
-                                            ? ((item.amount / financialData.totalRevenue) * 100).toFixed(1)
-                                            : 0
-                                        }%
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            {/* Kosten nach Zutaten-Kategorie */}
-            <section className="section">
-                <h2 className="section-title">Kosten nach Zutaten-Kategorie</h2>
-                <div className="table-container">
-                    <table className="data-table">
-                        <thead>
-                        <tr>
-                            <th>Kategorie</th>
-                            <th>Betrag</th>
-                            <th>Anteil</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {expenseBreakdown.length === 0 ? (
-                            <tr>
-                                <td colSpan="3" className="text-center text-muted">
-                                    Keine Daten verfügbar
-                                </td>
-                            </tr>
-                        ) : (
-                            expenseBreakdown.map((item, index) => (
-                                <tr key={index}>
-                                    <td>{item.category}</td>
-                                    <td className="amount-cell">
-                                        {item.amount.toLocaleString('de-DE', {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        })} €
-                                    </td>
-                                    <td>
-                                        {financialData.totalExpense > 0
-                                            ? ((item.amount / financialData.totalExpense) * 100).toFixed(1)
-                                            : 0
-                                        }%
-                                    </td>
-                                </tr>
-                            ))
+                            mealStats.map((meal, index) => {
+                                const profit = meal.totalRevenue - meal.totalExpenses;
+                                return (
+                                    <tr key={index}>
+                                        <td>{meal.mealName}</td>
+                                        <td>{meal.quantitySold}x</td>
+                                        <td className="amount-cell">
+                                            {meal.totalRevenue.toLocaleString('de-DE', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            })} €
+                                        </td>
+                                        <td className="amount-cell">
+                                            {meal.totalExpenses.toLocaleString('de-DE', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            })} €
+                                        </td>
+                                        <td className="amount-cell">
+                                            {profit.toLocaleString('de-DE', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            })} €
+                                        </td>
+                                    </tr>
+                                );
+                            })
                         )}
                         </tbody>
                     </table>
