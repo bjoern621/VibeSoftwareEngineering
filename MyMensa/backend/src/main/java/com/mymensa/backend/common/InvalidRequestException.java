@@ -1,4 +1,4 @@
-package com.mymensa.backend.meals.common;
+package com.mymensa.backend.common;
 
 public class InvalidRequestException extends RuntimeException {
     public InvalidRequestException(String message) {
