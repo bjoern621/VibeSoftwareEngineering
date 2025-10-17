@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import './App.css';
-import WeekView from './components/WeekView';
 import OrderManagement from './components/OrderManagement';
 import AdminPanel from './components/AdminPanel';
 
 function App() {
-  // State für die Navigation zwischen den Seiten
-  const [currentPage, setCurrentPage] = useState('weekview');
   const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   // Wenn AdminPanel aktiv ist, zeige nur dieses an
@@ -24,18 +21,6 @@ function App() {
         {/* Navigation */}
         <nav className="app-nav">
           <button
-            className={`nav-btn ${currentPage === 'weekview' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('weekview')}
-          >
-            📅 Wochenplan
-          </button>
-          <button
-            className={`nav-btn ${currentPage === 'order' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('order')}
-          >
-            🛒 Bestellen
-          </button>
-          <button
             className="nav-btn admin-btn"
             onClick={() => setShowAdminPanel(true)}
           >
@@ -44,10 +29,9 @@ function App() {
         </nav>
       </header>
 
-      {/* Hauptinhalt */}
+      {/* Hauptinhalt - nur noch OrderManagement */}
       <main className="app-main">
-        {currentPage === 'weekview' && <WeekView />}
-        {currentPage === 'order' && <OrderManagement />}
+        <OrderManagement />
       </main>
 
       {/* Footer */}
