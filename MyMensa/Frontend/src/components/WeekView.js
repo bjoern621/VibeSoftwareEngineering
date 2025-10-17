@@ -26,14 +26,23 @@ function WeekView() {
   // Deutsche Wochentage-Namen - nur Montag bis Freitag
   const weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
 
+  // Helper: Erzeuge lokales ISO-Datum (YYYY-MM-DD) ohne timezone-shift
+  const toLocalISODate = (d) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
   /**
    * Lädt den Speiseplan vom Backend
-   * Backend Endpoint: GET http://localhost:8080/api/meal-plans?startDate=2025-01-13&endDate=2025-01-17
+   * Backend Endpoint: GET http://localhost:8080/api/meal-plans?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
    * Erwartete Response: Array mit { date: "2025-01-13", meals: [{ meal: {...}, stock: 50 }] }
+   * Kurzer Hinweis für Backend: wir senden lokale ISO-Daten (yyyy-mm-dd). Bitte stellt sicher, dass die API diese Normalisierung verwendet.
    */
   const getMealPlanForWeek = async (startDate, endDate) => {
-    const startDateString = startDate.toISOString().split('T')[0];
-    const endDateString = endDate.toISOString().split('T')[0];
+    const startDateString = toLocalISODate(startDate);
+    const endDateString = toLocalISODate(endDate);
     const response = await fetch(`http://localhost:8080/api/meal-plans?startDate=${startDateString}&endDate=${endDateString}`);
 
     if (!response.ok) {
@@ -56,7 +65,7 @@ function WeekView() {
         const weekStart = getWeekStart(weekOffset);
         const weekEnd = getWeekEnd(weekOffset);
         const data = await getMealPlanForWeek(weekStart, weekEnd);
-        setMeals(data);
+        setMeals(data || []);
       } catch (err) {
         setError('Fehler beim Laden des Speiseplans. Bitte versuche es später erneut.');
         console.error('Fehler beim Laden:', err);
@@ -73,11 +82,13 @@ function WeekView() {
    */
   const getWeekStart = (offset) => {
     const today = new Date();
-    const dayOfWeek = today.getDay();
+    const localDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()); // normalize local date
+    const dayOfWeek = localDay.getDay();
+    // getDay(): 0 = Sonntag, 1 = Montag ...
     const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + diff + (offset * 7));
+    const monday = new Date(localDay);
+    monday.setDate(localDay.getDate() + diff + (offset * 7));
     monday.setHours(0, 0, 0, 0);
 
     return monday;
@@ -116,7 +127,7 @@ function WeekView() {
    */
   const isToday = (date) => {
     const today = new Date();
-    return date.toDateString() === today.toDateString();
+    return date.toDateString() === new Date(today.getFullYear(), today.getMonth(), today.getDate()).toDateString();
   };
 
   /**
@@ -140,13 +151,13 @@ function WeekView() {
    * Wir transformieren zu: { ...meal, availableStock: stock }
    */
   const getMealsForDate = (date) => {
-    const dateString = date.toISOString().split('T')[0];
+    const dateString = toLocalISODate(date);
     const dayData = meals.find(day => day.date === dateString);
-    
+
     if (!dayData || !dayData.meals) {
       return [];
     }
-    
+
     // Transformiere die API-Struktur: { meal: {...}, stock: 50 } -> { ...meal, availableStock: stock }
     return dayData.meals.map(entry => ({
       ...entry.meal,
@@ -223,39 +234,39 @@ function WeekView() {
 
               <div className="day-content card-content">
                 {!loading && dayMeals.length === 0 && (
-                  <p className="placeholder-text">
-                    Noch keine Gerichte für diesen Tag
-                  </p>
+                  <p className="placeholder-text">Noch keine Gerichte für diesen Tag</p>
                 )}
 
                 {dayMeals.length > 0 && (
                   <div className="meals-list">
                     {dayMeals.map((meal) => (
                       <div key={meal.id} className="meal-item">
-                        <h4 className="meal-name">{meal.name}</h4>
-                        <p className="meal-description text-muted">{meal.description}</p>
-                        <div className="meal-info">
-                          <span className="meal-price">{meal.price.toFixed(2)} €</span>
-                          {meal.availableStock !== undefined && (
-                            <span className="meal-stock text-muted">
-                              📦 {meal.availableStock} verfügbar
-                            </span>
-                          )}
-                          <div className="meal-categories">
-                            {meal.categories && meal.categories.map((cat, idx) => (
-                              <span key={idx} className="badge badge-success">
-                                {cat}
-                              </span>
-                            ))}
+                        <div className="meal-main">
+                          <div>
+                            <h4 className="meal-name">{meal.name}</h4>
+                            <p className="meal-description text-muted">{meal.description}</p>
+                          </div>
+                          <div className="meal-meta">
+                            <span className="meal-price">{(meal.price ?? 0).toFixed(2)} €</span>
+                            {meal.availableStock !== undefined && (
+                              <span className="meal-stock text-muted">📦 {meal.availableStock} verfügbar</span>
+                            )}
                           </div>
                         </div>
-                        {meal.allergens && meal.allergens.length > 0 && (
-                          <div className="meal-allergens">
-                            <small className="text-danger">
-                              Allergene: {meal.allergens.join(', ')}
-                            </small>
+
+                        <div className="meal-bottom">
+                          <div className="meal-categories">
+                            {meal.categories && meal.categories.map((cat, idx) => (
+                              <span key={idx} className="badge badge-success category-badge">{cat}</span>
+                            ))}
                           </div>
-                        )}
+
+                          {meal.allergens && meal.allergens.length > 0 && (
+                            <div className="meal-allergens">
+                              <small className="text-danger">Allergene: {meal.allergens.join(', ')}</small>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
