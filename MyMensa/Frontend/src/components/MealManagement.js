@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './MealManagement.css';
 
 /**
@@ -27,6 +27,7 @@ function MealManagement() {
     const [showForm, setShowForm] = useState(false);
     const [editingMeal, setEditingMeal] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState('Alle');
+    const formRef = useRef(null);
 
     // Formular-State
     const [formData, setFormData] = useState({
@@ -166,6 +167,11 @@ function MealManagement() {
         });
         setEditingMeal(meal);
         setShowForm(true);
+
+        // Scroll zum Formular nach kurzer Verzögerung (damit State aktualisiert ist)
+        setTimeout(() => {
+            formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     };
 
     // Checkbox Handler
@@ -201,21 +207,18 @@ function MealManagement() {
         <div className="meal-management-container">
             {/* Header */}
             <div className="gradient-header">
-                <h1 className="week-title">Gerichteverwaltung</h1>
+                <h1>🍽️ Gerichteverwaltung</h1>
                 <button className="btn btn-light" onClick={() => setShowForm(!showForm)}>
-                    {showForm ? '❌ Abbrechen' : '➕ Neues Gericht'}
+                    {showForm ? 'Formular schließen' : '+ Neues Gericht'}
                 </button>
             </div>
 
             {/* Fehler-Anzeige */}
-            {error && (
-                <div className="error-message">
-                    ⚠️ {error}
-                </div>
-            )}
+            {error && <div className="error-message">❌ {error}</div>}
 
             {/* Formular */}
             {showForm && (
+                <div ref={formRef}>
                 <div className="meal-form-card">
                     <h2>{editingMeal ? 'Gericht bearbeiten' : 'Neues Gericht erstellen'}</h2>
                     <form onSubmit={saveMeal}>
@@ -384,6 +387,7 @@ function MealManagement() {
                             </button>
                         </div>
                     </form>
+                </div>
                 </div>
             )}
 
