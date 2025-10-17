@@ -191,6 +191,20 @@ INSERT INTO meal_plans (meal_id, date, stock) VALUES (9, '2025-10-24', 45);   --
 INSERT INTO meal_plans (meal_id, date, stock) VALUES (5, '2025-10-24', 35);   -- Glutenfreie Pizza
 INSERT INTO meal_plans (meal_id, date, stock) VALUES (12, '2025-10-24', 30);  -- Schokoladenmousse
 
+-- Beispiel-Bestellungen (Optional für Tests)
+-- Bestellung 1: Bezahlt mit QR-Code, noch nicht abgeholt
+INSERT INTO orders (id, meal_id, date, paid, qr_code, collected, created_at) 
+VALUES (1, 1, '2025-10-15', true, 'ORDER-1', false, '2025-10-14T10:30:00');
+
+-- Bestellung 2: Bezahlt mit QR-Code, bereits abgeholt
+INSERT INTO orders (id, meal_id, date, paid, qr_code, collected, collected_at, created_at) 
+VALUES (2, 2, '2025-10-15', true, 'ORDER-2', true, '2025-10-15T12:15:00', '2025-10-14T11:00:00');
+
+-- Bestellung 3: Noch nicht bezahlt
+INSERT INTO orders (id, meal_id, date, paid, collected, created_at) 
+VALUES (3, 3, '2025-10-16', false, false, '2025-10-14T14:20:00');
+
 -- Reset Auto-Increment-Sequenzen für IDs
 -- H2 verwendet IDENTITY-Spalten, daher müssen wir die Sequenz manuell setzen
 ALTER TABLE meals ALTER COLUMN id RESTART WITH 16;
+ALTER TABLE orders ALTER COLUMN id RESTART WITH 4;
