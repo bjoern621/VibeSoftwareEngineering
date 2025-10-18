@@ -161,37 +161,40 @@ function OrderManagement() {
     };
 
     // Warenkorb-Funktionen
-    const addToCart = (meal) => {
-        const existingItem = cart.find(item => item.id === meal.id);
+    const addToCart = (meal, date = selectedDate) => {
+        // Prüfe ob das gleiche Gericht vom gleichen Datum bereits im Warenkorb ist
+        const cartKey = `${meal.id}_${toLocalISODate(date)}`;
+        const existingItem = cart.find(item => `${item.id}_${item.orderDate}` === cartKey);
+
         if (existingItem) {
             if (existingItem.quantity < meal.availableStock) {
                 setCart(cart.map(item =>
-                    item.id === meal.id ? { ...item, quantity: item.quantity + 1 } : item
+                    `${item.id}_${item.orderDate}` === cartKey ? { ...item, quantity: item.quantity + 1 } : item
                 ));
             } else {
                 alert('Maximale verfügbare Menge erreicht!');
             }
         } else {
-            setCart([...cart, { ...meal, quantity: 1 }]);
+            setCart([...cart, { ...meal, quantity: 1, orderDate: toLocalISODate(date) }]);
         }
     };
 
-    const removeFromCart = (mealId) => {
-        setCart(cart.filter(item => item.id !== mealId));
+    const removeFromCart = (mealId, orderDate) => {
+        setCart(cart.filter(item => !(item.id === mealId && item.orderDate === orderDate)));
     };
 
-    const updateQuantity = (mealId, newQuantity) => {
-        const meal = cart.find(item => item.id === mealId);
+    const updateQuantity = (mealId, orderDate, newQuantity) => {
+        const meal = cart.find(item => item.id === mealId && item.orderDate === orderDate);
         if (newQuantity > meal.availableStock) {
             alert('Maximale verfügbare Menge erreicht!');
             return;
         }
         if (newQuantity < 1) {
-            removeFromCart(mealId);
+            removeFromCart(mealId, orderDate);
             return;
         }
         setCart(cart.map(item =>
-            item.id === mealId ? { ...item, quantity: newQuantity } : item
+            (item.id === mealId && item.orderDate === orderDate) ? { ...item, quantity: newQuantity } : item
         ));
     };
 
@@ -226,6 +229,7 @@ function OrderManagement() {
      *   (Backend-API ist derzeit so gestaltet, dass eine Order je Portion entsteht)
      * - Bezahlt jede Order (PUT /api/orders/{id}/pay) und sammelt QR-Codes
      * - Falls Backend nicht erreichbar oder fehlerhaft, wird ein lokaler Mock-QR-Code erzeugt
+     * - WICHTIG: Jedes Gericht wird mit seinem eigenen Datum bestellt (item.orderDate)
      * Hinweis für Backend-Entwickler: Ein Batch-/Bulk-Endpoint (z.B. POST /api/orders/bulk)
      * wäre für mehrere Portionen effizienter. Außerdem wäre ein einzelnes Order-Objekt mit
      * mehreren Positionen (items: [{mealId, quantity}]) wünschenswert.
@@ -239,31 +243,30 @@ function OrderManagement() {
         setLoading(true);
         const createdOrderIds = [];
         const collectedQrCodes = [];
-        const dateString = toLocalISODate(selectedDate);
 
-        // Gesamtbetrag und Datum VOR dem Leeren speichern
+        // Gesamtbetrag VOR dem Leeren speichern
         const total = calculateTotal();
-        const orderDateCopy = new Date(selectedDate);
 
         try {
             // Für jedes Item und dessen Menge einzelne Orders anlegen
+            // WICHTIG: Verwende item.orderDate (das Datum des jeweiligen Gerichts)
             for (const item of cart) {
                 for (let i = 0; i < item.quantity; i++) {
-                    const orderId = await createOrderBackend(item.id, dateString);
-                    createdOrderIds.push({ orderId, mealName: item.name });
+                    const orderId = await createOrderBackend(item.id, item.orderDate);
+                    createdOrderIds.push({ orderId, mealName: item.name, orderDate: item.orderDate });
                 }
             }
 
             // Jede Order bezahlen und QR-Code sammeln
             for (const orderInfo of createdOrderIds) {
                 const qr = await payOrderBackend(orderInfo.orderId);
-                collectedQrCodes.push({ qrCode: qr, mealName: orderInfo.mealName });
+                collectedQrCodes.push({ qrCode: qr, mealName: orderInfo.mealName, orderDate: orderInfo.orderDate });
             }
 
             // Erfolgreich: QR-Codes anzeigen und Warenkorb leeren
             setQrCodes(collectedQrCodes);
             setOrderTotal(total);
-            setOrderDate(orderDateCopy);
+            setOrderDate(new Date()); // Aktuelles Datum als Bestelldatum
             setOrderComplete(true);
             setCart([]);
 
@@ -276,7 +279,7 @@ function OrderManagement() {
             const fallbackQr = `MOCK-ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
             setQrCodes([{ qrCode: fallbackQr, mealName: cart[0]?.name || 'Unbekannt' }]);
             setOrderTotal(total);
-            setOrderDate(orderDateCopy);
+            setOrderDate(new Date());
             setOrderComplete(true);
             setCart([]);
             alert('Fehler beim Kontakt mit dem Backend. Es wurde ein lokaler Test-QR erstellt.');
@@ -567,20 +570,20 @@ function OrderManagement() {
                                                 <div className="cart-item-controls">
                                                     <button
                                                         className="btn-quantity"
-                                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                        onClick={() => updateQuantity(item.id, item.orderDate, item.quantity - 1)}
                                                     >
                                                         −
                                                     </button>
                                                     <span className="quantity">{item.quantity}</span>
                                                     <button
                                                         className="btn-quantity"
-                                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                        onClick={() => updateQuantity(item.id, item.orderDate, item.quantity + 1)}
                                                     >
                                                         +
                                                     </button>
                                                     <button
                                                         className="btn-remove"
-                                                        onClick={() => removeFromCart(item.id)}
+                                                        onClick={() => removeFromCart(item.id, item.orderDate)}
                                                     >
                                                         🗑️
                                                     </button>
