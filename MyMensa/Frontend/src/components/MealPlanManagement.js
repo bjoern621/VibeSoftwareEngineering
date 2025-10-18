@@ -23,13 +23,35 @@ function MealPlanManagement() {
 
     const weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
 
+    // Helper: lokales ISO-Datum ohne timezone-shift (wie bei OrderManagement)
+    const toLocalISODate = (d) => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
     // Wochenberechnungen
     const getWeekStart = (offset) => {
         const today = new Date();
-        const dayOfWeek = today.getDay();
-        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(today);
-        monday.setDate(today.getDate() + diff + (offset * 7));
+        const localDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const dayOfWeek = localDay.getDay();
+
+        // Ab Samstag (dayOfWeek === 6) die nächste Woche anzeigen
+        let diff;
+        if (dayOfWeek === 0) {
+            // Sonntag: nächsten Montag
+            diff = 1;
+        } else if (dayOfWeek === 6) {
+            // Samstag: nächsten Montag (in 2 Tagen)
+            diff = 2;
+        } else {
+            // Montag-Freitag: aktueller/letzter Montag
+            diff = 1 - dayOfWeek;
+        }
+
+        const monday = new Date(localDay);
+        monday.setDate(localDay.getDate() + diff + (offset * 7));
         monday.setHours(0, 0, 0, 0);
         return monday;
     };
@@ -38,6 +60,7 @@ function MealPlanManagement() {
         const weekStart = getWeekStart(offset);
         const friday = new Date(weekStart);
         friday.setDate(weekStart.getDate() + 4);
+        friday.setHours(23, 59, 59, 999);
         return friday;
     };
 
@@ -77,8 +100,8 @@ function MealPlanManagement() {
         setLoading(true);
         setError(null);
         try {
-            const startDate = getWeekStart(weekOffset).toISOString().split('T')[0];
-            const endDate = getWeekEnd(weekOffset).toISOString().split('T')[0];
+            const startDate = toLocalISODate(getWeekStart(weekOffset));
+            const endDate = toLocalISODate(getWeekEnd(weekOffset));
             const response = await fetch(`http://localhost:8080/api/meal-plans?startDate=${startDate}&endDate=${endDate}`);
             if (!response.ok) throw new Error('Fehler beim Laden des Speiseplans');
             const data = await response.json();
@@ -104,7 +127,7 @@ function MealPlanManagement() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     mealId: parseInt(selectedMealId),
-                    date: selectedDate.toISOString().split('T')[0],
+                    date: toLocalISODate(selectedDate),
                     stock: parseInt(stock)
                 })
             });
@@ -129,7 +152,7 @@ function MealPlanManagement() {
 
         setLoading(true);
         try {
-            const dateString = date.toISOString().split('T')[0];
+            const dateString = toLocalISODate(date);
             const response = await fetch(`http://localhost:8080/api/meal-plans?mealId=${mealId}&date=${dateString}`, {
                 method: 'DELETE'
             });
@@ -145,7 +168,7 @@ function MealPlanManagement() {
     };
 
     const getMealsForDate = (date) => {
-        const dateString = date.toISOString().split('T')[0];
+        const dateString = toLocalISODate(date);
         const dayData = mealPlan.find(day => day.date === dateString);
         if (dayData && dayData.meals) {
             return dayData.meals.map(item => ({
