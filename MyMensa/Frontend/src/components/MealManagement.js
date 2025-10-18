@@ -61,7 +61,14 @@ function MealManagement() {
             const response = await fetch('http://localhost:8080/api/meals');
             if (!response.ok) throw new Error('Fehler beim Laden der Gerichte');
             const data = await response.json();
-            setMeals(data);
+            // Defensive: sicherstellen, dass jedes Gericht ein nutritionalInfo-Objekt besitzt
+            const normalized = (Array.isArray(data) ? data : []).map(m => ({
+                ...m,
+                nutritionalInfo: m.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 },
+                categories: m.categories || [],
+                allergens: m.allergens || []
+            }));
+            setMeals(normalized);
         } catch (err) {
             setError(err.message);
             setMeals([]); // Leere Liste bei Fehler
@@ -141,6 +148,14 @@ function MealManagement() {
             name: '',
             description: '',
             price: '',
+            cost: '',
+            ingredients: '',
+            nutritionalInfo: {
+                calories: '',
+                protein: '',
+                carbs: '',
+                fat: ''
+            },
             categories: [],
             allergens: []
         });
@@ -414,11 +429,13 @@ function MealManagement() {
                         Keine Gerichte gefunden. Erstelle das erste Gericht!
                     </div>
                 ) : (
-                    filteredMeals.map(meal => (
+                    filteredMeals.map(meal => {
+                        const ni = meal.nutritionalInfo || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+                        return (
                         <div key={meal.id} className="meal-card">
                             <div className="meal-header">
                                 <h3>{meal.name}</h3>
-                                <span className="meal-price">{meal.price?.toFixed(2) || '0.00'} €</span>
+                                <span className="meal-price">{(meal.price !== undefined && meal.price !== null) ? meal.price.toFixed(2) : '0.00'} €</span>
                             </div>
 
                             {meal.description && (
@@ -447,19 +464,24 @@ function MealManagement() {
                             )}
 
                             {/* Nährwertinformationen */}
-                            {meal.nutritionalInfo && (meal.nutritionalInfo.calories || meal.nutritionalInfo.protein) && (
+                            {(
+                                (ni.calories || 0) > 0 ||
+                                (ni.protein || 0) > 0 ||
+                                (ni.carbs || 0) > 0 ||
+                                (ni.fat || 0) > 0
+                            ) && (
                                 <div className="meal-nutrition">
-                                    {meal.nutritionalInfo.calories > 0 && (
-                                        <span className="nutrition-item">🔥 {meal.nutritionalInfo.calories} kcal</span>
+                                    { (ni.calories || 0) > 0 && (
+                                        <span className="nutrition-item">🔥 {ni.calories} kcal</span>
                                     )}
-                                    {meal.nutritionalInfo.protein > 0 && (
-                                        <span className="nutrition-item">💪 {meal.nutritionalInfo.protein}g Protein</span>
+                                    { (ni.protein || 0) > 0 && (
+                                        <span className="nutrition-item">💪 {ni.protein}g Protein</span>
                                     )}
-                                    {meal.nutritionalInfo.carbs > 0 && (
-                                        <span className="nutrition-item">🍞 {meal.nutritionalInfo.carbs}g Carbs</span>
+                                    { (ni.carbs || 0) > 0 && (
+                                        <span className="nutrition-item">🍞 {ni.carbs}g Carbs</span>
                                     )}
-                                    {meal.nutritionalInfo.fat > 0 && (
-                                        <span className="nutrition-item">🥑 {meal.nutritionalInfo.fat}g Fett</span>
+                                    { (ni.fat || 0) > 0 && (
+                                        <span className="nutrition-item">🥑 {ni.fat}g Fett</span>
                                     )}
                                 </div>
                             )}
@@ -502,7 +524,8 @@ function MealManagement() {
                                 </button>
                             </div>
                         </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
         </div>
