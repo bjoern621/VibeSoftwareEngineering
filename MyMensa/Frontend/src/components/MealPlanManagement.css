@@ -204,55 +204,77 @@
     font-size: 0.9rem;
 }
 
-/* Meals List */
+/* Meals List - kompaktes Design wie OrderManagement Wochenansicht */
 .meals-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .meal-item {
-    background: #f8f9fa;
-    padding: 12px;
-    border-radius: 8px;
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
     border: 1px solid #e0e0e0;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     transition: all 0.2s;
 }
 
 .meal-item:hover {
     border-color: #667eea;
-    background: #f0f4ff;
+    background: #f9fafb;
 }
 
 .meal-info {
     flex: 1;
+    min-width: 0;
 }
 
 .meal-info h4 {
-    margin: 0 0 5px 0;
-    font-size: 0.95rem;
+    margin: 0 0 4px 0;
+    font-size: 0.9rem;
     font-weight: 600;
     color: #333;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
 }
 
 .meal-info p {
-    margin: 0 0 8px 0;
-    font-size: 0.85rem;
-    line-height: 1.4;
+    margin: 0 0 6px 0;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    color: #666;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-/* Badges */
+.meal-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+/* Badges - kompakter */
 .badge {
     display: inline-block;
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 999px;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    margin-right: 6px;
+    margin-right: 5px;
+    margin-top: 2px;
 }
 
 .badge-info {
@@ -267,15 +289,30 @@
     border: 1px solid #c8e6c9;
 }
 
-/* Icon Buttons */
+/* Icon Buttons - kompakter */
 .btn-icon {
     background: none;
     border: none;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
+    padding: 6px;
+    border-radius: 6px;
     transition: all 0.3s;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-edit {
+    background: #e3f2fd;
+}
+
+.btn-edit:hover {
+    background: #2196f3;
+    transform: scale(1.1);
 }
 
 .btn-delete {
