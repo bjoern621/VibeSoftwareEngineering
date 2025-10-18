@@ -1,39 +1,43 @@
-/* AdminPanel Styling */
+/* AdminPanel Styling - Modernes Lila/Weiß Design */
 
 .admin-panel {
     min-height: 100vh;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf4 100%);
     padding-bottom: 40px;
 }
 
 .admin-header {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 25px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-bottom: 3px solid transparent;
+    border-image: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-image-slice: 1;
 }
 
 .admin-title-section h1 {
-    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin: 0 0 5px 0;
     font-size: 2rem;
     font-weight: 700;
 }
 
 .admin-subtitle {
-    color: rgba(255, 255, 255, 0.9);
+    color: #666;
     margin: 0;
     font-size: 1rem;
 }
 
 .btn-exit {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
     padding: 12px 24px;
     border-radius: 8px;
     cursor: pointer;
@@ -43,9 +47,11 @@
 }
 
 .btn-exit:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.6);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
     transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .admin-nav {
@@ -57,10 +63,9 @@
 }
 
 .admin-nav-btn {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    color: white;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: white;
+    color: #667eea;
+    border: 2px solid #e0e0e0;
     padding: 15px 30px;
     border-radius: 12px;
     cursor: pointer;
@@ -68,20 +73,21 @@
     font-weight: 600;
     transition: all 0.3s;
     min-width: 200px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .admin-nav-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: #f0f4ff;
+    border-color: #667eea;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.2);
 }
 
 .admin-nav-btn.active {
-    background: white;
-    color: #1e3c72;
-    border-color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .admin-content {
@@ -96,7 +102,7 @@
 .admin-content .meal-plan-management-container {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     overflow: hidden;
 }
 
@@ -126,6 +132,6 @@
     }
 
     .admin-content {
-        padding: 0 15px;
+        padding: 0 20px;
     }
 }
