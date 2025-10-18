@@ -4,20 +4,18 @@ import com.mymensa.backend.dashboard.facade.DashboardDTO;
 import com.mymensa.backend.dashboard.facade.MealStatisticDTO;
 import com.mymensa.backend.meals.dataaccess.Meal;
 import com.mymensa.backend.meals.dataaccess.MealRepository;
-// TODO: Auskommentierung entfernen, wenn Order-Entity existiert
-// import com.mymensa.backend.orders.dataaccess.OrderRepository;
+import com.mymensa.backend.orders.dataaccess.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
  * Service-Klasse für Dashboard-Berechnungen
- * Berechnet Einnahmen, Ausgaben und Statistiken basierend auf Meals
+ * Berechnet Einnahmen, Ausgaben und Statistiken basierend auf echten Order-Daten
  */
 @Service
 public class DashboardService {
@@ -25,11 +23,8 @@ public class DashboardService {
     @Autowired
     private MealRepository mealRepository;
 
-    // TODO: Auskommentierung entfernen, wenn Order-Entity existiert
-    // @Autowired
-    // private OrderRepository orderRepository;
-
-    private final Random random = new Random();
+    @Autowired
+    private OrderRepository orderRepository;
 
     /**
      * Liefert alle Dashboard-Daten
@@ -42,17 +37,11 @@ public class DashboardService {
         // Alle Gerichte aus der Datenbank laden
         List<Meal> meals = mealRepository.findAll();
 
-        // WICHTIG: Mock-Verkaufszahlen einmal generieren und speichern
+        // Verkaufszahlen aus Order-Daten ermitteln und speichern
         Map<Integer, Integer> salesByMealId = new HashMap<>();
         for (Meal meal : meals) {
-            // TODO: Auskommentierung entfernen, wenn Order-Entity implementiert ist
-            /*
-            // Echte Implementierung: Anzahl bezahlter Bestellungen aus Datenbank holen
-            int quantitySold = orderRepository.countByMealAndIsPaidTrue(meal);
-            */
-
-            // MOCK: Zufällige Anzahl verkaufter Portionen (20-100)
-            int quantitySold = 20 + random.nextInt(81);
+            // Anzahl bezahlter Bestellungen aus Datenbank holen
+            int quantitySold = orderRepository.countByMealAndPaid(meal, true);
             salesByMealId.put(meal.getId(), quantitySold);
         }
 
