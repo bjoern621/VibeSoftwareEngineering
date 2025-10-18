@@ -20,6 +20,7 @@ function MealPlanManagement() {
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedMealId, setSelectedMealId] = useState('');
     const [stock, setStock] = useState('');
+    const [editMode, setEditMode] = useState(false); // Neu: Bearbeitungsmodus
 
     const weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
 
@@ -139,8 +140,9 @@ function MealPlanManagement() {
             setSelectedMealId('');
             setStock('');
             setSelectedDate(null);
+            setEditMode(false);
         } catch (err) {
-            alert('Fehler beim Hinzufügen des Gerichts');
+            alert(editMode ? 'Fehler beim Aktualisieren des Gerichts' : 'Fehler beim Hinzufügen des Gerichts');
             console.error(err);
         } finally {
             setLoading(false);
@@ -181,6 +183,17 @@ function MealPlanManagement() {
 
     const openAddModal = (date) => {
         setSelectedDate(date);
+        setEditMode(false);
+        setSelectedMealId('');
+        setStock('');
+        setShowAddModal(true);
+    };
+
+    const openEditModal = (date, meal) => {
+        setSelectedDate(date);
+        setSelectedMealId(meal.id.toString());
+        setStock(meal.availableStock.toString());
+        setEditMode(true);
         setShowAddModal(true);
     };
 
@@ -266,13 +279,22 @@ function MealPlanManagement() {
                                                         {meal.price?.toFixed(2)} €
                                                     </span>
                                                 </div>
-                                                <button
-                                                    className="btn-icon btn-delete"
-                                                    onClick={() => removeMealFromPlan(meal.id, date)}
-                                                    title="Entfernen"
-                                                >
-                                                    🗑️
-                                                </button>
+                                                <div className="meal-actions">
+                                                    <button
+                                                        className="btn-icon btn-edit"
+                                                        onClick={() => openEditModal(date, meal)}
+                                                        title="Bearbeiten"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                    <button
+                                                        className="btn-icon btn-delete"
+                                                        onClick={() => removeMealFromPlan(meal.id, date)}
+                                                        title="Entfernen"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -283,11 +305,11 @@ function MealPlanManagement() {
                 })}
             </div>
 
-            {/* Modal zum Hinzufügen */}
+            {/* Modal zum Hinzufügen/Bearbeiten */}
             {showAddModal && (
                 <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>Gericht zum Speiseplan hinzufügen</h2>
+                        <h2>{editMode ? 'Portionsanzahl bearbeiten' : 'Gericht zum Speiseplan hinzufügen'}</h2>
                         <p className="text-muted">Datum: {selectedDate && formatDate(selectedDate)}</p>
 
                         <div className="form-group">
@@ -296,6 +318,7 @@ function MealPlanManagement() {
                                 value={selectedMealId}
                                 onChange={(e) => setSelectedMealId(e.target.value)}
                                 required
+                                disabled={editMode}
                             >
                                 <option value="">-- Bitte wählen --</option>
                                 {meals.map(meal => (
@@ -304,6 +327,7 @@ function MealPlanManagement() {
                                     </option>
                                 ))}
                             </select>
+                            {editMode && <small className="text-muted">Im Bearbeitungsmodus kann das Gericht nicht geändert werden</small>}
                         </div>
 
                         <div className="form-group">
@@ -324,7 +348,7 @@ function MealPlanManagement() {
                                 onClick={addMealToPlan}
                                 disabled={loading}
                             >
-                                {loading ? '⏳ Hinzufügen...' : '✅ Hinzufügen'}
+                                {loading ? '⏳ Speichern...' : (editMode ? '✅ Aktualisieren' : '✅ Hinzufügen')}
                             </button>
                             <button
                                 className="btn btn-light"
@@ -341,4 +365,3 @@ function MealPlanManagement() {
 }
 
 export default MealPlanManagement;
-
