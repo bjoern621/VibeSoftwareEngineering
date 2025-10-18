@@ -115,6 +115,16 @@ function MealPlanManagement() {
         }
     };
 
+    // Einheitliche Close-Funktion für das Modal: resettet Felder sauber
+    const closeModal = () => {
+        if (loading) return; // während eines Speichervorgangs nicht schließen
+        setShowAddModal(false);
+        setSelectedDate(null);
+        setSelectedMealId('');
+        setStock('');
+        setEditMode(false);
+    };
+
     const addMealToPlan = async () => {
         if (!selectedMealId || !selectedDate || !stock) {
             alert('Bitte alle Felder ausfüllen!');
@@ -123,29 +133,35 @@ function MealPlanManagement() {
 
         setLoading(true);
         try {
+            // selectedDate kann (vorsichtig) String oder Date sein -> sicherstellen
+            const dateObj = (selectedDate instanceof Date) ? selectedDate : new Date(selectedDate);
             const response = await fetch('http://localhost:8080/api/meal-plans', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     mealId: parseInt(selectedMealId),
-                    date: toLocalISODate(selectedDate),
+                    date: toLocalISODate(dateObj),
                     stock: parseInt(stock)
                 })
             });
 
             if (!response.ok) throw new Error('Fehler beim Hinzufügen');
 
+            // Neu laden
             await loadMealPlan();
-            setShowAddModal(false);
-            setSelectedMealId('');
-            setStock('');
-            setSelectedDate(null);
-            setEditMode(false);
+
+            // Erfolgreich: loading beenden, dann Modal schließen (für saubere Transition)
+            setLoading(false);
+
+            // Kleiner Timeout für saubere Transition
+            setTimeout(() => {
+                closeModal();
+            }, 100);
+
         } catch (err) {
+            setLoading(false);
             alert(editMode ? 'Fehler beim Aktualisieren des Gerichts' : 'Fehler beim Hinzufügen des Gerichts');
             console.error(err);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -195,6 +211,12 @@ function MealPlanManagement() {
         setStock(meal.availableStock.toString());
         setEditMode(true);
         setShowAddModal(true);
+
+        // kleine UX-Verbesserung: scroll zur Modal-Position
+        window.setTimeout(() => {
+            const el = document.querySelector('.modal-content');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
     };
 
     useEffect(() => {
@@ -257,6 +279,7 @@ function MealPlanManagement() {
                                 <button
                                     className="btn btn-primary btn-sm"
                                     onClick={() => openAddModal(date)}
+                                    disabled={loading}
                                 >
                                     ➕ Gericht hinzufügen
                                 </button>
@@ -284,6 +307,7 @@ function MealPlanManagement() {
                                                         className="btn-icon btn-edit"
                                                         onClick={() => openEditModal(date, meal)}
                                                         title="Bearbeiten"
+                                                        disabled={loading}
                                                     >
                                                         ✏️
                                                     </button>
@@ -291,6 +315,7 @@ function MealPlanManagement() {
                                                         className="btn-icon btn-delete"
                                                         onClick={() => removeMealFromPlan(meal.id, date)}
                                                         title="Entfernen"
+                                                        disabled={loading}
                                                     >
                                                         🗑️
                                                     </button>
@@ -307,8 +332,8 @@ function MealPlanManagement() {
 
             {/* Modal zum Hinzufügen/Bearbeiten */}
             {showAddModal && (
-                <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-overlay" onClick={() => { if (!loading) closeModal(); }}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
                         <h2>{editMode ? 'Portionsanzahl bearbeiten' : 'Gericht zum Speiseplan hinzufügen'}</h2>
                         <p className="text-muted">Datum: {selectedDate && formatDate(selectedDate)}</p>
 
@@ -318,7 +343,7 @@ function MealPlanManagement() {
                                 value={selectedMealId}
                                 onChange={(e) => setSelectedMealId(e.target.value)}
                                 required
-                                disabled={editMode}
+                                disabled={editMode || loading}
                             >
                                 <option value="">-- Bitte wählen --</option>
                                 {meals.map(meal => (
@@ -339,6 +364,7 @@ function MealPlanManagement() {
                                 onChange={(e) => setStock(e.target.value)}
                                 placeholder="z.B. 50"
                                 required
+                                disabled={loading}
                             />
                         </div>
 
@@ -352,7 +378,8 @@ function MealPlanManagement() {
                             </button>
                             <button
                                 className="btn btn-light"
-                                onClick={() => setShowAddModal(false)}
+                                onClick={() => closeModal()}
+                                disabled={loading}
                             >
                                 Abbrechen
                             </button>
