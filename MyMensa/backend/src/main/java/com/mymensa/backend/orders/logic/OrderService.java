@@ -55,9 +55,13 @@ public class OrderService {
         // Datum parsen
         LocalDate date = parseDate(dateString);
         
-        // Prüfen ob Meal existiert
+        // Prüfen ob Meal existiert UND nicht gelöscht ist
         Meal meal = mealRepository.findById(mealId)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + mealId + " nicht gefunden"));
+        
+        if (meal.getDeleted()) {
+            throw new InvalidRequestException("Dieses Gericht ist nicht mehr verfügbar");
+        }
         
         // Prüfen ob Meal für diesen Tag im Speiseplan ist und Bestand verfügbar
         MealPlan mealPlan = mealPlanRepository.findByMealIdAndDate(mealId, date)
@@ -125,12 +129,12 @@ public class OrderService {
             orderRepository.save(order);
         }
         
-        // MealDTO erstellen
-        MealDTO mealDTO = mealService.getMealById(order.getMeal().getId());
+        // MealDTO erstellen (auch gelöschte Meals für historische Orders)
+        MealDTO mealDTO = mealService.getMealByIdIncludingDeleted(order.getMeal().getId());
         
         return new ValidateResponseDTO(
             wasAlreadyCollected,
-            wasAlreadyCollected ? order.getCollectedAt().toString() : null,
+            order.getCollectedAt() != null ? order.getCollectedAt().toString() : null,
             order.getId(),
             order.getDate().format(DATE_FORMATTER),
             mealDTO

@@ -6,8 +6,13 @@ import com.mymensa.backend.meals.dataaccess.Meal;
 import com.mymensa.backend.meals.dataaccess.NutritionalInfo;
 import com.mymensa.backend.meals.facade.MealDTO;
 import com.mymensa.backend.meals.dataaccess.MealRepository;
+import com.mymensa.backend.mealplans.dataaccess.MealPlanRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,20 +22,32 @@ public class MealService {
     @Autowired
     private MealRepository mealRepository;
     
+    @Autowired
+    private MealPlanRepository mealPlanRepository;
+    
     /**
-     * Alle Gerichte abrufen
+     * Alle nicht-gelöschten Gerichte abrufen
      */
     public List<MealDTO> getAllMeals() {
-        return mealRepository.findAll()
+        return mealRepository.findAllActive()
             .stream()
             .map(this::convertToDTO)
             .collect(Collectors.toList());
     }
     
     /**
-     * Gericht nach ID abrufen
+     * Gericht nach ID abrufen (nur nicht-gelöschte)
      */
     public MealDTO getMealById(Integer id) {  // Integer as per specification
+        Meal meal = mealRepository.findByIdActive(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
+        return convertToDTO(meal);
+    }
+    
+    /**
+     * Gericht nach ID abrufen (auch gelöschte - für historische Daten wie Orders)
+     */
+    public MealDTO getMealByIdIncludingDeleted(Integer id) {
         Meal meal = mealRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
         return convertToDTO(meal);
@@ -55,7 +72,7 @@ public class MealService {
      * Gericht aktualisieren
      */
     public MealDTO updateMeal(Integer id, MealDTO mealDTO) {  // Integer as per specification
-        Meal existingMeal = mealRepository.findById(id)
+        Meal existingMeal = mealRepository.findByIdActive(id)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
         
         validateMealDTO(mealDTO);
@@ -75,13 +92,24 @@ public class MealService {
     }
     
     /**
-     * Gericht löschen
+     * Gericht löschen (Soft Delete)
+     * - Markiert das Meal als gelöscht
+     * - Entfernt es aus zukünftigen MealPlans
+     * - Behält historische Daten (Orders, vergangene MealPlans)
      */
+    @Transactional
     public void deleteMeal(Integer id) {  // Integer as per specification
-        if (!mealRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden");
-        }
-        mealRepository.deleteById(id);
+        Meal meal = mealRepository.findByIdActive(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
+        
+        // Soft Delete: Meal als gelöscht markieren
+        meal.setDeleted(true);
+        meal.setDeletedAt(LocalDateTime.now());
+        mealRepository.save(meal);
+        
+        // Entferne Meal aus zukünftigen MealPlans (ab heute)
+        LocalDate today = LocalDate.now();
+        mealPlanRepository.deleteByMealIdAndDateGreaterThanEqual(id, today);
     }
     
     /**

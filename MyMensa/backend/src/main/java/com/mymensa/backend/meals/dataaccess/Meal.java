@@ -1,6 +1,7 @@
 package com.mymensa.backend.meals.dataaccess;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -38,6 +39,13 @@ public class Meal {
     @CollectionTable(name = "meal_allergens", joinColumns = @JoinColumn(name = "meal_id"))
     @Column(name = "allergen")
     private List<String> allergens;
+    
+    // Soft Delete Fields
+    @Column(nullable = false)
+    private Boolean deleted = false;
+    
+    @Column
+    private LocalDateTime deletedAt;
     
     // Constructors
     public Meal() {
@@ -127,5 +135,21 @@ public class Meal {
     
     public void setAllergens(List<String> allergens) {
         this.allergens = allergens;
+    }
+    
+    public Boolean getDeleted() {
+        return deleted;
+    }
+    
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
+    }
+    
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+    
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }
