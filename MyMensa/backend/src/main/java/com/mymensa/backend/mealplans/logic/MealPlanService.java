@@ -66,7 +66,8 @@ public class MealPlanService {
             
             List<MealPlanEntryDTO> entries = mealsForDay.stream()
                 .map(mealPlan -> {
-                    MealDTO mealDTO = mealService.getMealById(mealPlan.getMealId());
+                    // Auch gelöschte Meals anzeigen für historische Speisepläne
+                    MealDTO mealDTO = mealService.getMealByIdIncludingDeleted(mealPlan.getMealId());
                     return new MealPlanEntryDTO(mealDTO, mealPlan.getStock());
                 })
                 .collect(Collectors.toList());
@@ -94,10 +95,10 @@ public class MealPlanService {
         
         LocalDate date = parseDate(requestDTO.date());
         
-        // Prüfen ob Meal existiert
-        mealRepository.findById(requestDTO.mealId())
+        // Prüfen ob Meal existiert UND nicht gelöscht ist
+        mealRepository.findByIdActive(requestDTO.mealId())
             .orElseThrow(() -> new ResourceNotFoundException(
-                "Gericht mit ID " + requestDTO.mealId() + " nicht gefunden"
+                "Gericht mit ID " + requestDTO.mealId() + " nicht gefunden oder wurde gelöscht"
             ));
         
         // Prüfen ob MealPlan bereits existiert

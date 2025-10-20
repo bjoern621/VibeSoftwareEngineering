@@ -23,4 +23,10 @@ public interface MealPlanRepository extends JpaRepository<MealPlan, MealPlanId> 
      * Löscht einen MealPlan für ein bestimmtes Gericht an einem bestimmten Datum
      */
     void deleteByMealIdAndDate(Integer mealId, LocalDate date);
+    
+    /**
+     * Löscht alle MealPlans für ein Gericht ab einem bestimmten Datum (inklusive)
+     * Wird für Soft Delete von Meals verwendet
+     */
+    void deleteByMealIdAndDateGreaterThanEqual(Integer mealId, LocalDate date);
 }
