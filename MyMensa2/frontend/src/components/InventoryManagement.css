@@ -1,0 +1,136 @@
+/* InventoryManagement Styles */
+.inventory-management {
+  max-width: 100%;
+}
+
+/* Info Box */
+.info-box {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  border-left: 5px solid #f39c12;
+}
+
+.info-box h3 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.info-box p {
+  color: #2c3e50;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Table Container */
+.inventory-table-container {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+
+.inventory-table-container table {
+  min-width: 1000px;
+}
+
+.low-stock {
+  background-color: #fff3cd !important;
+}
+
+.low-stock:hover {
+  background-color: #ffe8a1 !important;
+}
+
+.quantity-low {
+  color: #e74c3c;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.quantity-ok {
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+}
+
+.status-badge.low {
+  background-color: #e74c3c;
+}
+
+.status-badge.ok {
+  background-color: #27ae60;
+}
+
+/* Inventory Statistics */
+.inventory-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card.warning {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card.success {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-icon {
+  font-size: 3rem;
+}
+
+.stat-content h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  color: inherit;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .inventory-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+}
