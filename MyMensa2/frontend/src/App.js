@@ -2,7 +2,13 @@ import React from 'react';
 import './App.css';
 import MealManagement from './components/MealManagement';
 
+/**
+ * Haupt-App-Komponente für MyMensa2
+ * Verwaltet die Navigation zwischen Kundenansicht und Admin-Portal
+ */
 function App() {
+  const [view, setView] = useState('order'); // 'order' oder 'admin'
+
   return (
     <div className="App">
       {/* Header */}
