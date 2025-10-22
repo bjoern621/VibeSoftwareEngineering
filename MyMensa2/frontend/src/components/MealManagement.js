@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { getMeals, createMeal, updateMeal, deleteMeal } from '../services/api';
+import api from '../services/api';
 import './MealManagement.css';
+
+// Meal-Bilder Mapping (passend zu den Gerichten)
+const mealImages = {
+  1: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&h=300&fit=crop', // Spaghetti Carbonara
+  2: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop', // Gemüse-Curry
+  3: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=400&h=300&fit=crop', // Hähnchen-Schnitzel
+  4: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop', // Linsen-Dal
+  5: 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=400&h=300&fit=crop', // Quinoa-Salat
+  6: 'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&h=300&fit=crop', // Rindergulasch
+  7: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&h=300&fit=crop', // Falafel-Wrap
+  8: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop'  // Lachsfilet
+};
 
 const MealManagement = () => {
   const [meals, setMeals] = useState([]);
@@ -57,7 +69,7 @@ const MealManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getMeals();
+      const data = await api.meals.getAll();
       setMeals(data);
     } catch (err) {
       setError(err.message || 'Fehler beim Laden der Gerichte');
@@ -91,9 +103,9 @@ const MealManagement = () => {
       };
 
       if (editingMeal) {
-        await updateMeal(editingMeal.id, mealData);
+        await api.meals.update(editingMeal.id, mealData);
       } else {
-        await createMeal(mealData);
+        await api.meals.create(mealData);
       }
 
       await loadMeals();
@@ -107,7 +119,7 @@ const MealManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Möchten Sie dieses Gericht wirklich löschen?')) {
       try {
-        await deleteMeal(id);
+        await api.meals.delete(id);
         await loadMeals();
       } catch (err) {
         setError(err.message || 'Fehler beim Löschen');
@@ -288,10 +300,9 @@ const MealManagement = () => {
                 return matchesSearch && matchesCategory;
               }).map(meal => (
                 <div key={meal.id} className="meal-card">
-                  <div className="meal-card-header">
-                    <span className="meal-icon">{categories.find(c => c.value === meal.category)?.label.split(' ')[0] || '🍽️'}</span>
-                    <span className="meal-category">
-                      {categories.find(c => c.value === meal.category)?.label.split(' ')[1] || meal.category}
+                  <div className="meal-image-container" style={{backgroundImage: `url(${mealImages[meal.id] || mealImages[1]})`}}>
+                    <span className="meal-category-badge">
+                      {categories.find(c => c.value === meal.category)?.label || meal.category}
                     </span>
                   </div>
 
@@ -508,4 +519,3 @@ const MealManagement = () => {
 };
 
 export default MealManagement;
-
