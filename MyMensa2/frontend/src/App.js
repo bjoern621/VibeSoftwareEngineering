@@ -1,23 +1,27 @@
-import logo from './logo.svg';
+import React from 'react';
 import './App.css';
+import MealManagement from './components/MealManagement';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+      {/* Header */}
+      <header className="app-header">
+        <div className="header-content">
+          <h1>🍽️ MyMensa Verwaltungsportal</h1>
+          <p className="header-subtitle">Gerichteverwaltung für Ihre Mensa</p>
+        </div>
       </header>
+
+      {/* Hauptinhalt */}
+      <main className="app-main">
+        <MealManagement />
+      </main>
+
+      {/* Footer */}
+      <footer className="app-footer">
+        <p>© 2025 MyMensa Verwaltungssystem</p>
+      </footer>
     </div>
   );
 }
