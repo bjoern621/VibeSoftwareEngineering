@@ -1,43 +1,68 @@
 import React, { useState, useEffect } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import './OrderManagement.css';
-import api from '../services/api';
-import { getWeekDays } from '../utils/dateUtils';
-import { calculateTotalPrice, getCartItemCount, calculateBtcAmount } from '../utils/priceUtils';
-import { PAYMENT_METHODS, BITCOIN_COUNTDOWN_SECONDS } from '../utils/constants';
+import { calculateBtcAmount } from '../utils/priceUtils';
+import { BITCOIN_COUNTDOWN_SECONDS, ERROR_MESSAGES } from '../utils/constants';
+import { mockMeals } from '../services/mockData';
 
-/**
- * Komponente für die Bestellverwaltung (Kundenansicht)
- * Wochenansicht Montag-Freitag mit Vorbestellmöglichkeit
- */
+const categories = [
+  { value: 'VEGETARIAN', label: '🥗 Vegetarisch' },
+  { value: 'VEGAN', label: '🌱 Vegan' },
+  { value: 'MEAT', label: '🍖 Fleisch' },
+  { value: 'FISH', label: '🐟 Fisch' },
+  { value: 'HALAL', label: '☪️ Halal' },
+];
+
+// Erweitere mockMeals mit passenden Bildern
+const mealsWithImages = mockMeals.slice(0, 5).map((meal, index) => ({
+  ...meal,
+  image: [
+    'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&h=300&fit=crop', // Spaghetti Carbonara
+    'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop', // Gemüse-Curry
+    'https://images.unsplash.com/photo-1562967914-608f82629710?w=400&h=300&fit=crop', // Hähnchen-Schnitzel
+    'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop', // Linsen-Dal
+    'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=400&h=300&fit=crop'  // Quinoa-Salat
+  ][index],
+  stock: 45 - (index * 5)
+}));
+
 function OrderManagement() {
-  const [weekMealPlans, setWeekMealPlans] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [orderQuantities, setOrderQuantities] = useState({});
+  const [cart, setCart] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [showCheckout, setShowCheckout] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
-  const [orderResult, setOrderResult] = useState(null);
   const [showQRCode, setShowQRCode] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState(null);
   const [accountBalance, setAccountBalance] = useState(50.00);
   const [showBalanceModal, setShowBalanceModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
+  const [topUpStep, setTopUpStep] = useState(1); // 1 = Betrag, 2 = Zahlungsmethode
+  const [isTopUp, setIsTopUp] = useState(false); // Kennzeichnet Guthaben-Aufladen vs. Bestellung
+  
+  // Bitcoin
   const [showBitcoinPayment, setShowBitcoinPayment] = useState(false);
   const [bitcoinCountdown, setBitcoinCountdown] = useState(BITCOIN_COUNTDOWN_SECONDS);
   const [btcPrice, setBtcPrice] = useState(null);
-  const [btcPriceLoading, setBtcPriceLoading] = useState(false);
+  
+  // Kreditkarte
+  const [showCreditCardForm, setShowCreditCardForm] = useState(false);
+  const [creditCardData, setCreditCardData] = useState({
+    cardNumber: '',
+    cardHolder: '',
+    expiryDate: '',
+    cvv: ''
+  });
 
-  // Heutiges Datum und Wochentage berechnen (nur einmal beim Mount)
-  const [weekDays] = useState(() => getWeekDays(new Date()));
+  const paymentMethodsList = [
+    { id: 'creditcard', name: '💳 Kreditkarte', description: 'Visa, Mastercard, American Express' },
+    { id: 'account', name: '💰 Guthabenkonto', description: `Guthaben: ${accountBalance.toFixed(2)} €` },
+    { id: 'bitcoin', name: '₿ Bitcoin', description: 'Kryptowährung' }
+  ];
 
-  /**
-   * BTC-Kurs von CoinGecko API abrufen (tagesaktuell)
-   * 
-   * @returns {Promise<number>} Aktueller BTC-Kurs in EUR
-   */
+  // Lade BTC-Kurs von CoinGecko API
   const fetchBitcoinPrice = async () => {
-    setBtcPriceLoading(true);
     try {
       const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur');
       const data = await response.json();
@@ -46,835 +71,771 @@ function OrderManagement() {
       return price;
     } catch (err) {
       console.error('Fehler beim Abrufen des BTC-Kurses:', err);
-      // Fallback auf geschätzten Wert
-      setBtcPrice(50000);
+      alert(ERROR_MESSAGES.BITCOIN_PRICE_FETCH_FAILED);
+      setBtcPrice(50000); // Fallback
       return 50000;
-    } finally {
-      setBtcPriceLoading(false);
     }
   };
 
-  /**
-   * Speisepläne für die ganze Woche laden
-   */
+  // Bitcoin Countdown Timer - 30 Minuten = 1800 Sekunden
   useEffect(() => {
-    fetchWeekMealPlans();
-    // eslint-disable-next-line
-  }, []);
-
-  /**
-   * Lädt alle Speisepläne für die aktuelle Woche (Mo-Fr)
-   * 
-   * @async
-   * @returns {Promise<void>}
-   */
-  const fetchWeekMealPlans = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const plans = {};
-      
-      // Speisepläne für alle Wochentage parallel laden
-      await Promise.all(
-        weekDays.map(async (day) => {
-          const data = await api.mealPlans.getByDate(day.date);
-          plans[day.date] = data;
-        })
-      );
-      
-      setWeekMealPlans(plans);
-    } catch (err) {
-      setError('Fehler beim Laden der Speisepläne: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Menge für ein Gericht im Warenkorb ändern
-   * 
-   * @param {string} date - Datum im Format yyyy-MM-dd
-   * @param {number} mealId - ID des Gerichts
-   * @param {string|number} newQuantity - Neue Anzahl
-   */
-  const handleQuantityChange = (date, mealId, newQuantity) => {
-    const key = `${date}_${mealId}`;
-    const qty = parseInt(newQuantity);
-    
-    if (isNaN(qty) || qty < 0) {
-      setOrderQuantities(prev => ({
-        ...prev,
-        [key]: 0
-      }));
-      return;
-    }
-    
-    setOrderQuantities(prev => ({
-      ...prev,
-      [key]: qty
-    }));
-  };
-
-  /**
-   * Bestellung absenden - öffnet Warenkorb-Modal
-   * 
-   * @async
-   */
-  const handleOrder = async () => {
-    setError(null);
-    setSuccess(null);
-    
-    // Warenkorb öffnen
-    setShowCheckout(true);
-  };
-
-  /**
-   * Von Warenkorb zur Zahlungsauswahl wechseln
-   */
-  const proceedToPayment = () => {
-    setShowCheckout(false);
-    setShowPayment(true);
-  };
-
-  /**
-   * Zahlung abschließen
-   * Verarbeitet verschiedene Zahlungsmethoden und öffnet entsprechende Modals
-   */
-  const completePayment = async () => {
-    if (!selectedPaymentMethod) {
-      setError('Bitte wählen Sie eine Zahlungsart');
-      return;
-    }
-
-    // Bitcoin-Zahlung zeigt spezielles Modal
-    if (selectedPaymentMethod === 'Bitcoin') {
-      setShowPayment(false);
-      setShowBitcoinPayment(true);
-      setBitcoinCountdown(BITCOIN_COUNTDOWN_SECONDS);
-      
-      // BTC-Kurs abrufen beim Öffnen des Bitcoin-Modals
-      await fetchBitcoinPrice();
-      
-      return;
-    }
-
-    // Guthabenkonto: Prüfe Saldo
-    if (selectedPaymentMethod === 'Guthabenkonto') {
-      const totalPrice = parseFloat(getTotalPrice());
-      if (accountBalance < totalPrice) {
-        setError(`Nicht genug Guthaben! Aktueller Stand: ${accountBalance.toFixed(2)} €. Bitte laden Sie Ihr Konto auf.`);
-        return;
-      }
-    }
-
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Alle Bestellungen sammeln
-      const orders = [];
-      Object.entries(orderQuantities).forEach(([key, quantity]) => {
-        if (quantity > 0) {
-          const [date, mealIdStr] = key.split('_');
-          const mealId = parseInt(mealIdStr);
-          const meal = weekMealPlans[date]?.find(m => m.mealId === mealId);
-          
-          if (meal) {
-            orders.push({
-              mealId: mealId,
-              quantity,
-              orderDate: date,
-              mealName: meal.meal.name,
-              price: meal.meal.price
-            });
-          }
-        }
-      });
-      
-      if (orders.length === 0) {
-        setError('Bitte wählen Sie mindestens ein Gericht aus');
-        return;
-      }
-      
-      // Alle Bestellungen erstellen
-      const createdOrders = await Promise.all(
-        orders.map(order => api.orders.create({
-          mealId: order.mealId,
-          quantity: order.quantity,
-          orderDate: order.orderDate
-        }))
-      );
-      
-      // Ergebnisse sammeln
-      const result = {
-        orders: orders,
-        createdOrders: createdOrders,
-        totalPrice: getTotalPrice(),
-        paymentMethod: selectedPaymentMethod,
-        qrCodes: createdOrders.map(o => o.qrCode),
-        orderIds: createdOrders.map(o => o.id)
-      };
-      
-      // Bei Guthabenkonto: Saldo abziehen
-      if (selectedPaymentMethod === 'Guthabenkonto') {
-        const totalPrice = parseFloat(getTotalPrice());
-        setAccountBalance(prev => prev - totalPrice);
-      }
-      
-      setOrderResult(result);
-      setShowPayment(false);
-      setShowQRCode(true);
-      setOrderQuantities({});
-      
-      // Speisepläne neu laden
-      fetchWeekMealPlans();
-    } catch (err) {
-      setError('Fehler beim Aufgeben der Bestellung: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Bitcoin-Countdown-Timer: Zählt Restzeit für Bitcoin-Zahlung herunter
-   */
-  useEffect(() => {
-    let interval;
+    let timer;
     if (showBitcoinPayment && bitcoinCountdown > 0) {
-      interval = setInterval(() => {
+      timer = setInterval(() => {
         setBitcoinCountdown(prev => {
           if (prev <= 1) {
             setShowBitcoinPayment(false);
             setShowPayment(true);
-            setError('Bitcoin-Zahlung abgelaufen. Bitte wählen Sie erneut.');
-            return 0;
+            alert('⏱️ Zeit abgelaufen! Bitte wählen Sie erneut eine Zahlungsmethode.');
+            return 1800; // 30 Minuten
           }
           return prev - 1;
         });
       }, 1000);
     }
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, [showBitcoinPayment, bitcoinCountdown]);
 
-  /**
-   * Bitcoin-Zahlung abschließen
-   * Simuliert Bitcoin-Transaktion und erstellt Bestellungen
-   * 
-   * @async
-   * @returns {Promise<void>}
-   */
-  const completeBitcoinPayment = async () => {
-    setLoading(true);
-    setShowBitcoinPayment(false);
-    
-    // Simuliere Bitcoin-Verarbeitung (würde in Realität auf Blockchain-Bestätigung warten)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    try {
-      const orders = [];
-      Object.entries(orderQuantities).forEach(([key, quantity]) => {
-        if (quantity > 0) {
-          const [date, mealIdStr] = key.split('_');
-          const mealId = parseInt(mealIdStr);
-          const meal = weekMealPlans[date]?.find(m => m.mealId === mealId);
-          
-          if (meal) {
-            orders.push({
-              mealId: mealId,
-              quantity,
-              orderDate: date,
-              mealName: meal.meal.name,
-              price: meal.meal.price
-            });
-          }
-        }
-      });
-      
-      const createdOrders = await Promise.all(
-        orders.map(order => api.orders.create({
-          mealId: order.mealId,
-          quantity: order.quantity,
-          orderDate: order.orderDate
-        }))
-      );
-      
-      const result = {
-        orders: orders,
-        createdOrders: createdOrders,
-        totalPrice: getTotalPrice(),
-        paymentMethod: 'bitcoin',
-        qrCodes: createdOrders.map(o => o.qrCode),
-        orderIds: createdOrders.map(o => o.id)
-      };
-      
-      setOrderResult(result);
-      setShowQRCode(true);
-      setOrderQuantities({});
-      setSuccess('Bitcoin-Zahlung erfolgreich! Transaktion bestätigt.');
-      fetchWeekMealPlans();
-    } catch (err) {
-      setError('Fehler bei Bitcoin-Zahlung: ' + err.message);
-    } finally {
-      setLoading(false);
+  const updateQuantity = (mealId, newQuantity) => {
+    if (newQuantity <= 0) {
+      const newCart = { ...cart };
+      delete newCart[mealId];
+      setCart(newCart);
+    } else {
+      const meal = mealsWithImages.find(m => m.id === mealId);
+      if (meal && newQuantity <= meal.stock) {
+        setCart(prev => ({ ...prev, [mealId]: newQuantity }));
+      }
     }
   };
 
-  /**
-   * Guthaben aufladen
-   * Fügt Betrag zum Guthabenkonto hinzu
-   */
-  const handleTopUp = () => {
-    const amount = parseFloat(topUpAmount);
-    if (isNaN(amount) || amount <= 0) {
-      setError('Bitte geben Sie einen gültigen Betrag ein');
+  const getTotalItems = () => Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+  
+  const getTotalPrice = () => {
+    return Object.entries(cart).reduce((sum, [mealId, qty]) => {
+      const meal = mealsWithImages.find(m => m.id === parseInt(mealId));
+      return sum + (meal ? meal.price * qty : 0);
+    }, 0);
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleCheckout = () => {
+    setShowCheckout(true);
+  };
+
+  const handleCloseCheckout = () => {
+    setShowCheckout(false);
+    setShowPayment(false);
+    setShowBitcoinPayment(false);
+    setShowCreditCardForm(false);
+    setSelectedPaymentMethod(null);
+    setBitcoinCountdown(1800);
+  };
+
+  const handleContinueToPayment = () => {
+    setShowCheckout(false);
+    setShowPayment(true);
+  };
+
+  const handleSelectPaymentMethod = (methodId) => {
+    setSelectedPaymentMethod(methodId);
+    
+    if (methodId === 'bitcoin') {
+      setShowPayment(false);
+      setShowBitcoinPayment(true);
+      setBitcoinCountdown(1800);
+      if (!btcPrice) {
+        fetchBitcoinPrice();
+      }
+    } else if (methodId === 'creditcard') {
+      setShowPayment(false);
+      setShowCreditCardForm(true);
+    }
+  };
+
+  const handleConfirmPayment = () => {
+    const total = getTotalPrice();
+    if (selectedPaymentMethod === 'account' && accountBalance < total) {
+      alert(ERROR_MESSAGES.INSUFFICIENT_BALANCE);
+      return;
+    }
+    if (selectedPaymentMethod === 'account') {
+      setAccountBalance(prev => prev - total);
+    }
+    completeOrder();
+  };
+
+  const handleCreditCardPayment = () => {
+    if (!creditCardData.cardNumber || !creditCardData.cardHolder || 
+        !creditCardData.expiryDate || !creditCardData.cvv) {
+      alert('❌ Bitte füllen Sie alle Felder aus!');
       return;
     }
     
+    if (isTopUp) {
+      // Guthaben-Aufladen
+      completeTopUp();
+      setShowCreditCardForm(false);
+      setIsTopUp(false);
+    } else {
+      // Normale Bestellung
+      completeOrder();
+    }
+  };
+
+  const handleBitcoinPayment = () => {
+    if (isTopUp) {
+      // Guthaben-Aufladen
+      completeTopUp();
+      setShowBitcoinPayment(false);
+      setIsTopUp(false);
+    } else {
+      // Normale Bestellung
+      completeOrder();
+    }
+  };
+
+  const completeOrder = () => {
+    const orderData = {
+      orderId: 'ORDER-' + Date.now(),
+      items: Object.entries(cart).map(([mealId, qty]) => {
+        const meal = mealsWithImages.find(m => m.id === parseInt(mealId));
+        return { name: meal?.name || 'Unknown', quantity: qty };
+      }),
+      total: getTotalPrice(),
+      timestamp: new Date().toISOString(),
+      paymentMethod: selectedPaymentMethod
+    };
+    setQrCodeData(orderData);
+    setShowPayment(false);
+    setShowBitcoinPayment(false);
+    setShowCreditCardForm(false);
+    setShowQRCode(true);
+  };
+
+  const handleNewOrder = () => {
+    setCart({});
+    setShowQRCode(false);
+    setSelectedPaymentMethod(null);
+    setCreditCardData({ cardNumber: '', cardHolder: '', expiryDate: '', cvv: '' });
+  };
+
+  // Guthaben aufladen - Schritt 1: Betrag prüfen
+  const handleContinueToTopUpPayment = () => {
+    const amount = parseFloat(topUpAmount);
+    if (isNaN(amount) || amount <= 0) {
+      alert(ERROR_MESSAGES.INVALID_AMOUNT);
+      return;
+    }
+    if (amount > 500) {
+      alert('Maximaler Aufladebetrag ist 500 €.');
+      return;
+    }
+    setTopUpStep(2); // Zur Zahlungsmethoden-Auswahl
+  };
+
+  // Guthaben aufladen - Schritt 2: Zahlungsmethode wählen
+  const handleSelectTopUpPaymentMethod = (methodId) => {
+    setIsTopUp(true); // Markieren als Top-Up-Transaktion
+    if (methodId === 'bitcoin') {
+      fetchBitcoinPrice();
+      setShowBalanceModal(false);
+      setShowBitcoinPayment(true);
+      setBitcoinCountdown(1800);
+    } else if (methodId === 'credit_card') {
+      setShowBalanceModal(false);
+      setShowCreditCardForm(true);
+    }
+  };
+
+  // Nach Zahlung: Guthaben aufladen
+  const completeTopUp = () => {
+    const amount = parseFloat(topUpAmount);
     setAccountBalance(prev => prev + amount);
-    setSuccess(`Guthaben erfolgreich um ${amount.toFixed(2)} € aufgeladen!`);
     setTopUpAmount('');
-    setShowBalanceModal(false);
+    setTopUpStep(1);
   };
 
-  /**
-   * Warenkorb-Items mit Details holen
-   * Transformiert orderQuantities zu Array mit Meal-Details
-   * 
-   * @returns {Array<Object>} Array mit Warenkorb-Items
-   */
-  const getCartItems = () => {
-    const items = [];
-    Object.entries(orderQuantities).forEach(([key, quantity]) => {
-      if (quantity > 0) {
-        const [date, mealIdStr] = key.split('_');
-        const mealId = parseInt(mealIdStr);
-        const mealPlan = weekMealPlans[date]?.find(m => m.mealId === mealId);
-        
-        if (mealPlan) {
-          items.push({
-            key,
-            date,
-            mealId,
-            quantity,
-            meal: mealPlan.meal,
-            subtotal: mealPlan.meal.price * quantity
-          });
-        }
-      }
-    });
-    return items;
-  };
-
-  /**
-   * Gesamtpreis berechnen
-   * 
-   * @returns {string} Formatierter Gesamtpreis
-   */
-  const getTotalPrice = () => {
-    return calculateTotalPrice(orderQuantities, weekMealPlans).toFixed(2);
-  };
-
-  /**
-   * Gesamtpreis als Zahl (für Berechnungen)
-   * 
-   * @returns {number} Gesamtpreis als Zahl
-   */
-  const getTotalPriceNumber = () => {
-    return calculateTotalPrice(orderQuantities, weekMealPlans);
-  };
-
-  /**
-   * Anzahl Gerichte im Warenkorb
-   * 
-   * @returns {number} Anzahl Items
-   */
-  const getItemCount = () => {
-    return getCartItemCount(orderQuantities);
-  };
+  const filteredMeals = mealsWithImages.filter(meal => {
+    const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         meal.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'all' || meal.category === categoryFilter;
+    return matchesSearch && matchesCategory && meal.stock > 0;
+  });
 
   return (
     <div className="order-management">
-      {/* Top-Bar mit Guthaben und Warenkorb */}
-      <div className="top-bar">
-        <div className="balance-display" onClick={() => setShowBalanceModal(true)}>
-          <span className="balance-icon">💰</span>
-          <div className="balance-info">
-            <span className="balance-label">Guthaben</span>
-            <span className="balance-amount">{accountBalance.toFixed(2)} €</span>
+      <div className="container">
+        {/* Header */}
+        <div className="page-header">
+          <div className="header-left">
+            <h2>Heutige Speisekarte</h2>
+            <p className="subtitle">{mockMeals.filter(m => m.stock > 0).length} Gerichte verfügbar</p>
           </div>
-          <button className="balance-topup-btn">Aufladen +</button>
-        </div>
-
-        <div className="cart-icon-container" onClick={() => {
-          if (getItemCount() > 0) {
-            setShowCheckout(true);
-          }
-        }}>
-          <div className="cart-icon">🛒</div>
-          {getItemCount() > 0 && (
-            <span className="cart-badge">{getItemCount()}</span>
-          )}
-        </div>
-      </div>
-
-      <div className="order-header">
-        <h2>Wochenansicht & Vorbestellung</h2>
-        <p className="subtitle">Bestellen Sie für Montag bis Freitag vor</p>
-      </div>
-
-      {error && <div className="error-message">{error}</div>}
-      {success && <div className="success-message">{success}</div>}
-
-      {loading ? (
-        <div className="loading">Lade Speisepläne...</div>
-      ) : (
-        <>
-          {/* Wochenübersicht */}
-          <div className="week-view">
-            {weekDays.map((day) => (
-              <div key={day.date} className={`day-column ${day.isToday ? 'today' : ''}`}>
-                {/* Tag-Header */}
-                <div className="day-header">
-                  <div className="day-name">{day.dayShort}</div>
-                  <div className="day-date">{day.dayNum}. {day.monthShort}</div>
-                  {day.isToday && <div className="today-badge">Heute</div>}
-                </div>
-
-                {/* Gerichte für diesen Tag */}
-                <div className="day-meals">
-                  {weekMealPlans[day.date] && weekMealPlans[day.date].length > 0 ? (
-                    weekMealPlans[day.date].map((mealPlan) => {
-                      const key = `${day.date}_${mealPlan.mealId}`; // WICHTIG: _ statt -
-                      const quantity = orderQuantities[key] || 0;
-
-                      return (
-                        <div key={mealPlan.mealId} className="meal-card">
-                          <div className="meal-info">
-                            <h4 className="meal-name">{mealPlan.meal.name}</h4>
-                            <p className="meal-description">{mealPlan.meal.description}</p>
-                            
-                            {/* Kategorien & Allergene */}
-                            <div className="meal-tags">
-                              <span className={`category-badge ${mealPlan.meal.category}`}>
-                                {mealPlan.meal.category}
-                              </span>
-                              {mealPlan.meal.allergens && mealPlan.meal.allergens.length > 0 && (
-                                <span className="allergens-badge">
-                                  ⚠️ {mealPlan.meal.allergens.join(', ')}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Nährwerte */}
-                            <div className="nutrition-info">
-                              <span>{mealPlan.meal.calories} kcal</span>
-                              <span>P: {mealPlan.meal.protein}g</span>
-                              <span>K: {mealPlan.meal.carbohydrates}g</span>
-                              <span>F: {mealPlan.meal.fat}g</span>
-                            </div>
-
-                            {/* Preis & Bestand */}
-                            <div className="meal-bottom">
-                              <span className="meal-price">{mealPlan.meal.price.toFixed(2)} €</span>
-                              <span className={`meal-stock ${mealPlan.stock < 10 ? 'low' : ''}`}>
-                                {mealPlan.stock > 0 ? `${mealPlan.stock} verfügbar` : 'Ausverkauft'}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Mengenauswahl */}
-                          <div className="quantity-selector">
-                            <button
-                              className="qty-btn"
-                              onClick={() => {
-                                const newQty = Math.max(0, quantity - 1);
-                                handleQuantityChange(day.date, mealPlan.mealId, newQty);
-                              }}
-                              disabled={quantity === 0}
-                            >
-                              -
-                            </button>
-                            <input
-                              type="number"
-                              min="0"
-                              max={mealPlan.stock}
-                              value={quantity}
-                              onChange={(e) => handleQuantityChange(day.date, mealPlan.mealId, e.target.value)}
-                              className="qty-input"
-                            />
-                            <button
-                              className="qty-btn"
-                              onClick={() => {
-                                const newQty = Math.min(mealPlan.stock, quantity + 1);
-                                handleQuantityChange(day.date, mealPlan.mealId, newQty);
-                              }}
-                              disabled={quantity >= mealPlan.stock}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="no-meals">Kein Speiseplan für diesen Tag</div>
-                  )}
-                </div>
+          <div className="header-right">
+            <div className="balance-display" onClick={() => setShowBalanceModal(true)}>
+              <span className="balance-icon">💰</span>
+              <div className="balance-info">
+                <span className="balance-label">Guthaben</span>
+                <span className="balance-amount">{accountBalance.toFixed(2)} €</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="filters-section">
+          <div className="search-box">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Gerichte durchsuchen..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="category-filters">
+            <button
+              className={`filter-chip ${categoryFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setCategoryFilter('all')}
+            >
+              Alle
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat.value}
+                className={`filter-chip ${categoryFilter === cat.value ? 'active' : ''}`}
+                onClick={() => setCategoryFilter(cat.value)}
+              >
+                {cat.label}
+              </button>
             ))}
           </div>
+        </div>
 
-          {/* Warenkorb-Zusammenfassung */}
-          {getItemCount() > 0 && !showCheckout && !showPayment && !showQRCode && (
-            <div className="cart-summary">
-              <div className="cart-info">
-                <h3>Bestellübersicht</h3>
-                <div className="cart-details">
-                  <span className="cart-items">{getItemCount()} Gericht(e)</span>
-                  <span className="cart-total">Gesamt: {getTotalPrice()} €</span>
+        {/* Meals Grid */}
+        <div className="meals-grid">
+          {filteredMeals.length === 0 ? (
+            <div className="empty-state">
+              <span className="empty-icon">🍽️</span>
+              <h3>Keine Gerichte gefunden</h3>
+              <p>Passen Sie die Filter an oder versuchen Sie es später erneut.</p>
+            </div>
+          ) : (
+            filteredMeals.map(meal => (
+              <div key={meal.id} className="meal-card">
+                {/* Meal Image */}
+                <div className="meal-image" style={{backgroundImage: `url(${meal.image})`}}>
+                  <span className="meal-category-badge">
+                    {categories.find(c => c.value === meal.category)?.label || '🍽️'}
+                  </span>
+                </div>
+
+                <div className="meal-card-body">
+                  <h3 className="meal-name">{meal.name}</h3>
+                  <p className="meal-description">{meal.description}</p>
+
+                  {/* Meal Info */}
+                  <div className="meal-info-row">
+                    <span className="info-badge">🔥 {meal.calories} kcal</span>
+                    <span className={`stock-badge ${meal.stock < 15 ? 'low' : ''}`}>
+                      📦 {meal.stock} verfügbar
+                    </span>
+                  </div>
+
+                  {/* Allergens */}
+                  {meal.allergens && meal.allergens.length > 0 && (
+                    <div className="allergens">
+                      <span className="allergen-label">⚠️ Allergene:</span>
+                      <span className="allergen-list">{meal.allergens.join(', ')}</span>
+                    </div>
+                  )}
+
+                  {/* Price & Quantity Controls */}
+                  <div className="meal-card-footer">
+                    <span className="meal-price">{meal.price.toFixed(2)} €</span>
+                    
+                    {cart[meal.id] > 0 ? (
+                      <div className="quantity-controls">
+                        <button 
+                          className="qty-btn qty-minus"
+                          onClick={() => updateQuantity(meal.id, cart[meal.id] - 1)}
+                        >
+                          ➖
+                        </button>
+                        <span className="qty-display">{cart[meal.id]}</span>
+                        <button 
+                          className="qty-btn qty-plus"
+                          onClick={() => updateQuantity(meal.id, cart[meal.id] + 1)}
+                          disabled={cart[meal.id] >= meal.stock}
+                        >
+                          ➕
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => updateQuantity(meal.id, 1)} 
+                        className="btn-add-cart"
+                      >
+                        🛒 Hinzufügen
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-              <button className="order-button" onClick={handleOrder}>
+            ))
+          )}
+        </div>
+
+        {/* Cart Summary */}
+        {getTotalItems() > 0 && (
+          <div className="cart-summary-floating">
+            <div className="cart-summary-content">
+              <div className="cart-info">
+                <span className="cart-icon">🛒</span>
+                <div className="cart-details">
+                  <strong>{getTotalItems()} Artikel</strong>
+                  <span className="cart-total">{getTotalPrice().toFixed(2)} €</span>
+                </div>
+              </div>
+              <button className="btn-checkout" onClick={handleCheckout}>
                 Zur Kasse
               </button>
             </div>
-          )}
-        </>
-      )}
-
-      {/* Warenkorb-Modal */}
-      {showCheckout && (
-        <div className="checkout-modal-overlay" onClick={() => setShowCheckout(false)}>
-          <div className="checkout-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>🛒 Warenkorb</h2>
-            
-            <div className="cart-items-list">
-              {getCartItems().map((item) => (
-                <div key={item.key} className="cart-item">
-                  <div className="cart-item-info">
-                    <h4>{item.meal.name}</h4>
-                    <p className="cart-item-date">📅 {item.date}</p>
-                    <span className={`category-badge ${item.meal.category}`}>
-                      {item.meal.category}
-                    </span>
-                  </div>
-                  <div className="cart-item-quantity">
-                    <span>{item.quantity}x {item.meal.price.toFixed(2)} €</span>
-                  </div>
-                  <div className="cart-item-total">
-                    <strong>{item.subtotal.toFixed(2)} €</strong>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="cart-total-section">
-              <div className="cart-total-row">
-                <span>Zwischensumme:</span>
-                <span>{getTotalPrice()} €</span>
-              </div>
-              <div className="cart-total-row grand-total">
-                <span><strong>Gesamt:</strong></span>
-                <span><strong>{getTotalPrice()} €</strong></span>
-              </div>
-            </div>
-
-            <div className="cart-actions">
-              <button className="btn-secondary" onClick={() => setShowCheckout(false)}>
-                Weiter einkaufen
-              </button>
-              <button className="btn-primary" onClick={proceedToPayment}>
-                Zur Zahlung →
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Zahlungs-Modal */}
-      {showPayment && (
-        <div className="checkout-modal-overlay" onClick={() => setShowPayment(false)}>
-          <div className="checkout-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>💳 Zahlung via EASYPAY</h2>
-            
-            <div className="payment-summary">
-              <p>Zu zahlender Betrag: <strong>{getTotalPrice()} €</strong></p>
-              <p className="payment-items">{getItemCount()} Gericht(e)</p>
-            </div>
-
-            <div className="payment-methods">
-              <h3>Zahlungsart wählen:</h3>
-              
-              <div 
-                className={`payment-method ${selectedPaymentMethod === PAYMENT_METHODS.KREDITKARTE ? 'selected' : ''}`}
-                onClick={() => setSelectedPaymentMethod(PAYMENT_METHODS.KREDITKARTE)}
-              >
-                <div className="payment-icon">💳</div>
-                <div className="payment-details">
-                  <h4>{PAYMENT_METHODS.KREDITKARTE}</h4>
-                  <p>Visa, Mastercard, American Express</p>
-                </div>
-                {selectedPaymentMethod === PAYMENT_METHODS.KREDITKARTE && <div className="check-mark">✓</div>}
+        {/* Checkout Modal */}
+        {showCheckout && (
+          <div className="modal-overlay" onClick={handleCloseCheckout}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>🛒 Bestellübersicht</h2>
+                <button className="modal-close" onClick={handleCloseCheckout}>✕</button>
               </div>
 
-              <div 
-                className={`payment-method ${selectedPaymentMethod === PAYMENT_METHODS.DEBITKARTE ? 'selected' : ''}`}
-                onClick={() => setSelectedPaymentMethod(PAYMENT_METHODS.DEBITKARTE)}
-              >
-                <div className="payment-icon">💳</div>
-                <div className="payment-details">
-                  <h4>{PAYMENT_METHODS.DEBITKARTE}</h4>
-                  <p>EC-Karte, Girocard</p>
-                </div>
-                {selectedPaymentMethod === PAYMENT_METHODS.DEBITKARTE && <div className="check-mark">✓</div>}
-              </div>
-
-              <div 
-                className={`payment-method ${selectedPaymentMethod === PAYMENT_METHODS.GUTHABEN ? 'selected' : ''}`}
-                onClick={() => setSelectedPaymentMethod(PAYMENT_METHODS.GUTHABEN)}
-              >
-                <div className="payment-icon">💰</div>
-                <div className="payment-details">
-                  <h4>{PAYMENT_METHODS.GUTHABEN}</h4>
-                  <p>Mensa-Guthabenkonto</p>
-                </div>
-                {selectedPaymentMethod === PAYMENT_METHODS.GUTHABEN && <div className="check-mark">✓</div>}
-              </div>
-
-              <div 
-                className={`payment-method ${selectedPaymentMethod === PAYMENT_METHODS.BITCOIN ? 'selected' : ''}`}
-                onClick={() => setSelectedPaymentMethod(PAYMENT_METHODS.BITCOIN)}
-              >
-                <div className="payment-icon">₿</div>
-                <div className="payment-details">
-                  <h4>{PAYMENT_METHODS.BITCOIN}</h4>
-                  <p>Kryptowährung</p>
-                </div>
-                {selectedPaymentMethod === PAYMENT_METHODS.BITCOIN && <div className="check-mark">✓</div>}
-              </div>
-            </div>
-
-            <div className="payment-info">
-              <p>ℹ️ Zahlung wird über EASYPAY abgewickelt</p>
-              <p>🔒 Sichere Verschlüsselung</p>
-            </div>
-
-            <div className="cart-actions">
-              <button className="btn-secondary" onClick={() => {
-                setShowPayment(false);
-                setShowCheckout(true);
-              }}>
-                ← Zurück
-              </button>
-              <button 
-                className="btn-primary" 
-                onClick={completePayment}
-                disabled={!selectedPaymentMethod || loading}
-              >
-                {loading ? 'Verarbeite...' : 'Jetzt bezahlen'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* QR-Code-Modal nach erfolgreicher Zahlung */}
-      {showQRCode && orderResult && (
-        <div className="checkout-modal-overlay">
-          <div className="checkout-modal qr-modal">
-            <div className="success-header">
-              <div className="success-icon">✅</div>
-              <h2>Zahlung erfolgreich!</h2>
-              <p>Ihre Bestellung wurde aufgegeben</p>
-            </div>
-
-            <div className="order-summary">
-              <p>Bezahlt: <strong>{orderResult.totalPrice} €</strong></p>
-              <p>via {orderResult.paymentMethod === 'creditcard' ? 'Kreditkarte' : 
-                       orderResult.paymentMethod === 'debitcard' ? 'Debitkarte' :
-                       orderResult.paymentMethod === 'account' ? 'Guthabenkonto' : 'Bitcoin'}</p>
-            </div>
-
-            <div className="qr-codes-section">
-              <h3>🎫 Ihre QR-Codes zur Abholung:</h3>
-              
-              {orderResult.orders.map((order, index) => (
-                <div key={index} className="qr-code-item">
-                  <div className="qr-code-box">
-                    <div className="qr-code-placeholder">
-                      <div className="qr-pattern">
-                        ▪▫▪▫▪▫<br/>
-                        ▫▪▫▪▫▪<br/>
-                        ▪▫▪▫▪▫<br/>
-                        ▫▪▫▪▫▪<br/>
-                        ▪▫▪▫▪▫
+              <div className="modal-body">
+                {Object.entries(cart).map(([mealId, quantity]) => {
+                  const meal = mealsWithImages.find(m => m.id === parseInt(mealId));
+                  if (!meal) return null;
+                  return (
+                    <div key={mealId} className="checkout-item">
+                      <div className="checkout-item-image" style={{backgroundImage: `url(${meal.image})`}} />
+                      <div className="checkout-item-details">
+                        <h4>{meal.name}</h4>
+                        <p className="checkout-item-quantity">{quantity}x à {meal.price.toFixed(2)} €</p>
                       </div>
-                      <div className="qr-code-text">
-                        {orderResult.qrCodes[index]}
+                      <div className="checkout-item-price">
+                        {(meal.price * quantity).toFixed(2)} €
                       </div>
                     </div>
-                  </div>
-                  <div className="qr-code-info">
-                    <h4>{order.mealName}</h4>
-                    <p>Menge: {order.quantity}x</p>
-                    <p>Datum: {order.orderDate}</p>
-                    <p className="qr-label">QR-Code: <code>{orderResult.qrCodes[index]}</code></p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
 
-            <div className="pickup-info">
-              <p>📱 QR-Code bei der Essensausgabe vorzeigen</p>
-              <p>⏰ Abholung während der Öffnungszeiten</p>
-              <p>📧 Bestätigung wurde per E-Mail versandt</p>
-            </div>
-
-            <button className="btn-primary" onClick={() => {
-              setShowQRCode(false);
-              setOrderResult(null);
-              setSelectedPaymentMethod(null);
-            }}>
-              Schließen
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Guthaben-Auflade-Modal */}
-      {showBalanceModal && (
-        <div className="checkout-modal-overlay" onClick={() => setShowBalanceModal(false)}>
-          <div className="checkout-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>💰 Guthaben aufladen</h2>
-            
-            <div className="balance-current">
-              <p>Aktueller Kontostand:</p>
-              <h3>{accountBalance.toFixed(2)} €</h3>
-            </div>
-
-            <div className="topup-form">
-              <label htmlFor="topup-amount">Aufladebetrag:</label>
-              <div className="topup-input-group">
-                <input
-                  id="topup-amount"
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={topUpAmount}
-                  onChange={(e) => setTopUpAmount(e.target.value)}
-                  placeholder="z.B. 20.00"
-                />
-                <span className="currency">€</span>
-              </div>
-
-              <div className="quick-amounts">
-                <button onClick={() => setTopUpAmount('10')}>10 €</button>
-                <button onClick={() => setTopUpAmount('20')}>20 €</button>
-                <button onClick={() => setTopUpAmount('50')}>50 €</button>
-                <button onClick={() => setTopUpAmount('100')}>100 €</button>
-              </div>
-            </div>
-
-            <div className="payment-info">
-              <p>ℹ️ Zahlung erfolgt über EASYPAY</p>
-              <p>💳 Kreditkarte, Debitkarte oder Bitcoin</p>
-            </div>
-
-            <div className="cart-actions">
-              <button className="btn-secondary" onClick={() => {
-                setShowBalanceModal(false);
-                setTopUpAmount('');
-              }}>
-                Abbrechen
-              </button>
-              <button className="btn-primary" onClick={handleTopUp}>
-                Aufladen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bitcoin-Zahlungs-Modal */}
-      {showBitcoinPayment && (
-        <div className="checkout-modal-overlay">
-          <div className="checkout-modal bitcoin-modal">
-            <h2>₿ Bitcoin-Zahlung</h2>
-            
-            <div className="bitcoin-amount">
-              <p>Zu zahlender Betrag:</p>
-              <h3>{getTotalPrice()} €</h3>
-              {btcPriceLoading ? (
-                <p className="btc-equivalent">Lade aktuellen BTC-Kurs...</p>
-              ) : btcPrice ? (
-                <>
-                  <p className="btc-equivalent">≈ {calculateBtcAmount(getTotalPriceNumber(), btcPrice)} BTC</p>
-                  <p className="btc-rate">1 BTC = {btcPrice.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</p>
-                </>
-              ) : (
-                <p className="btc-equivalent">BTC-Kurs wird geladen...</p>
-              )}
-            </div>
-
-            <div className="bitcoin-countdown">
-              <p>⏰ Verbleibende Zeit:</p>
-              <div className="countdown-timer">
-                <span className="time-large">{Math.floor(bitcoinCountdown / 60)}:{String(bitcoinCountdown % 60).padStart(2, '0')}</span>
-                <span className="time-label">Minuten</span>
-              </div>
-            </div>
-
-            <div className="bitcoin-qr-section">
-              <h4>Bitcoin-Adresse scannen:</h4>
-              <div className="bitcoin-qr-box">
-                <div className="qr-code-placeholder bitcoin-qr">
-                  <div className="qr-pattern">
-                    ▪▫▪▫▪▫▪▫▪<br/>
-                    ▫▪▫▪▫▪▫▪▫<br/>
-                    ▪▫▪▫▪▫▪▫▪<br/>
-                    ▫▪▫▪▫▪▫▪▫<br/>
-                    ▪▫▪▫▪▫▪▫▪<br/>
-                    ▫▪▫▪▫▪▫▪▫<br/>
-                    ▪▫▪▫▪▫▪▫▪
-                  </div>
+                <div className="checkout-total">
+                  <span className="checkout-total-label">Gesamtsumme:</span>
+                  <span className="checkout-total-amount">{getTotalPrice().toFixed(2)} €</span>
                 </div>
               </div>
 
-              <div className="bitcoin-address">
-                <label>Bitcoin-Adresse:</label>
-                <div className="address-box">
-                  <code>bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</code>
-                  <button className="copy-btn" onClick={() => {
-                    navigator.clipboard.writeText('bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh');
-                    setSuccess('Bitcoin-Adresse kopiert!');
-                  }}>📋</button>
-                </div>
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={handleCloseCheckout}>
+                  Abbrechen
+                </button>
+                <button className="btn-primary" onClick={handleContinueToPayment}>
+                  Weiter zur Zahlung
+                </button>
               </div>
             </div>
+          </div>
+        )}
 
-            <div className="bitcoin-info">
-              <p>📱 Scannen Sie den QR-Code mit Ihrer Bitcoin-Wallet</p>
-              <p>⚡ Zahlung wird nach 1 Bestätigung akzeptiert</p>
-              <p>🔒 Sichere Blockchain-Transaktion</p>
-            </div>
+        {/* Payment Method Selection Modal */}
+        {showPayment && (
+          <div className="modal-overlay" onClick={handleCloseCheckout}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>💳 Zahlungsmethode wählen</h2>
+                <button className="modal-close" onClick={handleCloseCheckout}>✕</button>
+              </div>
 
-            <div className="cart-actions">
-              <button className="btn-secondary" onClick={() => {
-                setShowBitcoinPayment(false);
-                setShowPayment(true);
-              }}>
-                Abbrechen
-              </button>
-              <button className="btn-primary" onClick={completeBitcoinPayment} disabled={loading}>
-                {loading ? 'Warte auf Bestätigung...' : 'Zahlung erhalten ✓'}
-              </button>
+              <div className="modal-body">
+                <div className="payment-amount-display">
+                  <span>Zu zahlender Betrag:</span>
+                  <strong>{getTotalPrice().toFixed(2)} €</strong>
+                </div>
+
+                <div className="payment-methods">
+                  {paymentMethodsList.map(method => (
+                    <div
+                      key={method.id}
+                      className={`payment-method-card ${selectedPaymentMethod === method.id ? 'selected' : ''} ${
+                        method.id === 'account' && accountBalance < getTotalPrice() ? 'disabled' : ''
+                      }`}
+                      onClick={() => {
+                        if (method.id === 'account' && accountBalance < getTotalPrice()) return;
+                        handleSelectPaymentMethod(method.id);
+                      }}
+                    >
+                      <div className="payment-method-icon">{method.name.split(' ')[0]}</div>
+                      <div className="payment-method-info">
+                        <h4>{method.name.substring(2)}</h4>
+                        <p>{method.description}</p>
+                        {method.id === 'account' && accountBalance < getTotalPrice() && (
+                          <span className="insufficient-balance">❌ Nicht genügend Guthaben</span>
+                        )}
+                      </div>
+                      {selectedPaymentMethod === method.id && (
+                        <div className="payment-method-check">✓</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => {
+                  setShowPayment(false);
+                  setShowCheckout(true);
+                }}>
+                  Zurück
+                </button>
+                <button 
+                  className="btn-primary" 
+                  onClick={handleConfirmPayment}
+                  disabled={!selectedPaymentMethod}
+                >
+                  Jetzt bezahlen
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* QR Code Modal */}
+        {showQRCode && qrCodeData && (
+          <div className="modal-overlay">
+            <div className="modal-content qr-modal">
+              <div className="modal-header">
+                <h2>✅ Bestellung erfolgreich!</h2>
+              </div>
+
+              <div className="modal-body qr-body">
+                <div className="success-message">
+                  <span className="success-icon">🎉</span>
+                  <h3>Zahlung erfolgreich</h3>
+                  <p>Ihre Bestellung wurde bezahlt und ist bereit zur Abholung.</p>
+                </div>
+
+                <div className="qr-code-container">
+                  <div className="qr-code-placeholder">
+                    <QRCodeSVG 
+                      value={JSON.stringify(qrCodeData)} 
+                      size={220}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
+                  <p className="qr-instructions">Zeigen Sie diesen Code bei der Essensausgabe vor</p>
+                </div>
+
+                <div className="order-summary-compact">
+                  <div className="order-detail">
+                    <span className="label">Bestell-Nr:</span>
+                    <span className="value">{qrCodeData.orderId}</span>
+                  </div>
+                  <div className="order-detail">
+                    <span className="label">Artikel:</span>
+                    <span className="value">{getTotalItems()} Stück</span>
+                  </div>
+                  <div className="order-detail">
+                    <span className="label">Bezahlt:</span>
+                    <span className="value">{qrCodeData.total.toFixed(2)} €</span>
+                  </div>
+                  <div className="order-detail">
+                    <span className="label">Methode:</span>
+                    <span className="value">
+                      {paymentMethodsList.find(m => m.id === qrCodeData.paymentMethod)?.name || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                {selectedPaymentMethod === 'account' && (
+                  <div className="balance-info">
+                    💰 Neues Guthaben: {accountBalance.toFixed(2)} €
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn-primary btn-new-order" onClick={handleNewOrder}>
+                  Neue Bestellung aufgeben
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bitcoin Payment Modal */}
+        {showBitcoinPayment && (
+          <div className="modal-overlay" onClick={handleCloseCheckout}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>₿ Bitcoin-Zahlung</h2>
+                <button className="modal-close" onClick={handleCloseCheckout}>✕</button>
+              </div>
+
+              <div className="modal-body">
+                <div className={`bitcoin-timer ${bitcoinCountdown < 30 ? 'urgent' : ''}`}>
+                  <span className="timer-icon">⏱️</span>
+                  <span className="timer-text">Verbleibende Zeit:</span>
+                  <span className="timer-countdown">{formatTime(bitcoinCountdown)}</span>
+                </div>
+
+                <div className="bitcoin-payment-details">
+                  <div className="payment-row">
+                    <span className="payment-label">Betrag in EUR:</span>
+                    <span className="payment-value">{getTotalPrice().toFixed(2)} €</span>
+                  </div>
+                  <div className="payment-row highlight">
+                    <span className="payment-label">Betrag in BTC:</span>
+                    <span className="payment-value btc">{calculateBtcAmount(getTotalPrice(), btcPrice || 50000)} ₿</span>
+                  </div>
+                  <div className="payment-row">
+                    <span className="payment-label">BTC-Kurs:</span>
+                    <span className="payment-value">1 ₿ = {(btcPrice || 50000).toLocaleString('de-DE')} €</span>
+                  </div>
+                </div>
+
+                <div className="bitcoin-address">
+                  <label>Bitcoin-Adresse:</label>
+                  
+                  {/* QR-Code für Bitcoin-Adresse */}
+                  <div className="bitcoin-qr-code">
+                    <QRCodeSVG 
+                      value="bc1quyll5aj0hlwdngxnsug7cjqyw4w7uprsgcw3yw"
+                      size={180}
+                      level="H"
+                      includeMargin={true}
+                    />
+                    <p className="qr-hint">Scannen Sie diesen QR-Code mit Ihrer Bitcoin-Wallet</p>
+                  </div>
+                  
+                  <div className="address-box">
+                    <code>bc1quyll5aj0hlwdngxnsug7cjqyw4w7uprsgcw3yw</code>
+                  </div>
+                  <p className="address-note">⚠️ Senden Sie den exakten Betrag an diese Adresse</p>
+                </div>
+
+                <div className="bitcoin-info">
+                  <p>🔒 Die Zahlung wird über EASYPAY verarbeitet</p>
+                  <p>📱 QR-Code scannen oder Adresse manuell kopieren</p>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => {
+                  setShowBitcoinPayment(false);
+                  setShowPayment(true);
+                  setBitcoinCountdown(180);
+                }}>
+                  Abbrechen
+                </button>
+                <button className="btn-primary" onClick={handleBitcoinPayment}>
+                  Zahlung bestätigen
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Credit Card Form Modal */}
+        {showCreditCardForm && (
+          <div className="modal-overlay" onClick={handleCloseCheckout}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>💳 Kreditkarten-Zahlung</h2>
+                <button className="modal-close" onClick={handleCloseCheckout}>✕</button>
+              </div>
+
+              <div className="modal-body">
+                <div className="payment-amount-display">
+                  <span>Zu zahlender Betrag:</span>
+                  <strong>{getTotalPrice().toFixed(2)} €</strong>
+                </div>
+
+                <div className="credit-card-form">
+                  <div className="form-group">
+                    <label>Kartennummer</label>
+                    <input
+                      type="text"
+                      placeholder="1234 5678 9012 3456"
+                      maxLength="19"
+                      value={creditCardData.cardNumber}
+                      onChange={(e) => setCreditCardData({...creditCardData, cardNumber: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Karteninhaber</label>
+                    <input
+                      type="text"
+                      placeholder="Max Mustermann"
+                      value={creditCardData.cardHolder}
+                      onChange={(e) => setCreditCardData({...creditCardData, cardHolder: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Ablaufdatum</label>
+                      <input
+                        type="text"
+                        placeholder="MM/JJ"
+                        maxLength="5"
+                        value={creditCardData.expiryDate}
+                        onChange={(e) => setCreditCardData({...creditCardData, expiryDate: e.target.value})}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>CVV</label>
+                      <input
+                        type="text"
+                        placeholder="123"
+                        maxLength="3"
+                        value={creditCardData.cvv}
+                        onChange={(e) => setCreditCardData({...creditCardData, cvv: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="payment-security-info">
+                  <p>🔒 Ihre Zahlung wird sicher über EASYPAY verarbeitet</p>
+                  <p>💳 Akzeptiert: Visa, Mastercard, American Express</p>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => {
+                  setShowCreditCardForm(false);
+                  setShowPayment(true);
+                }}>
+                  Zurück
+                </button>
+                <button className="btn-primary" onClick={handleCreditCardPayment}>
+                  Jetzt bezahlen
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Balance Top-Up Modal */}
+        {/* Balance Modal - Guthaben aufladen */}
+        {showBalanceModal && (
+          <div className="modal-overlay" onClick={() => { setShowBalanceModal(false); setTopUpStep(1); }}>
+            <div className="modal-content balance-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>💰 Guthaben aufladen</h2>
+                <button className="modal-close" onClick={() => { setShowBalanceModal(false); setTopUpStep(1); }}>✕</button>
+              </div>
+
+              <div className="modal-body">
+                {topUpStep === 1 ? (
+                  // Schritt 1: Betrag eingeben
+                  <>
+                    <div className="current-balance-display">
+                      <span className="balance-label">Aktuelles Guthaben:</span>
+                      <span className="balance-amount">{accountBalance.toFixed(2)} €</span>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Betrag aufladen:</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={topUpAmount}
+                        onChange={(e) => setTopUpAmount(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="quick-amounts">
+                      <button className="quick-amount-btn" onClick={() => setTopUpAmount('10')}>
+                        + 10 €
+                      </button>
+                      <button className="quick-amount-btn" onClick={() => setTopUpAmount('20')}>
+                        + 20 €
+                      </button>
+                      <button className="quick-amount-btn" onClick={() => setTopUpAmount('50')}>
+                        + 50 €
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  // Schritt 2: Zahlungsmethode wählen
+                  <>
+                    <div className="top-up-summary">
+                      <p>Aufladebetrag: <strong>{parseFloat(topUpAmount).toFixed(2)} €</strong></p>
+                    </div>
+
+                    <h3 style={{ marginTop: '20px', marginBottom: '15px' }}>Zahlungsmethode wählen:</h3>
+                    
+                    <div className="payment-methods-grid">
+                      <div 
+                        className="payment-method-card"
+                        onClick={() => handleSelectTopUpPaymentMethod('credit_card')}
+                      >
+                        <div className="payment-icon">💳</div>
+                        <h3>Kreditkarte</h3>
+                        <p>Visa, Mastercard</p>
+                      </div>
+
+                      <div 
+                        className="payment-method-card"
+                        onClick={() => handleSelectTopUpPaymentMethod('bitcoin')}
+                      >
+                        <div className="payment-icon">₿</div>
+                        <h3>Bitcoin</h3>
+                        <p>Kryptowährung</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="modal-footer">
+                {topUpStep === 1 ? (
+                  <>
+                    <button className="btn-secondary" onClick={() => setShowBalanceModal(false)}>
+                      Abbrechen
+                    </button>
+                    <button className="btn-primary" onClick={handleContinueToTopUpPayment}>
+                      Weiter
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="btn-secondary" onClick={() => setTopUpStep(1)}>
+                      Zurück
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
-}
+} 
 
 export default OrderManagement;
