@@ -516,6 +516,6 @@ const MealManagement = () => {
       </div>
     </div>
   );
-};
+}; 
 
 export default MealManagement;
