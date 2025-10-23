@@ -97,7 +97,7 @@ public class MealPlanService {
         LocalDate date = parseDate(requestDTO.date());
         
         // Prüfen ob Meal existiert UND nicht gelöscht ist
-        mealRepository.findByIdActive(requestDTO.mealId())
+        mealRepository.findByIdAndDeletedFalse(requestDTO.mealId())
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Gericht mit ID " + requestDTO.mealId() + " nicht gefunden oder wurde gelöscht"
             ));
