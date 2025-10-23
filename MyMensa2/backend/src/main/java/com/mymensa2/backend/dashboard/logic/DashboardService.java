@@ -7,6 +7,7 @@ import com.mymensa2.backend.meals.dataaccess.MealRepository;
 import com.mymensa2.backend.orders.dataaccess.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ public class DashboardService {
      * - Gewinn
      * - Kombinierte Statistiken pro Gericht
      */
+    @Transactional(readOnly = true)
     public DashboardDTO getDashboardData() {
         // Alle Gerichte aus der Datenbank laden
         List<Meal> meals = mealRepository.findAll();

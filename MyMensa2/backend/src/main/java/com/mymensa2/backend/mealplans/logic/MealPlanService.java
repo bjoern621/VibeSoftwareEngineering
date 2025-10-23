@@ -41,6 +41,7 @@ public class MealPlanService {
      * Speiseplan für einen Zeitraum abrufen
      * GET /api/meal-plans?startDate={date}&endDate={date}
      */
+    @Transactional(readOnly = true)
     public List<MealPlanDayDTO> getMealPlansForDateRange(String startDateStr, String endDateStr) {
         // Validierung und Parsing der Daten
         LocalDate startDate = parseDate(startDateStr);
