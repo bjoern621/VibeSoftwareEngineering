@@ -1,6 +1,7 @@
 package com.mymensa2.backend.mealplans.facade;
 
 import com.mymensa2.backend.mealplans.logic.MealPlanService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,8 +52,8 @@ public class MealPlanController {
      */
     @PutMapping
     public ResponseEntity<MealPlanResponseDTO> addOrUpdateMealPlan(
-            @RequestBody MealPlanRequestDTO requestDTO) {
-        
+            @Valid @RequestBody MealPlanRequestDTO requestDTO) {
+
         var result = mealPlanService.addOrUpdateMealPlan(requestDTO);
         
         if (result.isCreated()) {

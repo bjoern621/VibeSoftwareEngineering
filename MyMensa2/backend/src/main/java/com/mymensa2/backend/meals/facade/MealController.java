@@ -2,6 +2,7 @@ package com.mymensa2.backend.meals.facade;
 
 import com.mymensa2.backend.meals.logic.MealService;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class MealController {
      * POST /api/meals - Neues Gericht erstellen
      */
     @PostMapping
-    public ResponseEntity<MealDTO> createMeal(@RequestBody MealDTO mealDTO) {
+    public ResponseEntity<MealDTO> createMeal(@Valid @RequestBody MealDTO mealDTO) {
         MealDTO createdMeal = mealService.createMeal(mealDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdMeal);
     }
@@ -39,7 +40,7 @@ public class MealController {
      * PUT /api/meals/{id} - Gericht aktualisieren
      */
     @PutMapping("/{id}")
-    public ResponseEntity<MealDTO> updateMeal(@PathVariable Integer id, @RequestBody MealDTO mealDTO) {  // Integer as per specification
+    public ResponseEntity<MealDTO> updateMeal(@PathVariable Integer id, @Valid @RequestBody MealDTO mealDTO) {  // Integer as per specification
         MealDTO updatedMeal = mealService.updateMeal(id, mealDTO);
         return ResponseEntity.ok(updatedMeal);
     }

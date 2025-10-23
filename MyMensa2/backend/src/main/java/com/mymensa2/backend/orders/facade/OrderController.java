@@ -1,6 +1,7 @@
 package com.mymensa2.backend.orders.facade;
 
 import com.mymensa2.backend.orders.logic.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class OrderController {
      * Response: 201 Created mit { "orderId": 1 }
      */
     @PostMapping
-    public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderRequestDTO request) {
+    public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO request) {
         OrderResponseDTO response = orderService.createOrder(request.mealId(), request.date());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -44,7 +45,7 @@ public class OrderController {
      * Response: 200 OK mit Bestellungsdetails
      */
     @PostMapping("/validate")
-    public ResponseEntity<ValidateResponseDTO> validateQrCode(@RequestBody ValidateRequestDTO request) {
+    public ResponseEntity<ValidateResponseDTO> validateQrCode(@Valid @RequestBody ValidateRequestDTO request) {
         ValidateResponseDTO response = orderService.validateQrCode(request.qrCode());
         return ResponseEntity.ok(response);
     }
