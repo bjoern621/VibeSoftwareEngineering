@@ -25,18 +25,21 @@ import java.time.format.DateTimeParseException;
 @Service
 public class OrderService {
     
-    @Autowired
-    private OrderRepository orderRepository;
-    
-    @Autowired
-    private MealRepository mealRepository;
-    
-    @Autowired
-    private MealPlanRepository mealPlanRepository;
-    
-    @Autowired
-    private MealService mealService;
-    
+    private final OrderRepository orderRepository;
+    private final MealRepository mealRepository;
+    private final MealPlanRepository mealPlanRepository;
+    private final MealService mealService;
+
+    public OrderService(OrderRepository orderRepository,
+                       MealRepository mealRepository,
+                       MealPlanRepository mealPlanRepository,
+                       MealService mealService) {
+        this.orderRepository = orderRepository;
+        this.mealRepository = mealRepository;
+        this.mealPlanRepository = mealPlanRepository;
+        this.mealService = mealService;
+    }
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     /**

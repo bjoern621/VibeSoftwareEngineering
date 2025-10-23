@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:3001")
 public class OrderController {
     
-    @Autowired
-    private OrderService orderService;
-    
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
     /**
      * POST /api/orders - Bestellung erstellen
      * 

@@ -26,15 +26,18 @@ import java.util.stream.Collectors;
 @Service
 public class MealPlanService {
     
-    @Autowired
-    private MealPlanRepository mealPlanRepository;
-    
-    @Autowired
-    private MealRepository mealRepository;
-    
-    @Autowired
-    private MealService mealService;
-    
+    private final MealPlanRepository mealPlanRepository;
+    private final MealRepository mealRepository;
+    private final MealService mealService;
+
+    public MealPlanService(MealPlanRepository mealPlanRepository,
+                          MealRepository mealRepository,
+                          MealService mealService) {
+        this.mealPlanRepository = mealPlanRepository;
+        this.mealRepository = mealRepository;
+        this.mealService = mealService;
+    }
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
     /**

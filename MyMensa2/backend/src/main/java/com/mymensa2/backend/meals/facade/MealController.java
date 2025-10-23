@@ -15,9 +15,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3001")
 public class MealController {
     
-    @Autowired
-    private MealService mealService;
-    
+    private final MealService mealService;
+
+    public MealController(MealService mealService) {
+        this.mealService = mealService;
+    }
+
     /**
      * GET /api/meals - Alle Gerichte abrufen
      */

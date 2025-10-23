@@ -19,12 +19,14 @@ import java.util.stream.Collectors;
 @Service
 public class MealService {
     
-    @Autowired
-    private MealRepository mealRepository;
-    
-    @Autowired
-    private MealPlanRepository mealPlanRepository;
-    
+    private final MealRepository mealRepository;
+    private final MealPlanRepository mealPlanRepository;
+
+    public MealService(MealRepository mealRepository, MealPlanRepository mealPlanRepository) {
+        this.mealRepository = mealRepository;
+        this.mealPlanRepository = mealPlanRepository;
+    }
+
     /**
      * Alle nicht-gelöschten Gerichte abrufen
      */

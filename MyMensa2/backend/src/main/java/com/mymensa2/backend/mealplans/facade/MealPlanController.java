@@ -22,9 +22,12 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3001")
 public class MealPlanController {
     
-    @Autowired
-    private MealPlanService mealPlanService;
-    
+    private final MealPlanService mealPlanService;
+
+    public MealPlanController(MealPlanService mealPlanService) {
+        this.mealPlanService = mealPlanService;
+    }
+
     /**
      * GET /api/meal-plans?startDate={date}&endDate={date}
      * Speiseplan für einen Zeitraum abrufen

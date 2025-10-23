@@ -21,11 +21,13 @@ import java.util.stream.Collectors;
 @Service
 public class DashboardService {
 
-    @Autowired
-    private MealRepository mealRepository;
+    private final MealRepository mealRepository;
+    private final OrderRepository orderRepository;
 
-    @Autowired
-    private OrderRepository orderRepository;
+    public DashboardService(MealRepository mealRepository, OrderRepository orderRepository) {
+        this.mealRepository = mealRepository;
+        this.orderRepository = orderRepository;
+    }
 
     /**
      * Liefert alle Dashboard-Daten
