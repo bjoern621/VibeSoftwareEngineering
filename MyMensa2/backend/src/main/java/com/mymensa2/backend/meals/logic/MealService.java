@@ -28,6 +28,7 @@ public class MealService {
     /**
      * Alle nicht-gelöschten Gerichte abrufen
      */
+    @Transactional(readOnly = true)
     public List<MealDTO> getAllMeals() {
         return mealRepository.findAllActive()
             .stream()
@@ -38,6 +39,7 @@ public class MealService {
     /**
      * Gericht nach ID abrufen (nur nicht-gelöschte)
      */
+    @Transactional(readOnly = true)
     public MealDTO getMealById(Integer id) {  // Integer as per specification
         Meal meal = mealRepository.findByIdActive(id)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
@@ -47,6 +49,7 @@ public class MealService {
     /**
      * Gericht nach ID abrufen (auch gelöschte - für historische Daten wie Orders)
      */
+    @Transactional(readOnly = true)
     public MealDTO getMealByIdIncludingDeleted(Integer id) {
         Meal meal = mealRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
@@ -56,6 +59,7 @@ public class MealService {
     /**
      * Neues Gericht erstellen
      */
+    @Transactional
     public MealDTO createMeal(MealDTO mealDTO) {
         // Bei POST darf keine ID mitgesendet werden
         if (mealDTO.id() != null) {
@@ -71,6 +75,7 @@ public class MealService {
     /**
      * Gericht aktualisieren
      */
+    @Transactional
     public MealDTO updateMeal(Integer id, MealDTO mealDTO) {  // Integer as per specification
         Meal existingMeal = mealRepository.findByIdActive(id)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
