@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot Backend",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\MyMensa2\\backend",
+            "mainClass": "com.mymensa2.backend.BackendApplication",
+            "args": "",
+            "envFile": "${workspaceFolder}\\MyMensa2\\backend\\.env"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "React Frontend",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["start"],
+            "cwd": "${workspaceFolder}\\MyMensa2\\frontend",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full Stack: Frontend + Backend",
+            "configurations": ["Spring Boot Backend", "React Frontend"],
+            "stopAll": true
+        }
+    ]
+}
