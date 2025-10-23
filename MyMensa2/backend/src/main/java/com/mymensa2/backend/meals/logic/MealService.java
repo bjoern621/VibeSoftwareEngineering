@@ -30,7 +30,7 @@ public class MealService {
      */
     @Transactional(readOnly = true)
     public List<MealDTO> getAllMeals() {
-        return mealRepository.findAllActive()
+        return mealRepository.findByDeletedFalseOrderByNameAsc()
             .stream()
             .map(this::convertToDTO)
             .collect(Collectors.toList());
@@ -41,7 +41,7 @@ public class MealService {
      */
     @Transactional(readOnly = true)
     public MealDTO getMealById(Integer id) {  // Integer as per specification
-        Meal meal = mealRepository.findByIdActive(id)
+        Meal meal = mealRepository.findByIdAndDeletedFalse(id)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
         return convertToDTO(meal);
     }
@@ -77,7 +77,7 @@ public class MealService {
      */
     @Transactional
     public MealDTO updateMeal(Integer id, MealDTO mealDTO) {  // Integer as per specification
-        Meal existingMeal = mealRepository.findByIdActive(id)
+        Meal existingMeal = mealRepository.findByIdAndDeletedFalse(id)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
         
         validateMealDTO(mealDTO);
@@ -104,7 +104,7 @@ public class MealService {
      */
     @Transactional
     public void deleteMeal(Integer id) {  // Integer as per specification
-        Meal meal = mealRepository.findByIdActive(id)
+        Meal meal = mealRepository.findByIdAndDeletedFalse(id)
             .orElseThrow(() -> new ResourceNotFoundException("Gericht mit ID " + id + " nicht gefunden"));
         
         // Soft Delete: Meal als gelöscht markieren
