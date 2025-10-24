@@ -1,0 +1,33 @@
+meta {
+  name: Complete Order Flow (Integration Test)
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8081/api/orders
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "mealId": 2,
+    "pickupDate": "2025-01-26"
+  }
+}
+
+tests {
+  test("Step 1: Order created successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body).to.have.property('orderId');
+    expect(res.body.paid).to.equal(false);
+  });
+}
+
+docs {
+  Integration test: This tests the complete order flow
+  1. Create order (this request)
+  2. Pay order (use orderId from response)
+  3. Validate QR code (use qrCode from payment response)
+}

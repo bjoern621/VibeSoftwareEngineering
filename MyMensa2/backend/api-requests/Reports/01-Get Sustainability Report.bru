@@ -1,0 +1,60 @@
+meta {
+  name: Get Sustainability Report
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8081/api/reports/sustainability?month=1&year=2025
+  body: none
+  auth: none
+}
+
+params:query {
+  month: 1
+  year: 2025
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response should contain period", function() {
+    expect(res.body).to.have.property('period');
+  });
+  
+  test("Response should contain waste reduction data", function() {
+    expect(res.body).to.have.property('wasteReduction');
+    expect(res.body.wasteReduction).to.have.property('totalMealsPrepared');
+    expect(res.body.wasteReduction).to.have.property('totalMealsSold');
+    expect(res.body.wasteReduction).to.have.property('wastedMeals');
+    expect(res.body.wasteReduction).to.have.property('wastePercentage');
+    expect(res.body.wasteReduction).to.have.property('improvement');
+  });
+  
+  test("Response should contain cost savings", function() {
+    expect(res.body).to.have.property('costSavings');
+    expect(res.body.costSavings).to.have.property('savedCosts');
+    expect(res.body.costSavings).to.have.property('potentialSavings');
+  });
+  
+  test("Response should contain top wasted meals", function() {
+    expect(res.body).to.have.property('topWastedMeals');
+    expect(res.body.topWastedMeals).to.be.an('array');
+  });
+  
+  test("Each wasted meal should have required fields", function() {
+    if (res.body.topWastedMeals.length > 0) {
+      const meal = res.body.topWastedMeals[0];
+      expect(meal).to.have.property('mealName');
+      expect(meal).to.have.property('wastedPortions');
+      expect(meal).to.have.property('costOfWaste');
+    }
+  });
+  
+  test("Response should contain recommendations", function() {
+    expect(res.body).to.have.property('recommendations');
+    expect(res.body.recommendations).to.be.an('array');
+  });
+}

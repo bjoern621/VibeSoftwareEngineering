@@ -1,0 +1,41 @@
+meta {
+  name: Consume Ingredients For Meal
+  type: http
+  seq: 6
+}
+
+put {
+  url: http://localhost:8081/api/inventory/consume
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "mealId": 1,
+    "quantity": 10
+  }
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response should contain consumption details", function() {
+    expect(res.body).to.have.property('mealName');
+    expect(res.body).to.have.property('quantityPrepared');
+    expect(res.body).to.have.property('ingredientsConsumed');
+    expect(res.body.ingredientsConsumed).to.be.an('array');
+  });
+  
+  test("Each consumed ingredient should have details", function() {
+    if (res.body.ingredientsConsumed.length > 0) {
+      const ingredient = res.body.ingredientsConsumed[0];
+      expect(ingredient).to.have.property('ingredientName');
+      expect(ingredient).to.have.property('quantityUsed');
+      expect(ingredient).to.have.property('unit');
+      expect(ingredient).to.have.property('remainingStock');
+    }
+  });
+}

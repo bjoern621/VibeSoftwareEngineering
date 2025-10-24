@@ -1,0 +1,21 @@
+meta {
+  name: Get Non-Existent Meal (404 Error)
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8081/api/meals/99999
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status should be 404", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Response should contain error message", function() {
+    expect(res.body).to.have.property('error');
+  });
+}

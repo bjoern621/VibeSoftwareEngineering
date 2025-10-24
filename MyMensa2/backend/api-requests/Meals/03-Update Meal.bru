@@ -1,0 +1,41 @@
+meta {
+  name: Update Meal
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:8081/api/meals/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Spaghetti Bolognese Updated",
+    "description": "Aktualisierte italienische Pasta mit Hackfleischsauce",
+    "price": 7.00,
+    "cost": 3.50,
+    "ingredients": "Nudeln, Hackfleisch, Tomatensauce, Zwiebeln, Knoblauch",
+    "nutritionalInfo": {
+      "calories": 680,
+      "protein": 30.0,
+      "carbs": 78.0,
+      "fat": 19.0
+    },
+    "categories": ["Vegetarisch"],
+    "allergens": ["Gluten", "Milch/Laktose"]
+  }
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response should contain updated meal", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body.name).to.equal('Spaghetti Bolognese Updated');
+    expect(res.body.price).to.equal(7.00);
+  });
+}

@@ -1,0 +1,42 @@
+meta {
+  name: Record Working Hours
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8081/api/staff/1/working-hours
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "date": "2025-01-25",
+    "startTime": "08:00:00",
+    "endTime": "16:00:00"
+  }
+}
+
+tests {
+  test("Status should be 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response should contain working hours details", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body).to.have.property('staffId');
+    expect(res.body).to.have.property('date');
+    expect(res.body).to.have.property('startTime');
+    expect(res.body).to.have.property('endTime');
+    expect(res.body).to.have.property('hoursWorked');
+  });
+  
+  test("Hours worked should be calculated correctly", function() {
+    expect(res.body.hoursWorked).to.equal(8.0);
+  });
+  
+  test("Should be synced to STAFFMAN", function() {
+    expect(res.body.syncedToStaffman).to.equal(true);
+  });
+}

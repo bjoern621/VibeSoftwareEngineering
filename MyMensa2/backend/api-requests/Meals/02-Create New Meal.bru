@@ -1,0 +1,46 @@
+meta {
+  name: Create New Meal
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8081/api/meals
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Test Gericht",
+    "description": "Ein Testgericht für Bruno API Tests",
+    "price": 7.50,
+    "cost": 3.80,
+    "ingredients": "Testingredient 1, Testingredient 2, Testingredient 3",
+    "nutritionalInfo": {
+      "calories": 550,
+      "protein": 25.5,
+      "carbs": 60.0,
+      "fat": 15.2
+    },
+    "categories": ["Vegetarisch"],
+    "allergens": ["Gluten"]
+  }
+}
+
+tests {
+  test("Status should be 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response should contain created meal", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body.name).to.equal('Test Gericht');
+    expect(res.body.price).to.equal(7.50);
+  });
+  
+  test("Meal should not be deleted", function() {
+    expect(res.body.deleted).to.equal(false);
+    expect(res.body.deletedAt).to.be.null;
+  });
+}

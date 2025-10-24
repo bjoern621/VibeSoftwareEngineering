@@ -1,0 +1,29 @@
+meta {
+  name: Get Low Stock Ingredients
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8081/api/inventory?lowStock=true
+  body: none
+  auth: none
+}
+
+params:query {
+  lowStock: true
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("All ingredients should need reordering", function() {
+    if (res.body.length > 0) {
+      res.body.forEach(ingredient => {
+        expect(ingredient.stockQuantity).to.be.lessThan(ingredient.minStockLevel);
+      });
+    }
+  });
+}
