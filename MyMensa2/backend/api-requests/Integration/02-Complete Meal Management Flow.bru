@@ -1,0 +1,45 @@
+meta {
+  name: Complete Meal Management Flow (Integration Test)
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8081/api/meals
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Integration Test Meal",
+    "description": "Full workflow test meal",
+    "price": 8.50,
+    "cost": 4.20,
+    "ingredients": "Test Ingredient 1, Test Ingredient 2",
+    "nutritionalInfo": {
+      "calories": 600,
+      "protein": 28.0,
+      "carbs": 65.0,
+      "fat": 18.0
+    },
+    "categories": ["Vegan"],
+    "allergens": []
+  }
+}
+
+tests {
+  test("Step 1: Meal created successfully", function() {
+    expect(res.status).to.equal(201);
+    expect(res.body).to.have.property('id');
+  });
+}
+
+docs {
+  Integration test: This tests the complete meal management flow
+  1. Create meal (this request)
+  2. Add to meal plan (use mealId from response)
+  3. Create order for this meal
+  4. Update meal
+  5. Delete meal (soft delete)
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Validate Invalid QR Code (404 Error)
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8081/api/orders/validate
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "qrCode": "INVALID-QR-CODE-999"
+  }
+}
+
+tests {
+  test("Status should be 404", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Response should contain error message", function() {
+    expect(res.body).to.have.property('error');
+  });
+}

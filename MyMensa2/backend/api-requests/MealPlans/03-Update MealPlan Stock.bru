@@ -1,0 +1,29 @@
+meta {
+  name: Update MealPlan Stock
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:8081/api/meal-plans
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "mealId": 1,
+    "date": "2025-01-13",
+    "stock": 75
+  }
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Stock should be updated", function() {
+    expect(res.body.stock).to.equal(75);
+  });
+}

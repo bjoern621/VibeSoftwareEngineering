@@ -1,0 +1,37 @@
+meta {
+  name: Create Staff Member
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8081/api/staff
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName": "Max",
+    "lastName": "Mustermann",
+    "role": "SERVICE"
+  }
+}
+
+tests {
+  test("Status should be 201", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response should contain created staff member", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body.firstName).to.equal('Max');
+    expect(res.body.lastName).to.equal('Mustermann');
+    expect(res.body.role).to.equal('SERVICE');
+  });
+  
+  test("Staff member should have STAFFMAN ID", function() {
+    expect(res.body).to.have.property('staffmanId');
+    expect(res.body.staffmanId).to.not.be.null;
+  });
+}

@@ -1,0 +1,28 @@
+meta {
+  name: Update Ingredient Stock
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://localhost:8081/api/inventory/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "stockQuantity": 150.0
+  }
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Stock should be updated", function() {
+    expect(res.body).to.have.property('stockQuantity');
+    expect(res.body.stockQuantity).to.equal(150.0);
+  });
+}

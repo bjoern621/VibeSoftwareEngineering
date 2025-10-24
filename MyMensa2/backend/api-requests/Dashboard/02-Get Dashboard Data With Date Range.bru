@@ -1,0 +1,33 @@
+meta {
+  name: Get Dashboard Data With Date Range
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8081/api/dashboard?startDate=2025-01-01&endDate=2025-01-31
+  body: none
+  auth: none
+}
+
+params:query {
+  startDate: 2025-01-01
+  endDate: 2025-01-31
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response should contain financial metrics", function() {
+    expect(res.body).to.have.property('totalRevenue');
+    expect(res.body).to.have.property('totalExpenses');
+    expect(res.body).to.have.property('profit');
+  });
+  
+  test("Profit should equal revenue minus expenses", function() {
+    const expectedProfit = res.body.totalRevenue - res.body.totalExpenses;
+    expect(res.body.profit).to.be.closeTo(expectedProfit, 0.01);
+  });
+}

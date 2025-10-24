@@ -1,0 +1,29 @@
+meta {
+  name: Get Available Staff
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:8081/api/staff?available=true
+  body: none
+  auth: none
+}
+
+params:query {
+  available: true
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("All staff should be available", function() {
+    if (res.body.length > 0) {
+      res.body.forEach(staff => {
+        expect(staff.isAvailable).to.equal(true);
+      });
+    }
+  });
+}

@@ -1,0 +1,31 @@
+meta {
+  name: Get Orders Filtered
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8081/api/orders?startDate=2025-01-10&endDate=2025-01-15&paid=true
+  body: none
+  auth: none
+}
+
+params:query {
+  startDate: 2025-01-10
+  endDate: 2025-01-15
+  paid: true
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("All orders should be paid", function() {
+    if (res.body.length > 0) {
+      res.body.forEach(order => {
+        expect(order.paid).to.equal(true);
+      });
+    }
+  });
+}

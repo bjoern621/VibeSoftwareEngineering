@@ -1,0 +1,36 @@
+meta {
+  name: Get Working Hours For Date Range
+  type: http
+  seq: 6
+}
+
+get {
+  url: http://localhost:8081/api/staff/working-hours?startDate=2025-01-10&endDate=2025-01-15
+  body: none
+  auth: none
+}
+
+params:query {
+  startDate: 2025-01-10
+  endDate: 2025-01-15
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response should be an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+  
+  test("Each working hour entry should have required fields", function() {
+    if (res.body.length > 0) {
+      const entry = res.body[0];
+      expect(entry).to.have.property('id');
+      expect(entry).to.have.property('staff');
+      expect(entry).to.have.property('date');
+      expect(entry).to.have.property('hoursWorked');
+    }
+  });
+}

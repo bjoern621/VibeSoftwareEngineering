@@ -1,0 +1,29 @@
+meta {
+  name: Get Staff By Role
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8081/api/staff?role=COOK
+  body: none
+  auth: none
+}
+
+params:query {
+  role: COOK
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("All staff should have COOK role", function() {
+    if (res.body.length > 0) {
+      res.body.forEach(staff => {
+        expect(staff.role).to.equal('COOK');
+      });
+    }
+  });
+}
