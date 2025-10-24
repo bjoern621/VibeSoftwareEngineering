@@ -13,7 +13,7 @@ post {
 body:json {
   {
     "mealId": 2,
-    "pickupDate": "2025-01-26"
+    "pickupDate": "2025-01-15"
   }
 }
 
@@ -27,7 +27,7 @@ tests {
 
 docs {
   Integration test: This tests the complete order flow
-  1. Create order (this request)
+  1. Create order (this request) - mealId: 2 on 2025-01-15
   2. Pay order (use orderId from response)
   3. Validate QR code (use qrCode from payment response)
 }

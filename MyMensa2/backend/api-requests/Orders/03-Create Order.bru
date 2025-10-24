@@ -13,7 +13,7 @@ post {
 body:json {
   {
     "mealId": 1,
-    "pickupDate": "2025-01-25"
+    "pickupDate": "2025-01-16"
   }
 }
 
@@ -26,7 +26,7 @@ tests {
     expect(res.body).to.have.property('orderId');
     expect(res.body).to.have.property('orderDate');
     expect(res.body).to.have.property('pickupDate');
-    expect(res.body.pickupDate).to.equal('2025-01-25');
+    expect(res.body.pickupDate).to.equal('2025-01-16');
   });
   
   test("Order should not be paid initially", function() {

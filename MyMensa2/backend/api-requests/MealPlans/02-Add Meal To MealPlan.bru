@@ -12,7 +12,7 @@ put {
 
 body:json {
   {
-    "mealId": 1,
+    "mealId": 3,
     "date": "2025-01-20",
     "stock": 60
   }
@@ -27,7 +27,7 @@ tests {
     expect(res.body).to.have.property('mealId');
     expect(res.body).to.have.property('date');
     expect(res.body).to.have.property('stock');
-    expect(res.body.mealId).to.equal(1);
+    expect(res.body.mealId).to.equal(3);
     expect(res.body.date).to.equal('2025-01-20');
     expect(res.body.stock).to.equal(60);
   });
