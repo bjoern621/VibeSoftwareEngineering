@@ -18,8 +18,8 @@ function AdminPanel() {
     { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
     { id: 'meals', label: '🍽️ Gerichte', icon: '🍽️' },
     { id: 'mealplans', label: '📅 Speisepläne', icon: '📅' },
-    { id: 'orders', label: '🛒 Bestellungen', icon: '🛒' },
-    { id: 'inventory', label: '📦 Lager', icon: '📦' },
+    { id: 'orders', label: '📋 Bestellungen & QR', icon: '📋' },
+    { id: 'inventory', label: '🏪 Lager', icon: '🏪' },
     { id: 'staff', label: '👥 Personal', icon: '👥' }
   ];
 

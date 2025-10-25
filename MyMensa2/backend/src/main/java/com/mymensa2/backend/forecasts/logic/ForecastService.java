@@ -71,17 +71,41 @@ public class ForecastService {
                 })
                 .collect(Collectors.toList());
         
-        // Prognose für Zutaten (vereinfacht)
+        // Prognose für Zutaten basierend auf empfohlenen Gerichten
         List<Ingredient> ingredients = ingredientRepository.findAll();
+        
+        // Erstelle ein Map für schnellen Zugriff auf Zutaten nach Namen
+        Map<String, Ingredient> ingredientMap = ingredients.stream()
+                .collect(Collectors.toMap(Ingredient::getName, ing -> ing));
+        
+        // Berechne geschätzten Verbrauch pro Zutat basierend auf Meal-Forecasts
+        Map<String, Float> estimatedConsumptionMap = new java.util.HashMap<>();
+        
+        for (MealForecastDTO mealForecast : mealForecasts) {
+            // Hole Zutatenbedarf pro Gericht (vereinfachte Zuordnung basierend auf Meal-Namen)
+            Map<String, Float> ingredientsPerMeal = getIngredientRequirementsForMeal(mealForecast.mealName());
+            
+            // Multipliziere mit empfohlenem Bestand
+            for (Map.Entry<String, Float> entry : ingredientsPerMeal.entrySet()) {
+                String ingredientName = entry.getKey();
+                float quantityPerPortion = entry.getValue();
+                float totalQuantity = quantityPerPortion * mealForecast.recommendedStock();
+                
+                estimatedConsumptionMap.merge(ingredientName, totalQuantity, Float::sum);
+            }
+        }
+        
+        // Erstelle Ingredient-Forecasts
         List<IngredientForecastDTO> ingredientForecasts = ingredients.stream()
                 .map(ingredient -> {
-                    // Vereinfachte Schätzung basierend auf historischem Verbrauch
-                    float estimatedConsumption = ingredient.getMinStockLevel() * 2;
+                    String name = ingredient.getName();
+                    // Nutze berechneten Verbrauch, oder 0 falls Zutat nicht verwendet wird
+                    float estimatedConsumption = estimatedConsumptionMap.getOrDefault(name, 0.0f);
                     float currentStock = ingredient.getStockQuantity();
                     float recommendedPurchase = Math.max(0, estimatedConsumption - currentStock);
                     
                     return new IngredientForecastDTO(
-                            ingredient.getName(),
+                            name,
                             estimatedConsumption,
                             currentStock,
                             recommendedPurchase
@@ -94,6 +118,89 @@ public class ForecastService {
                 mealForecasts,
                 ingredientForecasts
         );
+    }
+    
+    /**
+     * Gibt die Zutatenmenge pro Portion für ein Gericht zurück
+     * 
+     * @param mealName Name des Gerichts
+     * @return Map mit Zutat -> Menge in kg/Stück
+     */
+    private Map<String, Float> getIngredientRequirementsForMeal(String mealName) {
+        Map<String, Float> requirements = new java.util.HashMap<>();
+        
+        // Vereinfachte Zuordnung: Zutaten pro Portion
+        // In einer echten Anwendung würde dies aus einer Datenbank-Tabelle kommen
+        // Zutaten im System: Tomaten, Nudeln, Hackfleisch, Salat, Kartoffeln, Mozzarella, 
+        //                     Veganes Patty, Bratwurst, Hähnchen, Lachsfilet, Reis
+        switch (mealName) {
+            case "Spaghetti Bolognese":
+                // Zutaten: Nudeln, Hackfleisch, Tomatensauce, Zwiebeln
+                requirements.put("Nudeln", 0.15f);        // 150g Nudeln pro Portion
+                requirements.put("Hackfleisch", 0.12f);   // 120g Hackfleisch
+                requirements.put("Tomaten", 0.10f);       // 100g Tomaten (Tomatensauce)
+                break;
+                
+            case "Veganer Burger":
+                // Zutaten: Veganes Patty, Brötchen, Salat, Tomaten, Zwiebeln
+                requirements.put("Veganes Patty", 1.0f);  // 1 Patty pro Burger
+                requirements.put("Salat", 0.5f);          // 0.5 Stück Salat
+                requirements.put("Tomaten", 0.05f);       // 50g Tomaten
+                break;
+                
+            case "Caesar Salad":
+                // Zutaten: Salat, Hähnchen, Parmesan, Croutons, Caesar-Dressing
+                requirements.put("Salat", 1.0f);          // 1 Stück Salat (Römersalat)
+                requirements.put("Hähnchen", 0.15f);      // 150g Hähnchen
+                requirements.put("Tomaten", 0.05f);       // 50g Tomaten als Garnitur
+                // Parmesan, Croutons, Dressing nicht im Lager
+                break;
+                
+            case "Currywurst mit Pommes":
+                // Zutaten: Bratwurst, Currysauce, Pommes Frites
+                requirements.put("Bratwurst", 1.5f);      // 1.5 Bratwurst pro Portion
+                requirements.put("Kartoffeln", 0.30f);    // 300g Kartoffeln für Pommes
+                requirements.put("Tomaten", 0.05f);       // 50g Tomaten für Currysauce
+                break;
+                
+            case "Gemüse-Lasagne":
+                // Zutaten: Lasagneplatten, Zucchini, Aubergine, Tomatensauce, Mozzarella
+                requirements.put("Nudeln", 0.10f);        // 100g Lasagneplatten (Nudelteig)
+                requirements.put("Tomaten", 0.15f);       // 150g Tomaten (Tomatensauce)
+                requirements.put("Mozzarella", 0.08f);    // 80g Mozzarella
+                // Zucchini, Aubergine nicht im Lager
+                break;
+                
+            case "Gegrillter Lachs mit Reis":
+                // Zutaten: Lachsfilet, Jasminreis, Brokkoli, Karotten, Zitrone
+                requirements.put("Lachsfilet", 0.20f);    // 200g Lachs pro Portion
+                requirements.put("Reis", 0.12f);          // 120g Reis (roh)
+                requirements.put("Tomaten", 0.08f);       // 80g Tomaten als Beilage
+                // Brokkoli, Karotten, Zitrone nicht im Lager
+                break;
+                
+            case "Hähnchen Shawarma":
+                // Zutaten: Halal Hähnchen, Fladenbrot, Hummus, Tahini, Tomaten, Gurken
+                requirements.put("Hähnchen", 0.18f);      // 180g Hähnchen (Halal)
+                requirements.put("Tomaten", 0.08f);       // 80g Tomaten
+                requirements.put("Salat", 0.3f);          // 0.3 Stück Salat als Beilage
+                // Fladenbrot, Hummus, Tahini, Gurken nicht im Lager
+                break;
+                
+            case "Quinoa Bowl":
+                // Zutaten: Quinoa, Süßkartoffel, Kichererbsen, Avocado, Spinat, Tahini-Dressing
+                requirements.put("Kartoffeln", 0.15f);    // 150g Süßkartoffel (ähnlich wie Kartoffeln)
+                requirements.put("Tomaten", 0.07f);       // 70g Tomaten
+                requirements.put("Salat", 0.3f);          // 0.3 Stück Salat (Spinat)
+                // Quinoa, Kichererbsen, Avocado, Tahini-Dressing nicht im Lager
+                break;
+                
+            default:
+                // Fallback: Keine spezifischen Zutaten bekannt
+                break;
+        }
+        
+        return requirements;
     }
     
     // Nachhaltigkeit-Bericht

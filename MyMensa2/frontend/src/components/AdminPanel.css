@@ -109,3 +109,65 @@
     padding: 1rem;
   }
 }
+
+/* ==================== MOBILE VIEW (iPhone Frame) ==================== */
+.mobile-view .admin-panel {
+  max-width: 100%;
+  padding: 0;
+}
+
+.mobile-view .admin-header {
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 0;
+}
+
+.mobile-view .admin-header h2 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.mobile-view .admin-header p {
+  font-size: 0.7rem;
+}
+
+/* Tabs untereinander statt horizontal */
+.mobile-view .admin-tabs {
+  margin: 0 12px 12px 12px;
+  padding: 8px;
+  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 Spalten für kompakte Darstellung */
+  overflow-x: visible;
+  border-radius: 12px;
+}
+
+.mobile-view .tab-button {
+  padding: 10px 8px;
+  gap: 4px;
+  flex: none;
+  width: 100%;
+  min-width: auto;
+}
+
+.mobile-view .tab-button.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  transform: scale(1.02);
+}
+
+.mobile-view .tab-icon {
+  font-size: 1.3rem;
+}
+
+.mobile-view .tab-label {
+  font-size: 0.65rem;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.mobile-view .admin-content {
+  padding: 0;
+  overflow: visible;
+}

@@ -7,12 +7,43 @@
 
 /**
  * Verfügbare Zahlungsmethoden über EASYPAY
+ * Mapping zwischen Frontend-Anzeige und Backend-API-Werten
  */
 export const PAYMENT_METHODS = {
   KREDITKARTE: 'Kreditkarte',
   DEBITKARTE: 'Debitkarte',
   GUTHABEN: 'Guthabenkonto',
   BITCOIN: 'Bitcoin'
+};
+
+/**
+ * Backend API-Werte für Zahlungsmethoden (EASYPAY-Format)
+ */
+export const PAYMENT_METHOD_API = {
+  KREDITKARTE: 'CREDIT_CARD',
+  DEBITKARTE: 'DEBIT_CARD',
+  GUTHABEN: 'PREPAID_ACCOUNT',
+  BITCOIN: 'BITCOIN'
+};
+
+/**
+ * Mapping von deutschen Labels zu Backend-Werten
+ */
+export const PAYMENT_METHOD_TO_API = {
+  'Kreditkarte': 'CREDIT_CARD',
+  'Debitkarte': 'DEBIT_CARD',
+  'Guthabenkonto': 'PREPAID_ACCOUNT',
+  'Bitcoin': 'BITCOIN'
+};
+
+/**
+ * Mapping von Backend-Werten zu deutschen Labels
+ */
+export const PAYMENT_METHOD_FROM_API = {
+  'CREDIT_CARD': 'Kreditkarte',
+  'DEBIT_CARD': 'Debitkarte',
+  'PREPAID_ACCOUNT': 'Guthabenkonto',
+  'BITCOIN': 'Bitcoin'
 };
 
 /**
@@ -68,8 +99,10 @@ export const CATEGORY_CONFIG = {
 
 /**
  * Mock Data Modus aktivieren/deaktivieren
+ * true = Verwendet Mock-Daten (Entwicklung/Demo)
+ * false = Nutzt echtes Backend (Produktion)
  */
-export const USE_MOCK_DATA = true;
+export const USE_MOCK_DATA = false;
 
 /**
  * Verzögerung für Mock API Calls (Millisekunden)
@@ -78,8 +111,10 @@ export const MOCK_DELAY = 300;
 
 /**
  * Backend Base URL
+ * WICHTIG: Bei Verwendung des Proxys in package.json MUSS dies ein relativer Pfad sein!
+ * Der Proxy leitet dann automatisch Anfragen an http://localhost:8081 weiter.
  */
-export const API_BASE_URL = 'http://localhost:8081/api';
+export const API_BASE_URL = '/api';
 
 /**
  * CoinGecko API Base URL für Bitcoin-Kurs

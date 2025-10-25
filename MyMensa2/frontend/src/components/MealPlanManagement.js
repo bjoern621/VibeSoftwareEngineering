@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './MealPlanManagement.css';
 import api from '../services/api';
-import { getWeekDays } from '../utils/dateUtils';
+import { getTwoWeeks } from '../utils/dateUtils';
 import { formatPriceSimple } from '../utils/priceUtils';
 
 /**
  * Komponente für die Speiseplan-Verwaltung
- * Wochenansicht Mo-Fr zum Hinzufügen, Bearbeiten und Löschen
+ * 2-Wochen-Ansicht Mo-Fr zum Hinzufügen, Bearbeiten und Löschen
  */
 function MealPlanManagement() {
   const [weekMealPlans, setWeekMealPlans] = useState({});
@@ -16,13 +16,16 @@ function MealPlanManagement() {
   const [success, setSuccess] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedWeek, setSelectedWeek] = useState(1); // Neue State für Wochenauswahl
   const [formData, setFormData] = useState({
     mealId: '',
     stock: ''
   });
 
   const today = new Date();
-  const weekDays = getWeekDays(today);
+  const twoWeeks = getTwoWeeks(today);
+  const currentWeek = twoWeeks.find(w => w.week === selectedWeek);
+  const weekDays = currentWeek ? currentWeek.days : [];
 
   /**
    * Lädt Speisepläne und Gerichte beim Start
@@ -59,6 +62,84 @@ function MealPlanManagement() {
       setWeekMealPlans(plans);
     } catch (err) {
       setError('Fehler beim Laden der Daten: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Zufällige Speisepläne für alle Wochentage generieren
+   * Löscht zuerst alle bestehenden Pläne, dann werden für jeden Tag 3 zufällige Gerichte mit 10-50 Portionen ausgewählt
+   * 
+   * @async
+   * @returns {Promise<void>}
+   */
+  const generateRandomMealPlans = async () => {
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+
+    try {
+      // Hilfsfunktion zum Mischen eines Arrays (Fisher-Yates)
+      const shuffleArray = (array) => {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      };
+
+      // SCHRITT 1: Alle bestehenden Speisepläne für die Woche löschen
+      console.log('Lösche alte Speisepläne...');
+      for (const day of weekDays) {
+        const planForDay = weekMealPlans[day.date] || [];
+        
+        // Lösche alle Gerichte für diesen Tag
+        for (const planItem of planForDay) {
+          try {
+            await api.mealPlans.delete(planItem.mealId, day.date);
+            console.log(`Gelöscht: ${planItem.meal?.name} für ${day.date}`);
+          } catch (err) {
+            console.log(`Fehler beim Löschen von Meal ${planItem.mealId} für ${day.date}: ${err.message}`);
+          }
+        }
+      }
+
+      // SCHRITT 2: Für jeden Wochentag 3 zufällige Gerichte hinzufügen
+      console.log('Generiere neue Speisepläne...');
+      for (const day of weekDays) {
+        // Überspringe, wenn keine Gerichte verfügbar sind
+        if (allMeals.length < 3) {
+          throw new Error('Mindestens 3 Gerichte müssen vorhanden sein.');
+        }
+
+        // 3 zufällige Gerichte für DIESEN Tag auswählen (neue Mischung für jeden Tag!)
+        const shuffledMeals = shuffleArray(allMeals);
+        const selectedMeals = shuffledMeals.slice(0, 3);
+
+        console.log(`${day.dayName} (${day.date}): ${selectedMeals.map(m => m.name).join(', ')}`);
+
+        // Für jedes ausgewählte Gericht einen Speiseplan-Eintrag erstellen
+        for (const meal of selectedMeals) {
+          const randomStock = Math.floor(Math.random() * 41) + 10; // 10-50 Portionen
+
+          try {
+            await api.mealPlans.create({
+              mealId: meal.id,
+              date: day.date,
+              stock: randomStock
+            });
+          } catch (err) {
+            console.log(`Fehler beim Hinzufügen: ${meal.name} für ${day.date}: ${err.message}`);
+          }
+        }
+      }
+
+      setSuccess('Zufällige Speisepläne für alle Wochentage erfolgreich generiert!');
+      await fetchData(); // Aktualisiere die Anzeige
+    } catch (err) {
+      setError('Fehler beim Generieren der Speisepläne: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -163,7 +244,27 @@ function MealPlanManagement() {
     <div className="mealplan-management">
       <div className="mealplan-header">
         <h2>Speiseplanverwaltung</h2>
-        <p className="subtitle">Wochenansicht - Gerichte für Montag bis Freitag verwalten</p>
+        <p className="subtitle">2-Wochen-Ansicht - Gerichte für Montag bis Freitag verwalten</p>
+        <button 
+          className="generate-random-btn"
+          onClick={generateRandomMealPlans}
+          disabled={loading}
+        >
+          🎲 Zufällige Speisepläne generieren
+        </button>
+      </div>
+
+      {/* Wochenauswahl */}
+      <div className="week-selector">
+        {twoWeeks.map(week => (
+          <button
+            key={week.week}
+            className={`week-button ${selectedWeek === week.week ? 'active' : ''}`}
+            onClick={() => setSelectedWeek(week.week)}
+          >
+            {week.label}
+          </button>
+        ))}
       </div>
 
       {error && <div className="error-message">{error}</div>}

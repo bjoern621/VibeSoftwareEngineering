@@ -3,24 +3,19 @@
   max-width: 100%;
 }
 
-/* Info Box */
-.info-box {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  border-left: 5px solid #f39c12;
+.section-header .header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 0.5rem;
 }
 
-.info-box h3 {
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.info-box p {
-  color: #2c3e50;
-  line-height: 1.6;
-  margin: 0;
+.section-header .subtitle {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  font-style: italic;
+  flex: 1;
 }
 
 /* Table Container */
@@ -103,6 +98,13 @@
   background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
+.stat-card.action-card {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
 .stat-icon {
   font-size: 3rem;
 }
@@ -118,6 +120,36 @@
   font-size: 2rem;
   font-weight: bold;
   margin: 0;
+}
+
+/* FOODSUPPLY Reorder Button */
+.reorder-btn {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  border: 2px solid white;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reorder-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.reorder-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.supplier-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #7f8c8d;
 }
 
 /* Responsive Design */

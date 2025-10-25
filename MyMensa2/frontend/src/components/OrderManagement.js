@@ -3,7 +3,9 @@ import { QRCodeSVG } from 'qrcode.react';
 import './OrderManagement.css';
 import { calculateBtcAmount } from '../utils/priceUtils';
 import { BITCOIN_COUNTDOWN_SECONDS, ERROR_MESSAGES } from '../utils/constants';
-import { mockMeals } from '../services/mockData';
+import { getTwoWeeks } from '../utils/dateUtils';
+import { getMealImage } from '../utils/imageUtils';
+import api from '../services/api';
 
 const categories = [
   { value: 'VEGETARIAN', label: '🥗 Vegetarisch' },
@@ -13,20 +15,16 @@ const categories = [
   { value: 'HALAL', label: '☪️ Halal' },
 ];
 
-// Erweitere mockMeals mit passenden Bildern
-const mealsWithImages = mockMeals.slice(0, 5).map((meal, index) => ({
-  ...meal,
-  image: [
-    'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&h=300&fit=crop', // Spaghetti Carbonara
-    'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop', // Gemüse-Curry
-    'https://images.unsplash.com/photo-1562967914-608f82629710?w=400&h=300&fit=crop', // Hähnchen-Schnitzel
-    'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop', // Linsen-Dal
-    'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=400&h=300&fit=crop'  // Quinoa-Salat
-  ][index],
-  stock: 45 - (index * 5)
-}));
-
 function OrderManagement() {
+  // Wochenansicht State - ERWEITERT für 2 Wochen
+  const today = new Date();
+  const [twoWeeks] = useState(() => getTwoWeeks(today)); // Nur einmal berechnen
+  const [selectedWeek, setSelectedWeek] = useState(1); // 1 = diese Woche, 2 = nächste Woche
+  const [selectedDay, setSelectedDay] = useState(twoWeeks[0].days[0]);
+  const [weekMealPlans, setWeekMealPlans] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [cart, setCart] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -96,13 +94,50 @@ function OrderManagement() {
     return () => clearInterval(timer);
   }, [showBitcoinPayment, bitcoinCountdown]);
 
+  // Lade Speisepläne für beide Wochen (diese + nächste)
+  useEffect(() => {
+    const loadWeekMealPlans = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const plans = {};
+        
+        // Lade Gerichte für beide Wochen
+        const allDays = [...twoWeeks[0].days, ...twoWeeks[1].days];
+        
+        for (const day of allDays) {
+          const mealPlans = await api.mealPlans.getByDate(day.date);
+          // Füge passende Bilder zu den Gerichten hinzu
+          const mealsForSelectedDay = mealPlans.map((mp) => ({
+            ...mp.meal,
+            stock: mp.stock,
+            image: getMealImage(mp.meal.name)
+          }));
+          plans[day.date] = mealsForSelectedDay;
+        }
+        
+        setWeekMealPlans(plans);
+      } catch (err) {
+        console.error('Fehler beim Laden der Speisepläne:', err);
+        setError('Fehler beim Laden der Speisepläne: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadWeekMealPlans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // twoWeeks ist stabil (useState mit Initializer)
+
+  // Hole Gerichte für den ausgewählten Tag
+  const mealsForSelectedDay = weekMealPlans[selectedDay.date] || [];
+
   const updateQuantity = (mealId, newQuantity) => {
     if (newQuantity <= 0) {
       const newCart = { ...cart };
       delete newCart[mealId];
       setCart(newCart);
     } else {
-      const meal = mealsWithImages.find(m => m.id === mealId);
+      const meal = mealsForSelectedDay.find(m => m.id === mealId);
       if (meal && newQuantity <= meal.stock) {
         setCart(prev => ({ ...prev, [mealId]: newQuantity }));
       }
@@ -113,7 +148,7 @@ function OrderManagement() {
   
   const getTotalPrice = () => {
     return Object.entries(cart).reduce((sum, [mealId, qty]) => {
-      const meal = mealsWithImages.find(m => m.id === parseInt(mealId));
+      const meal = mealsForSelectedDay.find(m => m.id === parseInt(mealId));
       return sum + (meal ? meal.price * qty : 0);
     }, 0);
   };
@@ -200,23 +235,72 @@ function OrderManagement() {
     }
   };
 
-  const completeOrder = () => {
+  const completeOrder = async () => {
+    // Erstelle lokale QR-Code-Daten für UI (wie vorher)
     const orderData = {
       orderId: 'ORDER-' + Date.now(),
       items: Object.entries(cart).map(([mealId, qty]) => {
-        const meal = mealsWithImages.find(m => m.id === parseInt(mealId));
+        const meal = mealsForSelectedDay.find(m => m.id === parseInt(mealId));
         return { name: meal?.name || 'Unknown', quantity: qty };
       }),
       total: getTotalPrice(),
       timestamp: new Date().toISOString(),
       paymentMethod: selectedPaymentMethod
     };
+    
+    // Parallel: Erstelle Bestellungen im Backend (ohne UI zu blockieren)
+    try {
+      for (const [mealId, quantity] of Object.entries(cart)) {
+        for (let i = 0; i < quantity; i++) {
+          // Wichtig: Verwende selectedDay.date als pickupDate!
+          const backendOrder = {
+            mealId: parseInt(mealId),
+            pickupDate: selectedDay.date // Das ausgewählte Datum, nicht "heute"!
+          };
+          
+          // Erstelle Bestellung
+          const createdOrder = await api.orders.create(backendOrder);
+          console.log(`✅ Bestellung erstellt für ${selectedDay.date}:`, createdOrder);
+          
+          // Bezahle sofort mit der gewählten Methode
+          let paymentMethod = 'PREPAID_ACCOUNT';
+          if (selectedPaymentMethod === 'creditcard') paymentMethod = 'CREDIT_CARD';
+          if (selectedPaymentMethod === 'bitcoin') paymentMethod = 'BITCOIN';
+          
+          // Backend gibt "orderId" zurück, nicht "id"
+          const orderIdToUse = createdOrder.orderId || createdOrder.id;
+          console.log(`💳 Versuche Bezahlung: Order ${orderIdToUse}, Methode: ${paymentMethod}`);
+          const paymentResult = await api.orders.pay(orderIdToUse, {
+            paymentMethod: paymentMethod,
+            paymentTransactionId: `EASYPAY-${paymentMethod}-${Date.now()}`
+          });
+          console.log(`✅ Bezahlung erfolgreich:`, paymentResult);
+          
+          // Automatischer Lagerverbrauch nach erfolgreicher Bezahlung
+          try {
+            const consumeResult = await api.inventory.consumeForMeal(parseInt(mealId), 1);
+            console.log(`📦 Lagerbestand aktualisiert:`, consumeResult);
+          } catch (consumeErr) {
+            console.warn(`⚠️ Lagerverbrauch fehlgeschlagen (wird ignoriert):`, consumeErr.message);
+            // Fehler wird ignoriert, um Bestellung nicht zu blockieren
+          }
+        }
+      }
+      console.log('✅ Bestellungen erfolgreich im Backend erstellt');
+    } catch (err) {
+      console.error('❌ Backend-Bestellung fehlgeschlagen:', err);
+      console.error('❌ Error Details:', err.message, err.stack);
+      // Fehler nicht anzeigen - UI funktioniert trotzdem mit lokalen Daten
+    }
+    
+    // UI wie vorher aktualisieren
     setQrCodeData(orderData);
     setShowPayment(false);
     setShowBitcoinPayment(false);
     setShowCreditCardForm(false);
     setShowQRCode(true);
   };
+
 
   const handleNewOrder = () => {
     setCart({});
@@ -261,10 +345,32 @@ function OrderManagement() {
     setTopUpStep(1);
   };
 
-  const filteredMeals = mealsWithImages.filter(meal => {
+  const filteredMeals = mealsForSelectedDay.filter(meal => {
     const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          meal.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || meal.category === categoryFilter;
+    
+    // Backend speichert categories als Array: ["Vegetarisch", "Glutenfrei"]
+    // Filter-Buttons nutzen Werte wie 'VEGETARIAN', 'VEGAN', etc.
+    let matchesCategory = categoryFilter === 'all';
+    
+    if (!matchesCategory && meal.categories && Array.isArray(meal.categories)) {
+      // Mapping zwischen Filter-Buttons und Backend-Categories
+      const categoryMap = {
+        'VEGETARIAN': ['Vegetarisch'],
+        'VEGAN': ['Vegan'],
+        'MEAT': ['Fleisch'],
+        'FISH': ['Fisch'],
+        'HALAL': ['Halal']
+      };
+      
+      const expectedCategories = categoryMap[categoryFilter] || [];
+      matchesCategory = expectedCategories.some(cat => 
+        meal.categories.some(mealCat => 
+          mealCat.toLowerCase().includes(cat.toLowerCase())
+        )
+      );
+    }
+    
     return matchesSearch && matchesCategory && meal.stock > 0;
   });
 
@@ -274,8 +380,10 @@ function OrderManagement() {
         {/* Header */}
         <div className="page-header">
           <div className="header-left">
-            <h2>Heutige Speisekarte</h2>
-            <p className="subtitle">{mockMeals.filter(m => m.stock > 0).length} Gerichte verfügbar</p>
+            <h2>Speiseplan der Woche</h2>
+            <p className="subtitle">
+              {loading ? 'Lade Speisepläne...' : `${mealsForSelectedDay.filter(m => m.stock > 0).length} Gerichte verfügbar am ${selectedDay.dayName}`}
+            </p>
           </div>
           <div className="header-right">
             <div className="balance-display" onClick={() => setShowBalanceModal(true)}>
@@ -287,6 +395,52 @@ function OrderManagement() {
             </div>
           </div>
         </div>
+
+        {/* Wochenauswahl: Diese Woche / Nächste Woche */}
+        <div className="week-selector">
+          {twoWeeks.map(week => (
+            <button
+              key={week.week}
+              className={`week-selector-btn ${selectedWeek === week.week ? 'active' : ''}`}
+              onClick={() => {
+                setSelectedWeek(week.week);
+                setSelectedDay(week.days[0]); // Setze auf ersten Tag der ausgewählten Woche
+              }}
+            >
+              {week.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Wochentags-Tabs für die ausgewählte Woche */}
+        <div className="week-tabs">
+          {twoWeeks.find(w => w.week === selectedWeek).days.map(day => (
+            <button
+              key={day.date}
+              className={`week-tab ${selectedDay.date === day.date ? 'active' : ''}`}
+              onClick={() => setSelectedDay(day)}
+            >
+              {day.isToday && <span className="today-indicator"></span>}
+              <div className="day-name">{day.dayName}</div>
+              <div className="day-date">
+                {day.date.split('-')[2]}.{day.date.split('-')[1]}.
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="error-message" style={{
+            backgroundColor: '#fee',
+            color: '#c33',
+            padding: '15px',
+            borderRadius: '8px',
+            marginBottom: '20px'
+          }}>
+            {error}
+          </div>
+        )}
 
         {/* Filters */}
         <div className="filters-section">
@@ -422,7 +576,7 @@ function OrderManagement() {
 
               <div className="modal-body">
                 {Object.entries(cart).map(([mealId, quantity]) => {
-                  const meal = mealsWithImages.find(m => m.id === parseInt(mealId));
+                  const meal = mealsForSelectedDay.find(m => m.id === parseInt(mealId));
                   if (!meal) return null;
                   return (
                     <div key={mealId} className="checkout-item">

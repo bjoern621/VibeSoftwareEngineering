@@ -96,3 +96,27 @@ export const addDays = (date, days) => {
   result.setDate(result.getDate() + days);
   return result;
 };
+
+/**
+ * Generiert Array mit Wochentagen (Mo-Fr) für aktuelle und nächste Woche
+ * 
+ * @param {Date} today - Heutiges Datum
+ * @returns {Array} Array mit beiden Wochen
+ * 
+ * @example
+ * getTwoWeeks(new Date());
+ * // [
+ * //   { week: 1, label: "Diese Woche", days: [...] },
+ * //   { week: 2, label: "Nächste Woche", days: [...] }
+ * // ]
+ */
+export const getTwoWeeks = (today) => {
+  const thisWeek = getWeekDays(today);
+  const nextMonday = addDays(getMonday(today), 7);
+  const nextWeek = getWeekDays(nextMonday);
+  
+  return [
+    { week: 1, label: 'Diese Woche', days: thisWeek },
+    { week: 2, label: 'Nächste Woche', days: nextWeek }
+  ];
+};

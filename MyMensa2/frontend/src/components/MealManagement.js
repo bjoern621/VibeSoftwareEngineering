@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { getMealImage } from '../utils/imageUtils';
 import './MealManagement.css';
-
-// Meal-Bilder Mapping (passend zu den Gerichten)
-const mealImages = {
-  1: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400&h=300&fit=crop', // Spaghetti Carbonara
-  2: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&h=300&fit=crop', // Gemüse-Curry
-  3: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=400&h=300&fit=crop', // Hähnchen-Schnitzel
-  4: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop', // Linsen-Dal
-  5: 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=400&h=300&fit=crop', // Quinoa-Salat
-  6: 'https://images.unsplash.com/photo-1600891964092-4316c288032e?w=400&h=300&fit=crop', // Rindergulasch
-  7: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&h=300&fit=crop', // Falafel-Wrap
-  8: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop'  // Lachsfilet
-};
 
 const MealManagement = () => {
   const [meals, setMeals] = useState([]);
@@ -208,6 +197,14 @@ const MealManagement = () => {
     }));
   };
 
+  // Filtered Meals
+  const filteredMeals = meals.filter(meal => {
+    const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         meal.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'all' || meal.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
   if (loading) {
     return (
       <div className="meal-management">
@@ -281,26 +278,16 @@ const MealManagement = () => {
           </div>
         ) : (
           <div className="meals-grid">
-            {meals.filter(meal => {
-              const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                   meal.description?.toLowerCase().includes(searchTerm.toLowerCase());
-              const matchesCategory = categoryFilter === 'all' || meal.category === categoryFilter;
-              return matchesSearch && matchesCategory;
-            }).length === 0 ? (
+            {filteredMeals.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-icon">🍽️</span>
                 <h3>Keine Gerichte gefunden</h3>
                 <p>Erstellen Sie Ihr erstes Gericht oder passen Sie die Filter an.</p>
               </div>
             ) : (
-              meals.filter(meal => {
-                const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                     meal.description?.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesCategory = categoryFilter === 'all' || meal.category === categoryFilter;
-                return matchesSearch && matchesCategory;
-              }).map(meal => (
+              filteredMeals.map(meal => (
                 <div key={meal.id} className="meal-card">
-                  <div className="meal-image-container" style={{backgroundImage: `url(${mealImages[meal.id] || mealImages[1]})`}}>
+                  <div className="meal-image-container" style={{backgroundImage: `url(${getMealImage(meal.name)})`}}>
                     <span className="meal-category-badge">
                       {categories.find(c => c.value === meal.category)?.label || meal.category}
                     </span>

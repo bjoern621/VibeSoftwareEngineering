@@ -5,6 +5,7 @@
 .mealplan-header {
   margin-bottom: var(--spacing-xl);
   text-align: center;
+  position: relative;
 }
 
 .mealplan-header h2 {
@@ -15,6 +16,78 @@
 .subtitle {
   color: var(--color-text-secondary);
   font-size: 0.95rem;
+}
+
+/* Random Generator Button */
+.generate-random-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--border-radius-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.generate-random-btn:hover:not(:disabled) {
+  transform: translateY(-50%) translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.generate-random-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.generate-random-btn:active:not(:disabled) {
+  transform: translateY(-50%) translateY(0px);
+}
+
+/* Wochenauswahl */
+.week-selector {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.week-button {
+  flex: 1;
+  max-width: 200px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.week-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.week-button.active {
+  background: white;
+  color: #667eea;
+  border-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Modal Overlay */
@@ -463,4 +536,205 @@
 
 .day-plan-meals::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-secondary);
+}
+
+/* ==================== MOBILE VIEW (iPhone Frame) ==================== */
+.mobile-view .mealplan-management {
+  padding: 12px !important;
+}
+
+.mobile-view .mealplan-header {
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.mobile-view .mealplan-header h2 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.mobile-view .subtitle {
+  font-size: 0.7rem;
+}
+
+/* Random Generator Button - Unter Titel statt rechts */
+.mobile-view .generate-random-btn {
+  position: static;
+  transform: none;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 16px;
+  font-size: 0.8rem;
+}
+
+.mobile-view .generate-random-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+/* Week Selection - Vertikal */
+.mobile-view .week-selection {
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px;
+}
+
+.mobile-view .week-option {
+  font-size: 0.75rem;
+  padding: 8px 12px;
+}
+
+/* Date Range - Vertikal */
+.mobile-view .date-range {
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px;
+}
+
+.mobile-view .date-range .form-group {
+  max-width: 100%;
+}
+
+.mobile-view .date-range label {
+  font-size: 0.75rem;
+}
+
+.mobile-view .date-range input {
+  font-size: 0.8rem;
+  padding: 8px;
+}
+
+/* Week View - Vertikal statt horizontal Grid */
+.mobile-view .week-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-x: visible;
+}
+
+.mobile-view .day-plan {
+  min-width: auto;
+  width: 100%;
+  padding: 10px;
+}
+
+.mobile-view .day-plan-header {
+  padding: 8px;
+}
+
+.mobile-view .day-plan-header h3 {
+  font-size: 0.9rem;
+}
+
+.mobile-view .day-date {
+  font-size: 0.7rem;
+}
+
+.mobile-view .meals-count {
+  font-size: 0.65rem;
+  padding: 3px 8px;
+}
+
+/* Meal Cards in Plan - Kompakter */
+.mobile-view .plan-meal-card {
+  padding: 8px;
+  margin-bottom: 6px;
+}
+
+.mobile-view .plan-meal-name {
+  font-size: 0.8rem;
+}
+
+.mobile-view .plan-meal-stock {
+  font-size: 0.7rem;
+}
+
+.mobile-view .plan-meal-actions {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-view .plan-meal-actions button {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+}
+
+/* Add Meal Section */
+.mobile-view .add-meal-section {
+  margin-top: 12px;
+}
+
+.mobile-view .add-meal-section h4 {
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.mobile-view .meal-selector {
+  grid-template-columns: 1fr;
+  gap: 6px;
+  max-height: 200px;
+}
+
+.mobile-view .meal-option {
+  padding: 8px;
+}
+
+.mobile-view .meal-option-name {
+  font-size: 0.75rem;
+}
+
+.mobile-view .meal-option-price {
+  font-size: 0.7rem;
+}
+
+.mobile-view .stock-input-group {
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.mobile-view .stock-input {
+  font-size: 0.8rem;
+  padding: 8px;
+}
+
+/* Available Meals Grid - Eine Spalte */
+.mobile-view .available-meals {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.mobile-view .available-meal-card {
+  padding: 8px;
+}
+
+.mobile-view .available-meal-card h4 {
+  font-size: 0.8rem;
+}
+
+.mobile-view .available-meal-card p {
+  font-size: 0.7rem;
+}
+
+/* Buttons */
+.mobile-view .btn-primary,
+.mobile-view .btn-secondary,
+.mobile-view .btn-success {
+  font-size: 0.75rem;
+  padding: 8px 12px;
+}
+
+/* Loading & Error */
+.mobile-view .loading,
+.mobile-view .error {
+  font-size: 0.8rem;
+  padding: 12px;
+}
+
+/* Kein horizontales Scrollen */
+.mobile-view .mealplan-management * {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
