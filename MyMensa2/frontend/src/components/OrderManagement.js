@@ -114,6 +114,14 @@ function OrderManagement() {
             image: getMealImage(mp.meal.name)
           }));
           plans[day.date] = mealsForSelectedDay;
+
+          // Debug: Prüfe nutritionalInfo für ersten Eintrag
+          if (mealsForSelectedDay.length > 0) {
+            console.log(`DEBUG OrderManagement - ${day.date}:`, mealsForSelectedDay[0].name);
+            console.log('  nutritionalInfo:', mealsForSelectedDay[0].nutritionalInfo);
+            console.log('  nutritionInfo:', mealsForSelectedDay[0].nutritionInfo);
+            console.log('  calories direct:', mealsForSelectedDay[0].calories);
+          }
         }
         
         setWeekMealPlans(plans);
@@ -497,7 +505,28 @@ function OrderManagement() {
 
                   {/* Meal Info */}
                   <div className="meal-info-row">
-                    <span className="info-badge">🔥 {meal.calories} kcal</span>
+                    {/* Kalorien mit mehreren Fallback-Optionen */}
+                    {(() => {
+                      let calories = null;
+
+                      // Option 1: nutritionalInfo.calories
+                      if (meal.nutritionalInfo?.calories) {
+                        calories = meal.nutritionalInfo.calories;
+                      }
+                      // Option 2: nutritionInfo.calories (alternative Schreibweise)
+                      else if (meal.nutritionInfo?.calories) {
+                        calories = meal.nutritionInfo.calories;
+                      }
+                      // Option 3: Direkter Zugriff (falls flach gespeichert)
+                      else if (meal.calories) {
+                        calories = meal.calories;
+                      }
+
+                      return calories ? (
+                        <span className="info-badge">🔥 {calories} kcal</span>
+                      ) : null;
+                    })()}
+
                     <span className={`stock-badge ${meal.stock < 15 ? 'low' : ''}`}>
                       📦 {meal.stock} verfügbar
                     </span>
