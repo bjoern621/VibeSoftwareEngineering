@@ -1372,3 +1372,518 @@ body:has(.App.mobile-view) {
   color: #6b7280 !important;
   margin: 0 !important;
 }
+
+/* ========================================
+   MOBILE VIEW - ADMIN PANEL OPTIMIERUNGEN
+   Admin-Panel für mobile Geräte optimieren
+   ======================================== */
+
+/* Admin Panel Header - kompakt */
+.App.mobile-view .admin-panel .admin-header {
+  padding: 12px 16px !important;
+  text-align: center !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.App.mobile-view .admin-panel .admin-header h2 {
+  font-size: 1.1rem !important;
+  margin-bottom: 4px !important;
+  font-weight: 600 !important;
+}
+
+.App.mobile-view .admin-panel .admin-header p {
+  font-size: 0.8rem !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+}
+
+/* Admin Tabs - horizontal scrollbar für mobile */
+.App.mobile-view .admin-panel .admin-tabs {
+  display: flex !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 8px 16px !important;
+  gap: 4px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: #f9fafb !important;
+}
+
+.App.mobile-view .admin-panel .tab-button {
+  flex-shrink: 0 !important;
+  padding: 8px 12px !important;
+  border: none !important;
+  border-radius: 6px !important;
+  background: white !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.App.mobile-view .admin-panel .tab-button:hover {
+  background: #f3f4f6 !important;
+}
+
+.App.mobile-view .admin-panel .tab-button.active {
+  background: #3b82f6 !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Admin Content - volle Breite */
+.App.mobile-view .admin-panel .admin-content {
+  padding: 16px !important;
+}
+
+/* ========================================
+   MOBILE VIEW - ADMIN ORDER MANAGEMENT
+   Bestellübersicht für mobile optimieren
+   ======================================== */
+
+/* Filter Section - kompakt */
+.App.mobile-view .admin-order-management .filters-section {
+  background: #f9fafb !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  margin-bottom: 16px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.App.mobile-view .admin-order-management .filters-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.App.mobile-view .admin-order-management .form-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.App.mobile-view .admin-order-management .form-group label {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+}
+
+.App.mobile-view .admin-order-management .form-group input,
+.App.mobile-view .admin-order-management .form-group select {
+  padding: 8px 10px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  background: white !important;
+}
+
+/* Order Stats - responsive Grid */
+.App.mobile-view .admin-order-management .order-stats {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+}
+
+.App.mobile-view .admin-order-management .stat-card {
+  background: white !important;
+  border-radius: 8px !important;
+  padding: 16px 8px !important; /* Mehr padding für mehr Platz */
+  text-align: center !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #e5e7eb !important;
+  min-height: 70px !important; /* Mindesthöhe für konsistente Größe */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.App.mobile-view .admin-order-management .stat-card.success {
+  border-color: #10b981 !important;
+  background: #f0fdf4 !important;
+}
+
+.App.mobile-view .admin-order-management .stat-icon {
+  font-size: 1.2rem !important;
+  margin-bottom: 6px !important; /* Mehr Abstand */
+}
+
+.App.mobile-view .admin-order-management .stat-content h4 {
+  font-size: 0.75rem !important; /* Etwas größer */
+  font-weight: 600 !important;
+  margin: 0 0 4px 0 !important; /* Mehr Abstand */
+  color: #374151 !important;
+  line-height: 1.2 !important;
+  word-break: break-word !important; /* Erlaubt Umbruch */
+}
+
+.App.mobile-view .admin-order-management .stat-value {
+  font-size: 1.1rem !important; /* Etwas größer */
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+  margin: 0 !important;
+}
+
+/* Orders Table Container - responsive */
+.App.mobile-view .admin-order-management .orders-table-container {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+  background: white !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.App.mobile-view .admin-order-management table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+.App.mobile-view .admin-order-management thead {
+  background: #f9fafb !important;
+}
+
+.App.mobile-view .admin-order-management th {
+  padding: 8px 6px !important;
+  text-align: left !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  white-space: nowrap !important;
+}
+
+.App.mobile-view .admin-order-management td {
+  padding: 8px 6px !important;
+  font-size: 0.75rem !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+  vertical-align: top !important;
+}
+
+/* MOBILE: Nur wichtige Spalten anzeigen - KEIN horizontales Scrolling! */
+.App.mobile-view .admin-order-management th:nth-child(3), /* Preis ausblenden */
+.App.mobile-view .admin-order-management th:nth-child(4), /* Bestelldatum ausblenden */
+.App.mobile-view .admin-order-management th:nth-child(7), /* Abgeholt ausblenden */
+.App.mobile-view .admin-order-management th:nth-child(8), /* QR-Code ausblenden */
+.App.mobile-view .admin-order-management td:nth-child(3), /* Preis ausblenden */
+.App.mobile-view .admin-order-management td:nth-child(4), /* Bestelldatum ausblenden */
+.App.mobile-view .admin-order-management td:nth-child(7), /* Abgeholt ausblenden */
+.App.mobile-view .admin-order-management td:nth-child(8) { /* QR-Code ausblenden */
+  display: none !important;
+}
+
+/* MOBILE: Ganze Zeile klickbar machen für QR-Modal */
+.App.mobile-view .admin-order-management tbody tr {
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.App.mobile-view .admin-order-management tbody tr:hover {
+  background: #f0f9ff !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1) !important;
+}
+
+.App.mobile-view .admin-order-management tbody tr.completed:hover {
+  background: #f0fdf4 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* MOBILE: Spaltenbreiten optimieren für iPhone */
+.App.mobile-view .admin-order-management th:nth-child(1), /* ID */
+.App.mobile-view .admin-order-management td:nth-child(1) {
+  width: 50px !important;
+  text-align: center !important;
+}
+
+.App.mobile-view .admin-order-management th:nth-child(2), /* Gericht */
+.App.mobile-view .admin-order-management td:nth-child(2) {
+  min-width: 120px !important;
+}
+
+.App.mobile-view .admin-order-management th:nth-child(5), /* Abholdatum */
+.App.mobile-view .admin-order-management td:nth-child(5) {
+  width: 100px !important;
+  text-align: center !important;
+}
+
+.App.mobile-view .admin-order-management th:nth-child(6), /* Bezahlt */
+.App.mobile-view .admin-order-management td:nth-child(6) {
+  width: 80px !important;
+  text-align: center !important;
+}
+
+.App.mobile-view .admin-order-management th:nth-child(8), /* QR-Code */
+.App.mobile-view .admin-order-management td:nth-child(8) {
+  width: 100px !important;
+  text-align: center !important;
+}
+
+.App.mobile-view .admin-order-management thead {
+  background: #f9fafb !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+}
+
+.App.mobile-view .admin-order-management th {
+  padding: 8px 6px !important;
+  text-align: left !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  white-space: nowrap !important;
+}
+
+.App.mobile-view .admin-order-management td {
+  padding: 8px 6px !important;
+  font-size: 0.75rem !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+  vertical-align: top !important;
+}
+
+.App.mobile-view .admin-order-management tbody tr {
+  transition: background-color 0.2s ease !important;
+}
+
+.App.mobile-view .admin-order-management tbody tr:hover {
+  background: #f9fafb !important;
+}
+
+.App.mobile-view .admin-order-management tbody tr.completed {
+  background: #f0fdf4 !important;
+  opacity: 0.7 !important;
+}
+
+/* Status Badges - kompakt */
+.App.mobile-view .admin-order-management .status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 0.65rem !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+}
+
+.App.mobile-view .admin-order-management .status-badge.paid {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+.App.mobile-view .admin-order-management .status-badge.unpaid {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+.App.mobile-view .admin-order-management .status-badge.collected {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.App.mobile-view .admin-order-management .status-badge.not-collected {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+}
+
+/* QR Button - kompakt */
+.App.mobile-view .admin-order-management .qr-button {
+  padding: 4px 8px !important;
+  background: #3b82f6 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  font-size: 0.7rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+.App.mobile-view .admin-order-management .qr-button:hover {
+  background: #2563eb !important;
+}
+
+.App.mobile-view .admin-order-management .qr-disabled {
+  color: #9ca3af !important;
+  font-size: 0.7rem !important;
+  font-style: italic !important;
+}
+
+/* Loading & No Data States */
+.App.mobile-view .admin-order-management .loading,
+.App.mobile-view .admin-order-management .no-data {
+  text-align: center !important;
+  padding: 40px 20px !important;
+  color: #6b7280 !important;
+  font-size: 0.9rem !important;
+}
+
+.App.mobile-view .admin-order-management .no-data p {
+  margin: 0 !important;
+}
+
+/* QR Modal - mobile optimiert */
+.App.mobile-view .admin-order-management .modal-overlay {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.App.mobile-view .admin-order-management .qr-modal-content {
+  background: white !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  margin: 20px !important;
+  max-width: 90vw !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+  position: relative !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+.App.mobile-view .admin-order-management .modal-close {
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: #f3f4f6 !important;
+  border: none !important;
+  font-size: 1rem !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.App.mobile-view .admin-order-management .qr-modal-content h3 {
+  font-size: 1.1rem !important;
+  margin-bottom: 16px !important;
+  padding-right: 40px !important;
+}
+
+.App.mobile-view .admin-order-management .qr-modal-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.App.mobile-view .admin-order-management .order-details {
+  background: #f9fafb !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.App.mobile-view .admin-order-management .order-details h4 {
+  font-size: 1rem !important;
+  margin-bottom: 8px !important;
+  color: #1f2937 !important;
+}
+
+.App.mobile-view .admin-order-management .order-details p {
+  font-size: 0.8rem !important;
+  margin: 4px 0 !important;
+  color: #6b7280 !important;
+}
+
+.App.mobile-view .admin-order-management .order-details p strong {
+  color: #374151 !important;
+}
+
+.App.mobile-view .admin-order-management .qr-code-display {
+  text-align: center !important;
+}
+
+.App.mobile-view .admin-order-management .qr-code-box {
+  background: #f9fafb !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.App.mobile-view .admin-order-management .qr-label {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  margin-bottom: 8px !important;
+}
+
+.App.mobile-view .admin-order-management .qr-code-value {
+  font-family: monospace !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+  background: white !important;
+  padding: 8px 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid #d1d5db !important;
+  display: inline-block !important;
+}
+
+.App.mobile-view .admin-order-management .validation-status {
+  text-align: center !important;
+}
+
+.App.mobile-view .admin-order-management .status-alert {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  margin-bottom: 12px !important;
+}
+
+.App.mobile-view .admin-order-management .status-alert.already-collected {
+  background: #fef3c7 !important;
+  border: 1px solid #f59e0b !important;
+}
+
+.App.mobile-view .admin-order-management .status-icon {
+  font-size: 1.2rem !important;
+}
+
+.App.mobile-view .admin-order-management .status-alert strong {
+  display: block !important;
+  font-size: 0.9rem !important;
+  color: #92400e !important;
+  margin-bottom: 4px !important;
+}
+
+.App.mobile-view .admin-order-management .status-alert p {
+  font-size: 0.8rem !important;
+  color: #92400e !important;
+  margin: 0 !important;
+}
+
+.App.mobile-view .admin-order-management .validate-order-btn {
+  width: 100% !important;
+  padding: 12px !important;
+  background: #10b981 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.App.mobile-view .admin-order-management .validate-order-btn:hover {
+  background: #059669 !important;
+}

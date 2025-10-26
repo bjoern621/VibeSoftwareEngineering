@@ -81,6 +81,18 @@ const MealManagement = () => {
         fat: formData.nutritionInfo.fat ? parseFloat(formData.nutritionInfo.fat) : null,
       };
 
+      // Map category enum to German string for backend
+      const categoryMap = {
+        'VEGETARIAN': 'Vegetarisch',
+        'VEGAN': 'Vegan',
+        'MEAT': 'Fleisch',
+        'FISH': 'Fisch',
+        'HALAL': 'Halal',
+        'GLUTEN_FREE': 'Glutenfrei'
+      };
+
+      const germanCategory = categoryMap[formData.category] || formData.category;
+
       const mealData = {
         name: formData.name,
         description: formData.description,
@@ -88,7 +100,7 @@ const MealManagement = () => {
         cost: parseFloat(formData.cost) || 0,
         ingredients: formData.ingredients,
         nutritionalInfo: nutritionalInfo,
-        categories: [formData.category], // Als Array
+        categories: [germanCategory], // Als Array mit deutschem String
         allergens: formData.allergens,
       };
 
@@ -178,9 +190,21 @@ const MealManagement = () => {
       };
 
       // Categories kommt als Array vom Backend, nehme das erste Element
-      const category = meal.categories && meal.categories.length > 0
+      // Map German string back to enum value for form
+      const germanCategory = meal.categories && meal.categories.length > 0
         ? meal.categories[0]
-        : 'VEGETARIAN';
+        : 'Vegetarisch';
+
+      const enumMap = {
+        'Vegetarisch': 'VEGETARIAN',
+        'Vegan': 'VEGAN',
+        'Fleisch': 'MEAT',
+        'Fisch': 'FISH',
+        'Halal': 'HALAL',
+        'Glutenfrei': 'GLUTEN_FREE'
+      };
+
+      const category = enumMap[germanCategory] || 'VEGETARIAN';
 
       setFormData({
         name: meal.name,
@@ -242,10 +266,32 @@ const MealManagement = () => {
   // Filtered Meals
   const filteredMeals = meals.filter(meal => {
     const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         meal.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    // categories ist jetzt ein Array
-    const matchesCategory = categoryFilter === 'all' ||
-                           (meal.categories && meal.categories.includes(categoryFilter));
+                         meal.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         meal.ingredients?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Backend speichert categories als Array: ["Vegetarisch", "Glutenfrei"]
+    // Filter-Buttons nutzen Werte wie 'VEGETARIAN', 'VEGAN', etc.
+    let matchesCategory = categoryFilter === 'all';
+    
+    if (!matchesCategory && meal.categories && Array.isArray(meal.categories)) {
+      // Mapping zwischen Filter-Buttons und Backend-Categories
+      const categoryMap = {
+        'VEGETARIAN': ['Vegetarisch'],
+        'VEGAN': ['Vegan'],
+        'MEAT': ['Fleisch'],
+        'FISH': ['Fisch'],
+        'HALAL': ['Halal'],
+        'GLUTEN_FREE': ['Glutenfrei']
+      };
+      
+      const expectedCategories = categoryMap[categoryFilter] || [];
+      matchesCategory = expectedCategories.some(cat => 
+        meal.categories.some(mealCat => 
+          mealCat.toLowerCase().includes(cat.toLowerCase())
+        )
+      );
+    }
+    
     return matchesSearch && matchesCategory;
   });
 

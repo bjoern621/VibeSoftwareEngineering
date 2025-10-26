@@ -213,7 +213,11 @@ function AdminOrderManagement() {
             </thead>
             <tbody>
               {orders.map(order => (
-                <tr key={order.id} className={order.collected ? 'completed' : ''}>
+                <tr 
+                  key={order.id} 
+                  className={order.collected ? 'completed' : ''}
+                  onClick={() => order.paid && setSelectedOrder(order)}
+                >
                   <td>{order.id}</td>
                   <td><strong>{order.meal?.name || 'N/A'}</strong></td>
                   <td>
