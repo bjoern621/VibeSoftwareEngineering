@@ -281,6 +281,8 @@ body:has(.App.mobile-view) {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Verhindert, dass der Content über das Handy hinauswächst */
@@ -326,47 +328,56 @@ body:has(.App.mobile-view) {
 
 /* Mobile View - Header - Scrollt MIT dem Content weg */
 .App.mobile-view .app-header {
-  padding: 48px 16px 12px 16px; /* Extra padding für Notch */
+  padding: 32px 10px 6px 10px; /* STARK reduziert: 32px top (statt 48px), 6px bottom (statt 12px) */
   border-radius: 0;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  position: relative; /* Normal im Flow, nicht sticky */
+  position: relative;
   z-index: 1;
 }
 
 .App.mobile-view .header-content {
   margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
 .App.mobile-view .app-header h1 {
-  font-size: 1.2rem;
-  margin-bottom: 4px;
+  font-size: 0.95rem; /* KLEINER: von 1.2rem auf 0.95rem */
+  margin-bottom: 2px; /* von 4px auf 2px */
   color: white;
+  line-height: 1.2;
 }
 
 .App.mobile-view .header-subtitle {
-  font-size: 0.7rem;
-  margin-bottom: 12px;
+  font-size: 0.6rem; /* KLEINER: von 0.7rem auf 0.6rem */
+  margin-bottom: 0; /* VON 12px auf 0! */
   color: rgba(255, 255, 255, 0.9);
+  line-height: 1.2;
 }
 
 .App.mobile-view .header-nav {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 12px;
+  flex-direction: row; /* HORIZONTAL statt column */
+  gap: 4px; /* von 6px auf 4px */
+  margin-top: 0; /* VON 12px auf 0! */
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .App.mobile-view .nav-button {
-  width: 100%;
-  padding: 10px 16px;
-  font-size: 0.8rem;
+  width: auto; /* NICHT mehr 100% */
+  padding: 5px 10px; /* VIEL kleiner: von 10px 16px auf 5px 10px */
+  font-size: 0.65rem; /* KLEINER: von 0.8rem auf 0.65rem */
   margin: 0;
   flex: none;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px; /* von 8px auf 6px */
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .App.mobile-view .nav-button.active {
@@ -385,18 +396,19 @@ body:has(.App.mobile-view) {
 }
 
 .App.mobile-view .mobile-toggle-button {
-  width: 100%;
-  padding: 10px 16px;
-  font-size: 0.8rem;
-  margin: 6px 0 0 0;
+  width: auto; /* NICHT mehr 100% */
+  padding: 5px 10px; /* KLEINER: von 10px 16px auf 5px 10px */
+  font-size: 0.65rem; /* KLEINER: von 0.8rem auf 0.65rem */
+  margin: 0; /* VON 6px 0 0 0 auf 0! */
   flex: none;
   background: #10b981;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px; /* von 8px auf 6px */
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .App.mobile-view .mobile-toggle-button:hover {
@@ -818,5 +830,545 @@ body:has(.App.mobile-view) {
 }
 
 /* ========================================
+   MOBILE VIEW - MODAL INNERHALB iPhone Frame
+   Bestellübersicht bleibt IM Frame, kein Overflow
+   ======================================== */
+
+/* Modal Overlay - ABSOLUTE innerhalb mobile-screen-content */
+.App.mobile-view .order-management .modal-overlay {
+  position: absolute !important; /* ABSOLUTE, nicht FIXED! */
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important; /* Content nach UNTEN */
+  align-items: stretch !important;
+  border-radius: 32px !important; /* Passt zum Screen */
+  overflow: hidden !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* Modal Content - von unten im Frame */
+.App.mobile-view .order-management .modal-content {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  border-radius: 20px 20px 0 0 !important;
+  max-height: 70% !important; /* Max 70% des iPhone Frames */
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: slideUpFromBottom 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4) !important;
+  background: white !important;
+}
+
+/* Modal Header - kompakt und sticky */
+.App.mobile-view .order-management .modal-header {
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  flex-shrink: 0 !important;
+}
+
+.App.mobile-view .order-management .modal-header h2 {
+  font-size: 0.95rem !important;
+  margin: 0 !important;
+  font-weight: 600 !important;
+}
+
+.App.mobile-view .order-management .modal-close {
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 1rem !important;
+}
+
+/* Modal Body - scrollbar */
+.App.mobile-view .order-management .modal-body {
+  padding: 10px !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  flex: 1 !important;
+  min-height: 0 !important; /* Wichtig für Scrolling */
+}
+
+/* Checkout Items - sehr kompakt */
+.App.mobile-view .order-management .checkout-item {
+  padding: 6px !important;
+  margin-bottom: 6px !important;
+  gap: 8px !important;
+  border-radius: 10px !important;
+}
+
+.App.mobile-view .order-management .checkout-item-image {
+  width: 50px !important;
+  height: 50px !important;
+  border-radius: 8px !important;
+}
+
+.App.mobile-view .order-management .checkout-item-details h4 {
+  font-size: 0.8rem !important;
+  margin-bottom: 2px !important;
+  font-weight: 600 !important;
+}
+
+.App.mobile-view .order-management .checkout-item-quantity {
+  font-size: 0.7rem !important;
+  color: #6b7280 !important;
+}
+
+.App.mobile-view .order-management .checkout-item-price {
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+}
+
+/* Checkout Total - kompakt */
+.App.mobile-view .order-management .checkout-total {
+  padding: 10px !important;
+  margin-top: 6px !important;
+  border-radius: 10px !important;
+}
+
+.App.mobile-view .order-management .checkout-total-label {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+}
+
+.App.mobile-view .order-management .checkout-total-amount {
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+}
+
+/* Modal Footer - kompakt und sticky */
+.App.mobile-view .order-management .modal-footer {
+  padding: 10px !important;
+  border-top: 1px solid #e5e7eb !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+.App.mobile-view .order-management .modal-footer .btn-primary,
+.App.mobile-view .order-management .modal-footer .btn-secondary {
+  font-size: 0.8rem !important;
+  padding: 9px 14px !important;
+  border-radius: 8px !important;
+}
+
+@keyframes slideUpFromBottom {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ========================================
    ENDE MOBILE VIEW OPTIMIERUNGEN
    ======================================== */
+
+/* ========================================
+   MOBILE VIEW - ZAHLUNGSART-AUSWAHL MODAL
+   Alles kompakt und passt perfekt ins iPhone Frame
+   ======================================== */
+
+/* Payment Amount Display - sehr kompakt */
+.App.mobile-view .order-management .payment-amount-display {
+  text-align: center !important;
+  padding: 8px 0 !important;
+  margin-bottom: 8px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  font-size: 0.85rem !important;
+}
+
+.App.mobile-view .order-management .payment-amount-display strong {
+  font-size: 1.1rem !important;
+  color: #1f2937 !important;
+  font-weight: 700 !important;
+}
+
+/* Payment Methods Container - kompakt */
+.App.mobile-view .order-management .payment-methods {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 0 !important;
+}
+
+/* Payment Method Card - sehr kompakt */
+.App.mobile-view .order-management .payment-method-card {
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 10px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: white !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  gap: 8px !important;
+  min-height: 50px !important;
+}
+
+.App.mobile-view .order-management .payment-method-card:hover:not(.disabled) {
+  border-color: #3b82f6 !important;
+  background: #f0f9ff !important;
+}
+
+.App.mobile-view .order-management .payment-method-card.selected {
+  border-color: #3b82f6 !important;
+  background: #eff6ff !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2) !important;
+}
+
+.App.mobile-view .order-management .payment-method-card.disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  background: #f9fafb !important;
+}
+
+/* Payment Method Icon - kompakt */
+.App.mobile-view .order-management .payment-method-icon {
+  font-size: 1.2rem !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #f3f4f6 !important;
+  border-radius: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Payment Method Info - kompakt */
+.App.mobile-view .order-management .payment-method-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.App.mobile-view .order-management .payment-method-info h4 {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  margin: 0 0 2px 0 !important;
+  color: #1f2937 !important;
+}
+
+.App.mobile-view .order-management .payment-method-info p {
+  font-size: 0.7rem !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* Insufficient Balance Warning - kompakt */
+.App.mobile-view .order-management .insufficient-balance {
+  font-size: 0.65rem !important;
+  color: #dc2626 !important;
+  font-weight: 500 !important;
+  margin-top: 2px !important;
+}
+
+/* Payment Method Check - kompakt */
+.App.mobile-view .order-management .payment-method-check {
+  font-size: 1rem !important;
+  color: #3b82f6 !important;
+  font-weight: bold !important;
+  flex-shrink: 0 !important;
+}
+
+/* Balance Info in Payment Modal - kompakt */
+.App.mobile-view .order-management .balance-info {
+  text-align: center !important;
+  padding: 6px !important;
+  margin-top: 8px !important;
+  background: #f0fdf4 !important;
+  border-radius: 8px !important;
+  font-size: 0.75rem !important;
+  color: #166534 !important;
+  font-weight: 500 !important;
+}
+
+/* Bitcoin Payment Details - kompakt */
+.App.mobile-view .order-management .bitcoin-payment-details {
+  margin: 8px 0 !important;
+}
+
+.App.mobile-view .order-management .bitcoin-payment-details .payment-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 4px 0 !important;
+  font-size: 0.75rem !important;
+}
+
+.App.mobile-view .order-management .bitcoin-payment-details .payment-row.highlight {
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+}
+
+.App.mobile-view .order-management .bitcoin-payment-details .payment-label {
+  color: #6b7280 !important;
+}
+
+.App.mobile-view .order-management .bitcoin-payment-details .payment-value {
+  font-weight: 600 !important;
+}
+
+.App.mobile-view .order-management .bitcoin-payment-details .payment-value.btc {
+  color: #f59e0b !important;
+}
+
+/* Bitcoin Timer - kompakt */
+.App.mobile-view .order-management .bitcoin-timer {
+  text-align: center !important;
+  padding: 8px !important;
+  margin-bottom: 8px !important;
+  background: #fef3c7 !important;
+  border-radius: 8px !important;
+  border: 1px solid #f59e0b !important;
+}
+
+.App.mobile-view .order-management .bitcoin-timer.urgent {
+  background: #fee2e2 !important;
+  border-color: #dc2626 !important;
+}
+
+.App.mobile-view .order-management .timer-icon {
+  font-size: 1rem !important;
+  display: block !important;
+  margin-bottom: 2px !important;
+}
+
+.App.mobile-view .order-management .timer-text {
+  font-size: 0.7rem !important;
+  color: #92400e !important;
+  font-weight: 500 !important;
+}
+
+.App.mobile-view .order-management .timer-countdown {
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+}
+
+/* Bitcoin QR Code - kompakt */
+.App.mobile-view .order-management .bitcoin-qr-code {
+  text-align: center !important;
+  margin: 8px 0 !important;
+}
+
+.App.mobile-view .order-management .bitcoin-qr-code svg {
+  width: 120px !important;
+  height: 120px !important;
+}
+
+.App.mobile-view .order-management .qr-hint {
+  font-size: 0.7rem !important;
+  color: #6b7280 !important;
+  margin-top: 4px !important;
+}
+
+/* Bitcoin Address - kompakt */
+.App.mobile-view .order-management .address-box {
+  background: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  padding: 6px !important;
+  margin: 6px 0 !important;
+  font-family: monospace !important;
+  font-size: 0.65rem !important;
+  word-break: break-all !important;
+  text-align: center !important;
+}
+
+.App.mobile-view .order-management .address-note {
+  font-size: 0.7rem !important;
+  color: #dc2626 !important;
+  text-align: center !important;
+  margin-bottom: 8px !important;
+}
+
+/* Bitcoin Info - kompakt */
+.App.mobile-view .order-management .bitcoin-info {
+  font-size: 0.7rem !important;
+  color: #6b7280 !important;
+  text-align: center !important;
+  margin-top: 8px !important;
+}
+
+.App.mobile-view .order-management .bitcoin-info p {
+  margin: 2px 0 !important;
+}
+
+/* Credit Card Form - kompakt */
+.App.mobile-view .order-management .credit-card-form {
+  margin-top: 8px !important;
+}
+
+.App.mobile-view .order-management .credit-card-form .form-group {
+  margin-bottom: 8px !important;
+}
+
+.App.mobile-view .order-management .credit-card-form label {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+}
+
+.App.mobile-view .order-management .credit-card-form input {
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  background: white !important;
+}
+
+.App.mobile-view .order-management .credit-card-form .form-row {
+  display: flex !important;
+  gap: 8px !important;
+}
+
+.App.mobile-view .order-management .credit-card-form .form-row .form-group {
+  flex: 1 !important;
+}
+
+/* Payment Security Info - kompakt */
+.App.mobile-view .order-management .payment-security-info {
+  font-size: 0.7rem !important;
+  color: #6b7280 !important;
+  text-align: center !important;
+  margin-top: 8px !important;
+  padding: 6px !important;
+  background: #f8fafc !important;
+  border-radius: 6px !important;
+}
+
+.App.mobile-view .order-management .payment-security-info p {
+  margin: 2px 0 !important;
+}
+
+/* Balance Modal - kompakt */
+.App.mobile-view .order-management .balance-modal .modal-body {
+  padding: 12px !important;
+}
+
+.App.mobile-view .order-management .current-balance-display {
+  text-align: center !important;
+  padding: 8px !important;
+  margin-bottom: 12px !important;
+  background: #f0fdf4 !important;
+  border-radius: 8px !important;
+}
+
+.App.mobile-view .order-management .balance-label {
+  font-size: 0.75rem !important;
+  color: #166534 !important;
+  font-weight: 500 !important;
+}
+
+.App.mobile-view .order-management .balance-amount {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #166534 !important;
+}
+
+.App.mobile-view .order-management .form-group {
+  margin-bottom: 10px !important;
+}
+
+.App.mobile-view .order-management .form-group label {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+}
+
+.App.mobile-view .order-management .form-group input {
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  background: white !important;
+}
+
+.App.mobile-view .order-management .quick-amounts {
+  display: flex !important;
+  gap: 6px !important;
+  margin-top: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.App.mobile-view .order-management .quick-amount-btn {
+  padding: 6px 10px !important;
+  background: #f3f4f6 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 6px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.App.mobile-view .order-management .quick-amount-btn:hover {
+  background: #e5e7eb !important;
+}
+
+.App.mobile-view .order-management .top-up-summary {
+  text-align: center !important;
+  padding: 8px !important;
+  margin-bottom: 12px !important;
+  background: #fef3c7 !important;
+  border-radius: 8px !important;
+  font-size: 0.8rem !important;
+}
+
+.App.mobile-view .order-management .payment-methods-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+
+.App.mobile-view .order-management .payment-method-card {
+  padding: 10px !important;
+  text-align: center !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  background: white !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.App.mobile-view .order-management .payment-method-card:hover {
+  border-color: #3b82f6 !important;
+  background: #f0f9ff !important;
+}
+
+.App.mobile-view .order-management .payment-method-card .payment-icon {
+  font-size: 1.5rem !important;
+  margin-bottom: 4px !important;
+}
+
+.App.mobile-view .order-management .payment-method-card h3 {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  margin: 0 0 2px 0 !important;
+}
+
+.App.mobile-view .order-management .payment-method-card p {
+  font-size: 0.65rem !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+}
