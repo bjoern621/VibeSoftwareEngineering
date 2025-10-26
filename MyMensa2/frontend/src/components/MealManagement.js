@@ -15,6 +15,8 @@ const MealManagement = () => {
     name: '',
     description: '',
     price: '',
+    cost: '',
+    ingredients: '',
     category: 'VEGETARIAN',
     allergens: [],
     nutritionInfo: {
@@ -71,24 +73,23 @@ const MealManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Format nutrition info as string for API
-      const nutritionString = formData.nutritionInfo.calories ||
-                             formData.nutritionInfo.protein ||
-                             formData.nutritionInfo.carbs ||
-                             formData.nutritionInfo.fat
-        ? `${formData.nutritionInfo.calories || '?'} kcal, ` +
-          `${formData.nutritionInfo.protein || '?'}g Protein, ` +
-          `${formData.nutritionInfo.carbs || '?'}g Kohlenhydrate, ` +
-          `${formData.nutritionInfo.fat || '?'}g Fett`
-        : '';
+      // Format nutritionalInfo as object for API
+      const nutritionalInfo = {
+        calories: formData.nutritionInfo.calories ? parseInt(formData.nutritionInfo.calories) : null,
+        protein: formData.nutritionInfo.protein ? parseFloat(formData.nutritionInfo.protein) : null,
+        carbs: formData.nutritionInfo.carbs ? parseFloat(formData.nutritionInfo.carbs) : null,
+        fat: formData.nutritionInfo.fat ? parseFloat(formData.nutritionInfo.fat) : null,
+      };
 
       const mealData = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
-        category: formData.category,
+        cost: parseFloat(formData.cost) || 0,
+        ingredients: formData.ingredients,
+        nutritionalInfo: nutritionalInfo,
+        categories: [formData.category], // Als Array
         allergens: formData.allergens,
-        nutritionInfo: nutritionString,
       };
 
       if (editingMeal) {
@@ -109,6 +110,15 @@ const MealManagement = () => {
     if (window.confirm('Möchten Sie dieses Gericht wirklich löschen?')) {
       try {
         await api.meals.delete(id);
+
+        // Nach dem Soft-Delete: Entferne das Gericht aus zukünftigen Speiseplänen
+        try {
+          await removeMealFromMealPlans(id);
+        } catch (planErr) {
+          // Logge den Fehler, aber fahre fort - das Backend hat das Gericht bereits gelöscht
+          console.error('Fehler beim Entfernen aus dem Speiseplan:', planErr);
+        }
+
         await loadMeals();
       } catch (err) {
         setError(err.message || 'Fehler beim Löschen');
@@ -116,39 +126,69 @@ const MealManagement = () => {
     }
   };
 
+  // Entfernt ein Gericht aus Speiseplan-Einträgen in einem Zeitbereich
+  const removeMealFromMealPlans = async (mealId) => {
+    // Annahme: Entferne das Gericht aus den Speiseplänen der letzten 7 Tage bis in 30 Tage
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(start.getDate() - 7);
+    const end = new Date(today);
+    end.setDate(end.getDate() + 30);
+
+    const formatDate = (d) => d.toISOString().split('T')[0];
+    const startStr = formatDate(start);
+    const endStr = formatDate(end);
+
+    // Hole alle Speiseplan-Einträge im Zeitraum
+    const plans = await api.mealPlans.getByDateRange(startStr, endStr);
+    if (!plans || plans.length === 0) return;
+
+    const deletions = [];
+
+    for (const day of plans) {
+      const date = day.date;
+      const mealsOnDate = Array.isArray(day.meals) ? day.meals : [];
+
+      for (const item of mealsOnDate) {
+        const candidateId = item.meal?.id ?? item.mealId ?? item.id;
+        if (candidateId && parseInt(candidateId, 10) === parseInt(mealId, 10)) {
+          // Lösche den Eintrag für dieses Datum
+          deletions.push(api.mealPlans.delete(mealId, date).catch(e => {
+            console.warn(`Konnte Speiseplan-Eintrag für Meal ${mealId} am ${date} nicht löschen:`, e);
+          }));
+        }
+      }
+    }
+
+    // Warte auf alle Löschversuche
+    await Promise.all(deletions);
+  };
+
   // Modal handlers
   const handleOpenModal = (meal = null) => {
     if (meal) {
       setEditingMeal(meal);
 
-      // Parse nutrition info from string
+      // Parse nutrition info from object (Backend sends NutritionalInfo object)
       const nutritionInfo = {
-        calories: '',
-        protein: '',
-        carbs: '',
-        fat: '',
+        calories: meal.nutritionalInfo?.calories?.toString() || '',
+        protein: meal.nutritionalInfo?.protein?.toString() || '',
+        carbs: meal.nutritionalInfo?.carbs?.toString() || '',
+        fat: meal.nutritionalInfo?.fat?.toString() || '',
       };
 
-      if (meal.nutritionInfo) {
-        const parts = meal.nutritionInfo.split(',').map(p => p.trim());
-        parts.forEach(part => {
-          if (part.includes('kcal')) {
-            nutritionInfo.calories = part.replace(/\D/g, '');
-          } else if (part.includes('Protein')) {
-            nutritionInfo.protein = part.replace(/\D/g, '');
-          } else if (part.includes('Kohlenhydrate')) {
-            nutritionInfo.carbs = part.replace(/\D/g, '');
-          } else if (part.includes('Fett')) {
-            nutritionInfo.fat = part.replace(/\D/g, '');
-          }
-        });
-      }
+      // Categories kommt als Array vom Backend, nehme das erste Element
+      const category = meal.categories && meal.categories.length > 0
+        ? meal.categories[0]
+        : 'VEGETARIAN';
 
       setFormData({
         name: meal.name,
         description: meal.description,
         price: meal.price.toString(),
-        category: meal.category,
+        cost: meal.cost ? meal.cost.toString() : '',
+        ingredients: meal.ingredients || '',
+        category: category,
         allergens: meal.allergens || [],
         nutritionInfo,
       });
@@ -158,6 +198,8 @@ const MealManagement = () => {
         name: '',
         description: '',
         price: '',
+        cost: '',
+        ingredients: '',
         category: 'VEGETARIAN',
         allergens: [],
         nutritionInfo: {
@@ -201,7 +243,9 @@ const MealManagement = () => {
   const filteredMeals = meals.filter(meal => {
     const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          meal.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || meal.category === categoryFilter;
+    // categories ist jetzt ein Array
+    const matchesCategory = categoryFilter === 'all' ||
+                           (meal.categories && meal.categories.includes(categoryFilter));
     return matchesSearch && matchesCategory;
   });
 
@@ -285,56 +329,68 @@ const MealManagement = () => {
                 <p>Erstellen Sie Ihr erstes Gericht oder passen Sie die Filter an.</p>
               </div>
             ) : (
-              filteredMeals.map(meal => (
-                <div key={meal.id} className="meal-card">
-                  <div className="meal-image-container" style={{backgroundImage: `url(${getMealImage(meal.name)})`}}>
-                    <span className="meal-category-badge">
-                      {categories.find(c => c.value === meal.category)?.label || meal.category}
-                    </span>
-                  </div>
+              filteredMeals.map(meal => {
+                // Kategorie aus Array holen
+                const mealCategory = meal.categories && meal.categories.length > 0
+                  ? meal.categories[0]
+                  : 'VEGETARIAN';
 
-                  <div className="meal-card-body">
-                    <h3 className="meal-name">{meal.name}</h3>
-                    <p className="meal-description">{meal.description}</p>
+                // Nährwertinfo formatieren
+                const nutritionText = meal.nutritionalInfo
+                  ? `${meal.nutritionalInfo.calories || '?'} kcal, ${meal.nutritionalInfo.protein || '?'}g Protein, ${meal.nutritionalInfo.carbs || '?'}g Kohlenhydrate, ${meal.nutritionalInfo.fat || '?'}g Fett`
+                  : null;
 
-                    {meal.allergens && meal.allergens.length > 0 && (
-                      <div className="meal-allergens">
-                        <span className="allergen-label">⚠️ Allergene:</span>
-                        <span className="allergen-list">{meal.allergens.join(', ')}</span>
-                      </div>
-                    )}
-
-                    {meal.nutritionInfo && (
-                      <div className="meal-nutrition">
-                        <span className="nutrition-icon">📊</span>
-                        <span>{meal.nutritionInfo}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="meal-card-footer">
-                    <div className="meal-price">
-                      <span className="price-amount">€ {meal.price.toFixed(2)}</span>
+                return (
+                  <div key={meal.id} className="meal-card">
+                    <div className="meal-image-container" style={{backgroundImage: `url(${getMealImage(meal.name)})`}}>
+                      <span className="meal-category-badge">
+                        {categories.find(c => c.value === mealCategory)?.label || mealCategory}
+                      </span>
                     </div>
-                    <div className="meal-actions">
-                      <button
-                        className="btn-icon btn-edit"
-                        onClick={() => handleOpenModal(meal)}
-                        title="Bearbeiten"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="btn-icon btn-delete"
-                        onClick={() => handleDelete(meal.id)}
-                        title="Löschen"
-                      >
-                        🗑️
-                      </button>
+
+                    <div className="meal-card-body">
+                      <h3 className="meal-name">{meal.name}</h3>
+                      <p className="meal-description">{meal.description}</p>
+
+                      {meal.allergens && meal.allergens.length > 0 && (
+                        <div className="meal-allergens">
+                          <span className="allergen-label">⚠️ Allergene:</span>
+                          <span className="allergen-list">{meal.allergens.join(', ')}</span>
+                        </div>
+                      )}
+
+                      {nutritionText && (
+                        <div className="meal-nutrition">
+                          <span className="nutrition-icon">📊</span>
+                          <span>{nutritionText}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="meal-card-footer">
+                      <div className="meal-price">
+                        <span className="price-amount">€ {meal.price.toFixed(2)}</span>
+                      </div>
+                      <div className="meal-actions">
+                        <button
+                          className="btn-icon btn-edit"
+                          onClick={() => handleOpenModal(meal)}
+                          title="Bearbeiten"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="btn-icon btn-delete"
+                          onClick={() => handleDelete(meal.id)}
+                          title="Löschen"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
@@ -373,9 +429,22 @@ const MealManagement = () => {
                     />
                   </div>
 
-                  <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="ingredients">Zutaten *</label>
+                    <textarea
+                      id="ingredients"
+                      value={formData.ingredients}
+                      onChange={(e) => setFormData({ ...formData, ingredients: e.target.value })}
+                      rows="2"
+                      required
+                      placeholder="z.B. Nudeln, Hackfleisch, Tomatensauce, Zwiebeln"
+                    />
+                    <small className="form-hint">Komma-getrennte Liste der Zutaten</small>
+                  </div>
+
+                  <div className="form-row form-row-three">
                     <div className="form-group">
-                      <label htmlFor="price">Preis (€) *</label>
+                      <label htmlFor="price">Verkaufspreis (€) *</label>
                       <input
                         type="number"
                         id="price"
@@ -385,6 +454,20 @@ const MealManagement = () => {
                         step="0.01"
                         min="0"
                         placeholder="5.50"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="cost">Kosten (€) *</label>
+                      <input
+                        type="number"
+                        id="cost"
+                        value={formData.cost}
+                        onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                        required
+                        step="0.01"
+                        min="0"
+                        placeholder="3.20"
                       />
                     </div>
 
