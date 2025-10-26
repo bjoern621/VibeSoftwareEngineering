@@ -731,3 +731,92 @@ body:has(.App.mobile-view) {
   max-width: 100%;
   box-sizing: border-box;
 }
+
+/* ========================================
+   MOBILE VIEW - WEEK TABS OPTIMIERUNG
+   Tage-Auswahl als 2-Spalten Grid
+   ======================================== */
+
+.App.mobile-view .week-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+  overflow-x: visible !important;
+  padding: 0 !important;
+}
+
+.App.mobile-view .week-tab {
+  min-width: auto !important;
+  width: 100% !important;
+  padding: 12px 8px !important;
+  font-size: 0.75rem !important;
+}
+
+.App.mobile-view .week-tab .day-name {
+  font-size: 0.75rem !important;
+}
+
+.App.mobile-view .week-tab .day-date {
+  font-size: 0.7rem !important;
+}
+
+.App.mobile-view .week-selector {
+  gap: 8px !important;
+  padding: 6px !important;
+}
+
+.App.mobile-view .week-selector-btn {
+  padding: 10px 16px !important;
+  font-size: 0.75rem !important;
+}
+
+/* ========================================
+   MOBILE VIEW - CART SUMMARY
+   Zur Kasse Button als Sticky Footer
+   ======================================== */
+
+.App.mobile-view .mobile-screen-content {
+  padding-bottom: 70px !important;
+}
+
+.App.mobile-view .cart-summary,
+.App.mobile-view .cart-summary-floating {
+  position: sticky !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  z-index: 100 !important;
+  padding: 10px 12px !important;
+  font-size: 0.8rem !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  background: white !important;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+.App.mobile-view .cart-icon {
+  font-size: 1.3rem !important;
+}
+
+.App.mobile-view .cart-total {
+  font-size: 1rem !important;
+}
+
+.App.mobile-view .btn-checkout {
+  font-size: 0.8rem !important;
+  padding: 10px 16px !important;
+  white-space: nowrap !important;
+}
+
+.App.mobile-view .meals-grid {
+  margin-bottom: 20px !important;
+}
+
+.App.mobile-view .order-management {
+  padding-bottom: 0 !important;
+}
+
+/* ========================================
+   ENDE MOBILE VIEW OPTIMIERUNGEN
+   ======================================== */

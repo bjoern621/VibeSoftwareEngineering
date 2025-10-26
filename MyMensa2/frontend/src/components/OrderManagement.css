@@ -1335,18 +1335,21 @@
 }
 
 /* ==================== MOBILE VIEW (iPhone Frame) ==================== */
+.App.mobile-view .order-management,
 .mobile-view .order-management {
   padding: 0 !important;
   min-height: auto;
   background: white;
 }
 
+.App.mobile-view .container,
 .mobile-view .container {
   max-width: 100%;
   padding: 12px;
 }
 
 /* Page Header */
+.App.mobile-view .page-header,
 .mobile-view .page-header {
   flex-direction: column;
   align-items: stretch;

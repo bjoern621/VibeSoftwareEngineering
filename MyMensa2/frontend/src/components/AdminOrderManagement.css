@@ -495,3 +495,110 @@
   transform: scale(0.98);
   box-shadow: 0 1px 3px rgba(220, 53, 69, 0.2);
 }
+
+/* ========================================
+   MOBILE VIEW (iPhone Frame) STYLES
+   Optimiert für Mitarbeiter-App
+   ======================================== */
+
+.App.mobile-view .admin-order-management {
+  padding: 12px;
+}
+
+.App.mobile-view .section-header h2 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+.App.mobile-view .filter-section {
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.App.mobile-view .filter-section .form-group {
+  max-width: 100%;
+}
+
+.App.mobile-view .filter-section label {
+  font-size: 0.8rem;
+}
+
+.App.mobile-view .filter-section input,
+.App.mobile-view .filter-section select {
+  font-size: 0.85rem;
+  padding: 8px;
+}
+
+.App.mobile-view .order-stats {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.App.mobile-view .stat-card {
+  padding: 12px;
+  gap: 12px;
+}
+
+.App.mobile-view .stat-icon {
+  font-size: 1.5rem;
+}
+
+.App.mobile-view .stat-value {
+  font-size: 1.3rem;
+}
+
+.App.mobile-view .stat-label {
+  font-size: 0.75rem;
+}
+
+.App.mobile-view .orders-table-container {
+  overflow-x: auto;
+  margin: 0 -12px;
+}
+
+.App.mobile-view .orders-table {
+  font-size: 0.7rem;
+  min-width: 100%;
+}
+
+.App.mobile-view .orders-table th,
+.App.mobile-view .orders-table td {
+  padding: 8px 6px;
+  white-space: nowrap;
+}
+
+.App.mobile-view .actions {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.App.mobile-view .actions button {
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  width: 100%;
+}
+
+.App.mobile-view .qr-modal-overlay {
+  padding: 10px;
+}
+
+.App.mobile-view .qr-modal-content {
+  padding: 16px;
+  max-width: 95%;
+}
+
+.App.mobile-view .qr-modal-content h3 {
+  font-size: 1rem;
+}
+
+.App.mobile-view .qr-code-container {
+  padding: 12px;
+}
+
+.App.mobile-view .order-details .detail-row {
+  font-size: 0.8rem;
+  padding: 6px 0;
+}
