@@ -445,10 +445,22 @@
   resize: vertical;
 }
 
+.form-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+.form-row-three {
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 /* Allergens Grid */
@@ -604,7 +616,8 @@
     grid-template-columns: 1fr;
   }
 
-  .form-row {
+  .form-row,
+  .form-row-three {
     grid-template-columns: 1fr;
   }
 
