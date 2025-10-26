@@ -735,6 +735,23 @@
   color: #059669;
 }
 
+.checkout-day-section {
+  margin-bottom: 24px;
+}
+
+.checkout-day-section:last-child {
+  margin-bottom: 0;
+}
+
+.checkout-day-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
 .modal-footer {
   display: flex;
   gap: 12px;
@@ -905,6 +922,12 @@
   max-width: 500px;
 }
 
+/* Mobile QR Modal */
+.mobile-view .qr-modal {
+  max-height: 90vh;
+  margin: 20px;
+}
+
 .qr-body {
   text-align: center;
 }
@@ -958,6 +981,14 @@
 /* QR-Code vom QRCodeSVG-Component wird hier angezeigt */
 .qr-code-placeholder svg {
   display: block;
+}
+
+/* Mobile QR-Code Größe für Bestellung erfolgreich Modal */
+.mobile-view .qr-code-placeholder svg {
+  width: 140px !important;
+  height: 140px !important;
+  max-width: 140px !important;
+  max-height: 140px !important;
 }
 
 .qr-label {
@@ -1771,10 +1802,10 @@
 }
 
 .mobile-view .qr-code-box canvas {
-  max-width: 180px !important;
-  max-height: 180px !important;
-  width: 180px !important;
-  height: 180px !important;
+  max-width: 140px !important;
+  max-height: 140px !important;
+  width: 140px !important;
+  height: 140px !important;
 }
 
 .mobile-view .qr-instructions {

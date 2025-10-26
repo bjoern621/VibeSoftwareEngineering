@@ -140,24 +140,48 @@ function OrderManagement() {
   const mealsForSelectedDay = weekMealPlans[selectedDay.date] || [];
 
   const updateQuantity = (mealId, newQuantity) => {
-    if (newQuantity <= 0) {
-      const newCart = { ...cart };
-      delete newCart[mealId];
-      setCart(newCart);
-    } else {
-      const meal = mealsForSelectedDay.find(m => m.id === mealId);
-      if (meal && newQuantity <= meal.stock) {
-        setCart(prev => ({ ...prev, [mealId]: newQuantity }));
+    const dateKey = selectedDay.date;
+    setCart(prev => {
+      const dayCart = prev[dateKey] || {};
+      if (newQuantity <= 0) {
+        const newDayCart = { ...dayCart };
+        delete newDayCart[mealId];
+        const newCart = { ...prev };
+        if (Object.keys(newDayCart).length === 0) {
+          delete newCart[dateKey];
+        } else {
+          newCart[dateKey] = newDayCart;
+        }
+        return newCart;
+      } else {
+        const meal = mealsForSelectedDay.find(m => m.id === mealId);
+        if (meal && newQuantity <= meal.stock) {
+          return {
+            ...prev,
+            [dateKey]: {
+              ...dayCart,
+              [mealId]: newQuantity
+            }
+          };
+        }
+        return prev;
       }
-    }
+    });
   };
 
-  const getTotalItems = () => Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+  const getTotalItems = () => {
+    return Object.values(cart).reduce((sum, dayCart) => {
+      return sum + Object.values(dayCart).reduce((daySum, qty) => daySum + qty, 0);
+    }, 0);
+  };
   
   const getTotalPrice = () => {
-    return Object.entries(cart).reduce((sum, [mealId, qty]) => {
-      const meal = mealsForSelectedDay.find(m => m.id === parseInt(mealId));
-      return sum + (meal ? meal.price * qty : 0);
+    return Object.entries(cart).reduce((sum, [date, dayCart]) => {
+      const mealsForDate = weekMealPlans[date] || [];
+      return sum + Object.entries(dayCart).reduce((daySum, [mealId, qty]) => {
+        const meal = mealsForDate.find(m => m.id === parseInt(mealId));
+        return daySum + (meal ? meal.price * qty : 0);
+      }, 0);
     }, 0);
   };
 
@@ -245,12 +269,19 @@ function OrderManagement() {
 
   const completeOrder = async () => {
     // Erstelle lokale QR-Code-Daten für UI (wie vorher)
+    const allItems = [];
+    Object.entries(cart).forEach(([date, dayCart]) => {
+      const mealsForDate = weekMealPlans[date] || [];
+      Object.entries(dayCart).forEach(([mealId, qty]) => {
+        const meal = mealsForDate.find(m => m.id === parseInt(mealId));
+        if (meal) {
+          allItems.push({ name: meal.name, quantity: qty, date: date });
+        }
+      });
+    });
     const orderData = {
       orderId: 'ORDER-' + Date.now(),
-      items: Object.entries(cart).map(([mealId, qty]) => {
-        const meal = mealsForSelectedDay.find(m => m.id === parseInt(mealId));
-        return { name: meal?.name || 'Unknown', quantity: qty };
-      }),
+      items: allItems,
       total: getTotalPrice(),
       timestamp: new Date().toISOString(),
       paymentMethod: selectedPaymentMethod
@@ -258,39 +289,41 @@ function OrderManagement() {
     
     // Parallel: Erstelle Bestellungen im Backend (ohne UI zu blockieren)
     try {
-      for (const [mealId, quantity] of Object.entries(cart)) {
-        for (let i = 0; i < quantity; i++) {
-          // Wichtig: Verwende selectedDay.date als pickupDate!
-          const backendOrder = {
-            mealId: parseInt(mealId),
-            pickupDate: selectedDay.date // Das ausgewählte Datum, nicht "heute"!
-          };
-          
-          // Erstelle Bestellung
-          const createdOrder = await api.orders.create(backendOrder);
-          console.log(`✅ Bestellung erstellt für ${selectedDay.date}:`, createdOrder);
-          
-          // Bezahle sofort mit der gewählten Methode
-          let paymentMethod = 'PREPAID_ACCOUNT';
-          if (selectedPaymentMethod === 'creditcard') paymentMethod = 'CREDIT_CARD';
-          if (selectedPaymentMethod === 'bitcoin') paymentMethod = 'BITCOIN';
-          
-          // Backend gibt "orderId" zurück, nicht "id"
-          const orderIdToUse = createdOrder.orderId || createdOrder.id;
-          console.log(`💳 Versuche Bezahlung: Order ${orderIdToUse}, Methode: ${paymentMethod}`);
-          const paymentResult = await api.orders.pay(orderIdToUse, {
-            paymentMethod: paymentMethod,
-            paymentTransactionId: `EASYPAY-${paymentMethod}-${Date.now()}`
-          });
-          console.log(`✅ Bezahlung erfolgreich:`, paymentResult);
-          
-          // Automatischer Lagerverbrauch nach erfolgreicher Bezahlung
-          try {
-            const consumeResult = await api.inventory.consumeForMeal(parseInt(mealId), 1);
-            console.log(`📦 Lagerbestand aktualisiert:`, consumeResult);
-          } catch (consumeErr) {
-            console.warn(`⚠️ Lagerverbrauch fehlgeschlagen (wird ignoriert):`, consumeErr.message);
-            // Fehler wird ignoriert, um Bestellung nicht zu blockieren
+      for (const [date, dayCart] of Object.entries(cart)) {
+        for (const [mealId, quantity] of Object.entries(dayCart)) {
+          for (let i = 0; i < quantity; i++) {
+            // Verwende das Datum aus dem cart als pickupDate
+            const backendOrder = {
+              mealId: parseInt(mealId),
+              pickupDate: date
+            };
+            
+            // Erstelle Bestellung
+            const createdOrder = await api.orders.create(backendOrder);
+            console.log(`✅ Bestellung erstellt für ${date}:`, createdOrder);
+            
+            // Bezahle sofort mit der gewählten Methode
+            let paymentMethod = 'PREPAID_ACCOUNT';
+            if (selectedPaymentMethod === 'creditcard') paymentMethod = 'CREDIT_CARD';
+            if (selectedPaymentMethod === 'bitcoin') paymentMethod = 'BITCOIN';
+            
+            // Backend gibt "orderId" zurück, nicht "id"
+            const orderIdToUse = createdOrder.orderId || createdOrder.id;
+            console.log(`💳 Versuche Bezahlung: Order ${orderIdToUse}, Methode: ${paymentMethod}`);
+            const paymentResult = await api.orders.pay(orderIdToUse, {
+              paymentMethod: paymentMethod,
+              paymentTransactionId: `EASYPAY-${paymentMethod}-${Date.now()}`
+            });
+            console.log(`✅ Bezahlung erfolgreich:`, paymentResult);
+            
+            // Automatischer Lagerverbrauch nach erfolgreicher Bezahlung
+            try {
+              const consumeResult = await api.inventory.consumeForMeal(parseInt(mealId), 1);
+              console.log(`📦 Lagerbestand aktualisiert:`, consumeResult);
+            } catch (consumeErr) {
+              console.warn(`⚠️ Lagerverbrauch fehlgeschlagen (wird ignoriert):`, consumeErr.message);
+              // Fehler wird ignoriert, um Bestellung nicht zu blockieren
+            }
           }
         }
       }
@@ -544,19 +577,19 @@ function OrderManagement() {
                   <div className="meal-card-footer">
                     <span className="meal-price">{meal.price.toFixed(2)} €</span>
                     
-                    {cart[meal.id] > 0 ? (
+                    {cart[selectedDay.date]?.[meal.id] > 0 ? (
                       <div className="quantity-controls">
                         <button 
                           className="qty-btn qty-minus"
-                          onClick={() => updateQuantity(meal.id, cart[meal.id] - 1)}
+                          onClick={() => updateQuantity(meal.id, cart[selectedDay.date]?.[meal.id] - 1)}
                         >
                           ➖
                         </button>
-                        <span className="qty-display">{cart[meal.id]}</span>
+                        <span className="qty-display">{cart[selectedDay.date]?.[meal.id]}</span>
                         <button 
                           className="qty-btn qty-plus"
-                          onClick={() => updateQuantity(meal.id, cart[meal.id] + 1)}
-                          disabled={cart[meal.id] >= meal.stock}
+                          onClick={() => updateQuantity(meal.id, cart[selectedDay.date]?.[meal.id] + 1)}
+                          disabled={cart[selectedDay.date]?.[meal.id] >= meal.stock}
                         >
                           ➕
                         </button>
@@ -604,19 +637,29 @@ function OrderManagement() {
               </div>
 
               <div className="modal-body">
-                {Object.entries(cart).map(([mealId, quantity]) => {
-                  const meal = mealsForSelectedDay.find(m => m.id === parseInt(mealId));
-                  if (!meal) return null;
+                {Object.entries(cart).map(([date, dayCart]) => {
+                  const mealsForDate = weekMealPlans[date] || [];
+                  const dayName = twoWeeks.flatMap(w => w.days).find(d => d.date === date)?.name || date;
+                  
                   return (
-                    <div key={mealId} className="checkout-item">
-                      <div className="checkout-item-image" style={{backgroundImage: `url(${meal.image})`}} />
-                      <div className="checkout-item-details">
-                        <h4>{meal.name}</h4>
-                        <p className="checkout-item-quantity">{quantity}x à {meal.price.toFixed(2)} €</p>
-                      </div>
-                      <div className="checkout-item-price">
-                        {(meal.price * quantity).toFixed(2)} €
-                      </div>
+                    <div key={date} className="checkout-day-section">
+                      <h3 className="checkout-day-title">{dayName} ({date})</h3>
+                      {Object.entries(dayCart).map(([mealId, quantity]) => {
+                        const meal = mealsForDate.find(m => m.id === parseInt(mealId));
+                        if (!meal) return null;
+                        return (
+                          <div key={`${date}-${mealId}`} className="checkout-item">
+                            <div className="checkout-item-image" style={{backgroundImage: `url(${meal.image})`}} />
+                            <div className="checkout-item-details">
+                              <h4>{meal.name}</h4>
+                              <p className="checkout-item-quantity">{quantity}x à {meal.price.toFixed(2)} €</p>
+                            </div>
+                            <div className="checkout-item-price">
+                              {(meal.price * quantity).toFixed(2)} €
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}

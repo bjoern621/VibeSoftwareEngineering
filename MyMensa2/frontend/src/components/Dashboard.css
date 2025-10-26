@@ -303,11 +303,12 @@
 }
 
 .forecast-card {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1.5rem;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease;
+  color: white;
 }
 
 .forecast-card:hover {
@@ -318,10 +319,10 @@
 .forecast-meal-name {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: white;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .forecast-metrics {
@@ -337,17 +338,17 @@
 }
 
 .metric-label {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
 }
 
 .metric-value {
   font-weight: 600;
-  color: #2c3e50;
+  color: white;
 }
 
 .metric-value.highlight {
-  color: #667eea;
+  color: #ffd700;
   font-size: 1.1rem;
 }
 
@@ -358,13 +359,13 @@
 }
 
 .metric-value.confidence.high {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(74, 222, 128, 0.2);
+  color: #4ade80;
 }
 
 .metric-value.confidence.medium {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
 }
 
 /* Ingredients Forecast Table */
