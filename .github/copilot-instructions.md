@@ -234,7 +234,7 @@ Validierung der Zustandsübergänge in Entity-Methoden!
 ## 🔧 Tech Stack
 
 - **Framework**: Spring Boot 3.x
-- **Java**: 17+
+- **Java**: 25
 - **Datenbank**: H2 (Dev), PostgreSQL (Prod)
 - **Persistierung**: Spring Data JPA
 - **Security**: Spring Security mit JWT
@@ -773,34 +773,8 @@ cd backend
 4. "Erstelle Application Service für Use Case 'Reise beantragen'"
 5. "Erstelle REST-Controller für TravelRequest"
 
+
 ### Qualitätssicherung
 - Nach jedem Schritt: **Code Review** durch KI
 - Frage explizit: "Entspricht das DDD Best Practices?"
 - Teste Schritt für Schritt
-
----
-
-## ✨ Zusammenfassung
-
-**TRAVELREIMBURSE** folgt striktem **Domain-Driven Design**:
-
-✅ Layered Architecture (Domain → Application → Infrastructure → Presentation)
-✅ Tactical DDD (Aggregates, Value Objects, Repositories, Domain Services)
-✅ Externe Integrationen (HRIS, EasyPay, ExRat)
-✅ Security mit JWT und Rollen
-✅ Clean Code & Best Practices
-✅ Umfassende Validierung & Exception Handling
-
-**Wichtigste Regel**: Domain-Logik gehört in den Domain Layer, nicht in Controller oder Services!
-
----
-
-## 📖 Weiterführende Ressourcen
-
-- **Buch**: "Domain-Driven Design Distilled" (Vaughn Vernon)
-- **Spring Boot Docs**: https://spring.io/projects/spring-boot
-- **DDD Reference**: https://domainlanguage.com/ddd/reference/
-
----
-
-**Viel Erfolg beim Projekt! 🚀**
