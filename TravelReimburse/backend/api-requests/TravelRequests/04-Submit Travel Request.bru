@@ -1,0 +1,26 @@
+meta {
+  name: 04-Submit Travel Request
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/travel-requests/1/submit
+  body: none
+  auth: none
+}
+
+docs {
+  # Reiseantrag einreichen
+  
+  Reicht einen Reiseantrag ein (DRAFT -> SUBMITTED).
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 200 OK
+  - Status ist "SUBMITTED"
+  - submittedAt ist jetzt gesetzt
+  
+  **Fehlerfall (bereits eingereicht):**
+  - HTTP 400 Bad Request
+  - Fehlermeldung: "Nur Entwürfe können eingereicht werden"
+}
