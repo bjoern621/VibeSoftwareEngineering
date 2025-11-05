@@ -19,6 +19,10 @@ public record TravelRequestResponseDTO(
     String currency,
     String status,
     LocalDateTime createdAt,
-    LocalDateTime submittedAt
+    LocalDateTime submittedAt,
+    Long approverId,
+    LocalDateTime approvedAt,
+    LocalDateTime rejectedAt,
+    String rejectionReason
 ) {
 }

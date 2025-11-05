@@ -44,6 +44,18 @@ public class TravelRequest {
     @Column
     private LocalDateTime submittedAt;
     
+    @Column
+    private Long approverId;
+
+    @Column
+    private LocalDateTime approvedAt;
+
+    @Column
+    private LocalDateTime rejectedAt;
+
+    @Column(length = 1000)
+    private String rejectionReason;
+
     // JPA benötigt Default-Konstruktor
     protected TravelRequest() {
     }
@@ -92,6 +104,51 @@ public class TravelRequest {
         this.submittedAt = LocalDateTime.now();
     }
     
+    /**
+     * Business-Methode: Reiseantrag genehmigen
+     * Zustandsübergang: SUBMITTED -> APPROVED
+     *
+     * @param approverId ID der genehmigenden Führungskraft
+     */
+    public void approve(Long approverId) {
+        if (approverId == null) {
+            throw new IllegalArgumentException("ApproverId darf nicht null sein");
+        }
+        if (status != TravelRequestStatus.SUBMITTED) {
+            throw new IllegalStateException(
+                "Nur eingereichte Anträge können genehmigt werden. Aktueller Status: " + status
+            );
+        }
+        this.status = TravelRequestStatus.APPROVED;
+        this.approverId = approverId;
+        this.approvedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Business-Methode: Reiseantrag ablehnen
+     * Zustandsübergang: SUBMITTED -> REJECTED
+     *
+     * @param approverId ID der ablehnenden Führungskraft
+     * @param reason Grund für die Ablehnung
+     */
+    public void reject(Long approverId, String reason) {
+        if (approverId == null) {
+            throw new IllegalArgumentException("ApproverId darf nicht null sein");
+        }
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new IllegalArgumentException("Ablehnungsgrund darf nicht leer sein");
+        }
+        if (status != TravelRequestStatus.SUBMITTED) {
+            throw new IllegalStateException(
+                "Nur eingereichte Anträge können abgelehnt werden. Aktueller Status: " + status
+            );
+        }
+        this.status = TravelRequestStatus.REJECTED;
+        this.approverId = approverId;
+        this.rejectedAt = LocalDateTime.now();
+        this.rejectionReason = reason;
+    }
+
     // Getters
     public Long getId() {
         return id;
@@ -127,5 +184,21 @@ public class TravelRequest {
     
     public LocalDateTime getSubmittedAt() {
         return submittedAt;
+    }
+
+    public Long getApproverId() {
+        return approverId;
+    }
+
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public LocalDateTime getRejectedAt() {
+        return rejectedAt;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
     }
 }

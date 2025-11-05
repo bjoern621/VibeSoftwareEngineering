@@ -12,5 +12,15 @@ public enum TravelRequestStatus {
     /**
      * Eingereicht - Antrag wartet auf Genehmigung
      */
-    SUBMITTED
+    SUBMITTED,
+
+    /**
+     * Genehmigt - Antrag wurde von Führungskraft genehmigt
+     */
+    APPROVED,
+
+    /**
+     * Abgelehnt - Antrag wurde von Führungskraft abgelehnt
+     */
+    REJECTED
 }

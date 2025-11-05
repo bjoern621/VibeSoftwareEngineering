@@ -25,4 +25,19 @@ public interface JpaTravelRequestRepository
      */
     @Override
     List<TravelRequest> findByEmployeeId(Long employeeId);
+
+    /**
+     * Spring Data JPA generiert automatisch die Query:
+     * SELECT * FROM travel_requests WHERE status = 'SUBMITTED'
+     * Diese Methode ist JPA-spezifisch und nicht im Domain-Interface
+     */
+    List<TravelRequest> findByStatus(com.travelreimburse.domain.model.TravelRequestStatus status);
+
+    /**
+     * Findet alle eingereichten Anträge (Implementierung für Domain-Interface)
+     */
+    @Override
+    default List<TravelRequest> findPendingApprovals() {
+        return findByStatus(com.travelreimburse.domain.model.TravelRequestStatus.SUBMITTED);
+    }
 }
