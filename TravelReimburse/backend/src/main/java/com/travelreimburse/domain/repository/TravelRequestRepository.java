@@ -31,4 +31,10 @@ public interface TravelRequestRepository {
      * @return Liste aller Reiseanträge des Mitarbeiters
      */
     List<TravelRequest> findByEmployeeId(Long employeeId);
+
+    /**
+     * Findet alle eingereichten Reiseanträge die auf Genehmigung warten
+     * @return Liste aller eingereichten Reiseanträge
+     */
+    List<TravelRequest> findPendingApprovals();
 }

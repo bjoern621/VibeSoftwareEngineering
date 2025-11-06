@@ -66,4 +66,48 @@ public class TravelRequestController {
         TravelRequestResponseDTO response = travelRequestService.submitTravelRequest(id);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * Ruft alle eingereichten Reiseanträge ab (zur Genehmigung)
+     * GET /api/travel-requests/pending-approvals
+     * Für Führungskräfte
+     */
+    @GetMapping("/pending-approvals")
+    public ResponseEntity<List<TravelRequestResponseDTO>> getPendingApprovals() {
+        List<TravelRequestResponseDTO> response = travelRequestService.findPendingApprovals();
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Genehmigt einen Reiseantrag (SUBMITTED -> APPROVED)
+     * POST /api/travel-requests/{id}/approve
+     * Für Führungskräfte
+     */
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<TravelRequestResponseDTO> approveTravelRequest(
+            @PathVariable Long id,
+            @Valid @RequestBody com.travelreimburse.application.dto.ApprovalRequestDTO request) {
+        TravelRequestResponseDTO response = travelRequestService.approveTravelRequest(
+            id,
+            request.approverId()
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Lehnt einen Reiseantrag ab (SUBMITTED -> REJECTED)
+     * POST /api/travel-requests/{id}/reject
+     * Für Führungskräfte
+     */
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<TravelRequestResponseDTO> rejectTravelRequest(
+            @PathVariable Long id,
+            @Valid @RequestBody com.travelreimburse.application.dto.RejectionRequestDTO request) {
+        TravelRequestResponseDTO response = travelRequestService.rejectTravelRequest(
+            id,
+            request.approverId(),
+            request.reason()
+        );
+        return ResponseEntity.ok(response);
+    }
 }

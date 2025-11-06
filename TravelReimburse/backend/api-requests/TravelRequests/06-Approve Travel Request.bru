@@ -1,0 +1,28 @@
+meta {
+  name: Approve Travel Request
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:8080/api/travel-requests/1/approve
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "approverId": 100
+  }
+}
+
+docs {
+  Genehmigt einen eingereichten Reiseantrag.
+
+  Voraussetzung:
+  - Antrag muss im Status SUBMITTED sein
+  - approverId muss angegeben werden (ID der Führungskraft)
+
+  Zustandsübergang: SUBMITTED -> APPROVED
+}
+

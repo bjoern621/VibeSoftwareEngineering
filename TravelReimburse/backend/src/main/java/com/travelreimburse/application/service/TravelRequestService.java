@@ -95,6 +95,58 @@ public class TravelRequestService {
     }
     
     /**
+     * Findet alle eingereichten Reiseanträge (zur Genehmigung)
+     * @return Liste aller eingereichten Reiseanträge als DTOs
+     */
+    public List<TravelRequestResponseDTO> findPendingApprovals() {
+        return travelRequestRepository.findPendingApprovals()
+            .stream()
+            .map(this::toResponseDTO)
+            .toList();
+    }
+
+    /**
+     * Genehmigt einen Reiseantrag (SUBMITTED -> APPROVED)
+     * @param id die ID des Reiseantrags
+     * @param approverId die ID der genehmigenden Führungskraft
+     * @return der genehmigte Reiseantrag als DTO
+     */
+    @Transactional
+    public TravelRequestResponseDTO approveTravelRequest(Long id, Long approverId) {
+        TravelRequest travelRequest = travelRequestRepository.findById(id)
+            .orElseThrow(() -> new TravelRequestNotFoundException(id));
+
+        // Business-Logik aufrufen (Domain-Methode!)
+        travelRequest.approve(approverId);
+
+        // Persistieren
+        TravelRequest saved = travelRequestRepository.save(travelRequest);
+
+        return toResponseDTO(saved);
+    }
+
+    /**
+     * Lehnt einen Reiseantrag ab (SUBMITTED -> REJECTED)
+     * @param id die ID des Reiseantrags
+     * @param approverId die ID der ablehnenden Führungskraft
+     * @param reason der Grund für die Ablehnung
+     * @return der abgelehnte Reiseantrag als DTO
+     */
+    @Transactional
+    public TravelRequestResponseDTO rejectTravelRequest(Long id, Long approverId, String reason) {
+        TravelRequest travelRequest = travelRequestRepository.findById(id)
+            .orElseThrow(() -> new TravelRequestNotFoundException(id));
+
+        // Business-Logik aufrufen (Domain-Methode!)
+        travelRequest.reject(approverId, reason);
+
+        // Persistieren
+        TravelRequest saved = travelRequestRepository.save(travelRequest);
+
+        return toResponseDTO(saved);
+    }
+
+    /**
      * Konvertiert eine TravelRequest-Entity zu einem DTO
      */
     private TravelRequestResponseDTO toResponseDTO(TravelRequest entity) {
@@ -109,7 +161,11 @@ public class TravelRequestService {
             entity.getEstimatedCost().getCurrency().name(),
             entity.getStatus().name(),
             entity.getCreatedAt(),
-            entity.getSubmittedAt()
+            entity.getSubmittedAt(),
+            entity.getApproverId(),
+            entity.getApprovedAt(),
+            entity.getRejectedAt(),
+            entity.getRejectionReason()
         );
     }
 }

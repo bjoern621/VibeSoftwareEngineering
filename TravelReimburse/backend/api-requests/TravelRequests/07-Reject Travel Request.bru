@@ -1,0 +1,30 @@
+meta {
+  name: Reject Travel Request
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:8080/api/travel-requests/1/reject
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "approverId": 100,
+    "reason": "Die geschätzten Kosten überschreiten das Budget. Bitte prüfen Sie günstigere Alternativen."
+  }
+}
+
+docs {
+  Lehnt einen eingereichten Reiseantrag ab.
+
+  Voraussetzung:
+  - Antrag muss im Status SUBMITTED sein
+  - approverId muss angegeben werden (ID der Führungskraft)
+  - reason (Ablehnungsgrund) ist erforderlich
+
+  Zustandsübergang: SUBMITTED -> REJECTED
+}
+
