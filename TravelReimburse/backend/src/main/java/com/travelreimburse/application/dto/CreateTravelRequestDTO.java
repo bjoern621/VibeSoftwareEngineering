@@ -1,5 +1,7 @@
 package com.travelreimburse.application.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.travelreimburse.infrastructure.serialization.FlexibleBigDecimalDeserializer;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -7,6 +9,7 @@ import java.time.LocalDate;
 /**
  * DTO für das Erstellen eines neuen Reiseantrags
  * Enthält alle erforderlichen Informationen für einen Reiseantrag
+ * Akzeptiert beide Dezimalformate: "20.00" und "20,00"
  */
 public record CreateTravelRequestDTO(
     @NotNull(message = "EmployeeId darf nicht null sein")
@@ -29,6 +32,7 @@ public record CreateTravelRequestDTO(
     
     @NotNull(message = "Geschätzte Kosten dürfen nicht null sein")
     @DecimalMin(value = "0.01", message = "Geschätzte Kosten müssen größer als 0 sein")
+    @JsonDeserialize(using = FlexibleBigDecimalDeserializer.class)
     BigDecimal estimatedAmount,
     
     @NotBlank(message = "Währung darf nicht leer sein")

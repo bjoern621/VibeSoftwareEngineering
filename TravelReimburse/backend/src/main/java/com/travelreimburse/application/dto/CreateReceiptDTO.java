@@ -1,6 +1,8 @@
 package com.travelreimburse.application.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.travelreimburse.domain.model.ReceiptType;
+import com.travelreimburse.infrastructure.serialization.FlexibleBigDecimalDeserializer;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -9,6 +11,7 @@ import java.time.LocalDate;
 /**
  * DTO für das Erstellen eines Receipts (ohne Datei).
  * Die Datei wird separat als MultipartFile hochgeladen.
+ * Akzeptiert beide Dezimalformate: "20.00" und "20,00"
  */
 public record CreateReceiptDTO(
         @NotNull(message = "Travel Request ID ist erforderlich")
@@ -25,6 +28,7 @@ public record CreateReceiptDTO(
         String description,
 
         @DecimalMin(value = "0.01", message = "Betrag muss positiv sein")
+        @JsonDeserialize(using = FlexibleBigDecimalDeserializer.class)
         BigDecimal amount,
 
         String currency,
