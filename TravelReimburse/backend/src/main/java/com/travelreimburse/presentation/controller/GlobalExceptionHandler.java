@@ -3,6 +3,7 @@ package com.travelreimburse.presentation.controller;
 import com.travelreimburse.application.service.InvalidFileException;
 import com.travelreimburse.application.service.ReceiptNotFoundException;
 import com.travelreimburse.application.service.TravelRequestNotFoundException;
+import com.travelreimburse.infrastructure.external.exrat.ExRatClientException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -91,6 +92,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
+    /**
+     * Behandelt ExRatClientException (503 - Service Unavailable)
+     */
+    @ExceptionHandler(ExRatClientException.class)
+    public ResponseEntity<ErrorResponse> handleExRatClientException(ExRatClientException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.SERVICE_UNAVAILABLE.value(),
+            "Währungskurs-Service nicht verfügbar: " + ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
     /**
      * Behandelt alle anderen Exceptions (500)
      */
