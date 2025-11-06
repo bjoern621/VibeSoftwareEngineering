@@ -1,0 +1,18 @@
+meta {
+  name: Reject Receipt
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/receipts/1/reject
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "reason": "Beleg ist unleserlich, bitte erneut hochladen"
+  }
+}
+

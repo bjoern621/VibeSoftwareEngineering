@@ -1,0 +1,21 @@
+meta {
+  name: Update Receipt
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/receipts/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "description": "Hotelrechnung - aktualisiert",
+    "amount": 175.50,
+    "currency": "EUR",
+    "vendor": "Hotel Berlin Mitte GmbH"
+  }
+}
+
