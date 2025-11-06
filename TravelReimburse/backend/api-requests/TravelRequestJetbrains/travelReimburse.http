@@ -1,0 +1,54 @@
+### 01-Create Travel Request
+# [cite_start]Erstellt einen neuen Reiseantrag im Status DRAFT. [cite: 63]
+POST http://localhost:8080/api/travel-requests
+Content-Type: application/json
+
+{
+  "employeeId": 2,
+  "destination": "Berlin",
+  "purpose": "Kundentermin bei ABC GmbH - Präsentation neuer Softwarelösungen",
+  "startDate": "2025-11-10",
+  "endDate": "2025-11-12",
+  "estimatedAmount": 450.50,
+  "currency": "EUR"
+}
+
+### 02-Get Travel Request By ID
+# [cite_start]Ruft einen einzelnen Reiseantrag anhand seiner ID ab. [cite: 61]
+# WICHTIG: Ändere die '1' in der URL auf eine existierende ID!
+GET http://localhost:8080/api/travel-requests/1
+
+
+### 03-Get Travel Requests By Employee
+# [cite_start]Ruft alle Reiseanträge eines bestimmten Mitarbeiters ab. [cite: 1]
+GET http://localhost:8080/api/travel-requests?employeeId=1
+
+
+### 04-Submit Travel Request
+# [cite_start]Reicht einen Reiseantrag ein (DRAFT -> SUBMITTED). [cite: 59]
+POST http://localhost:8080/api/travel-requests/2/submit
+
+
+### 05-Get Pending Approvals
+# [cite_start]Ruft alle eingereichten Reiseanträge ab, die auf Genehmigung warten. [cite: 3]
+GET http://localhost:8080/api/travel-requests/pending-approvals
+
+
+### 06-Approve Travel Request
+# [cite_start]Genehmigt einen eingereichten Reiseantrag. [cite: 508]
+POST http://localhost:8080/api/travel-requests/1/approve
+Content-Type: application/json
+
+{
+  "approverId": 100
+}
+
+### 07-Reject Travel Request
+# [cite_start]Lehnt einen eingereichten Reiseantrag ab. [cite: 510]
+POST http://localhost:8080/api/travel-requests/1/reject
+Content-Type: application/json
+
+{
+  "approverId": 100,
+  "reason": "Die geschätzten Kosten überschreiten das Budget. Bitte prüfen Sie günstigere Alternativen."
+}
