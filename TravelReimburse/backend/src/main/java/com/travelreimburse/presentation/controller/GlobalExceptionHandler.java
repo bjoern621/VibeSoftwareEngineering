@@ -1,5 +1,7 @@
 package com.travelreimburse.presentation.controller;
 
+import com.travelreimburse.application.service.InvalidFileException;
+import com.travelreimburse.application.service.ReceiptNotFoundException;
 import com.travelreimburse.application.service.TravelRequestNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,23 @@ import java.util.Map;
 public class GlobalExceptionHandler {
     
     /**
-     * BehandeltNotFoundException (404)
+     * Behandelt TravelRequestNotFoundException (404)
      */
     @ExceptionHandler(TravelRequestNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(TravelRequestNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleTravelRequestNotFound(TravelRequestNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Behandelt ReceiptNotFoundException (404)
+     */
+    @ExceptionHandler(ReceiptNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleReceiptNotFound(ReceiptNotFoundException ex) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(),
             ex.getMessage(),
@@ -31,6 +46,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
     
+    /**
+     * Behandelt InvalidFileException (400)
+     */
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFile(InvalidFileException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     /**
      * Behandelt Validierungsfehler (400)
      */

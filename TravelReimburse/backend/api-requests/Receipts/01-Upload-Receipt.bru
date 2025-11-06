@@ -1,0 +1,23 @@
+meta {
+  name: Upload Receipt
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/receipts
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(sample-receipt.pdf)
+  travelRequestId: 1
+  type: HOTEL
+  issueDate: 2024-11-01
+  description: Hotelrechnung für Geschäftsreise nach Berlin
+  amount: 150.00
+  currency: EUR
+  vendor: Hotel Berlin Mitte
+}
+
