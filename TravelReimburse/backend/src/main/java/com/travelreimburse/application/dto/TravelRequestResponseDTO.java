@@ -3,6 +3,7 @@ package com.travelreimburse.application.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO für die Rückgabe eines Reiseantrags
@@ -23,6 +24,7 @@ public record TravelRequestResponseDTO(
     Long approverId,
     LocalDateTime approvedAt,
     LocalDateTime rejectedAt,
-    String rejectionReason
+    String rejectionReason,
+    List<TravelLegResponseDTO> travelLegs
 ) {
 }

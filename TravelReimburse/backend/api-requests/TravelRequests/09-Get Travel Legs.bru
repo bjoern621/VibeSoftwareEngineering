@@ -1,0 +1,27 @@
+meta {
+  name: 09-Get Travel Legs
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/travel-requests/{{travelRequestId}}/travel-legs
+  body: none
+  auth: none
+}
+
+docs {
+  # Alle Reiseabschnitte abrufen
+  
+  Ruft alle Reiseabschnitte (TravelLegs) eines Reiseantrags ab.
+  
+  ## Response
+  Liste aller Reiseabschnitte mit:
+  - ID
+  - Abfahrts- und Ankunftsort
+  - Verkehrsmittel
+  - Kosten
+  - Beschreibung
+  - Zeiten
+  - Distanz
+}

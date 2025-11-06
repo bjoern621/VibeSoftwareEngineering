@@ -1,0 +1,47 @@
+meta {
+  name: 08-Add Travel Leg
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/travel-requests/{{travelRequestId}}/travel-legs
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "departureLocation": "Hamburg",
+    "arrivalLocation": "München",
+    "transportationType": "FLIGHT",
+    "costAmount": 149.99,
+    "currency": "EUR",
+    "description": "Lufthansa LH2022",
+    "departureDateTime": "2025-12-15T09:30:00",
+    "arrivalDateTime": "2025-12-15T11:15:00",
+    "distanceKm": 612.0
+  }
+}
+
+docs {
+  # Reiseabschnitt hinzufügen
+  
+  Fügt einen Reiseabschnitt (TravelLeg) zu einem bestehenden Reiseantrag hinzu.
+  
+  ## Voraussetzungen
+  - Reiseantrag muss im Status DRAFT sein
+  - Alle Pflichtfelder müssen ausgefüllt sein
+  
+  ## Verkehrsmittel (transportationType)
+  - FLIGHT - Flugreise
+  - TRAIN - Bahnreise
+  - CAR_RENTAL - Mietwagen
+  - TAXI - Taxi/Ridesharing
+  - PUBLIC_TRANSPORT - Öffentliche Verkehrsmittel
+  - OWN_CAR - Eigener PKW
+  - OTHER - Sonstige
+  
+  ## Response
+  Gibt den erstellten Reiseabschnitt zurück mit ID und allen Daten.
+}

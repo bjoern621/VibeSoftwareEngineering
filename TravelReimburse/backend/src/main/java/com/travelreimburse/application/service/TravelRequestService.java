@@ -1,6 +1,8 @@
 package com.travelreimburse.application.service;
 
+import com.travelreimburse.application.dto.AddTravelLegDTO;
 import com.travelreimburse.application.dto.CreateTravelRequestDTO;
+import com.travelreimburse.application.dto.TravelLegResponseDTO;
 import com.travelreimburse.application.dto.TravelRequestResponseDTO;
 import com.travelreimburse.domain.model.*;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
@@ -150,6 +152,10 @@ public class TravelRequestService {
      * Konvertiert eine TravelRequest-Entity zu einem DTO
      */
     private TravelRequestResponseDTO toResponseDTO(TravelRequest entity) {
+        List<TravelLegResponseDTO> travelLegDTOs = entity.getTravelLegs().stream()
+            .map(this::toTravelLegDTO)
+            .toList();
+        
         return new TravelRequestResponseDTO(
             entity.getId(),
             entity.getEmployeeId(),
@@ -165,7 +171,112 @@ public class TravelRequestService {
             entity.getApproverId(),
             entity.getApprovedAt(),
             entity.getRejectedAt(),
-            entity.getRejectionReason()
+            entity.getRejectionReason(),
+            travelLegDTOs
         );
+    }
+    
+    /**
+     * Konvertiert eine TravelLeg-Entity zu einem DTO
+     */
+    private TravelLegResponseDTO toTravelLegDTO(TravelLeg leg) {
+        return new TravelLegResponseDTO(
+            leg.getId(),
+            leg.getDepartureLocation(),
+            leg.getArrivalLocation(),
+            leg.getTransportationType().name(),
+            leg.getCost().getAmount(),
+            leg.getCost().getCurrency().name(),
+            leg.getDescription(),
+            leg.getDepartureDateTime(),
+            leg.getArrivalDateTime(),
+            leg.getDistanceKm(),
+            leg.getCreatedAt()
+        );
+    }
+    
+    /**
+     * Fügt einen Reiseabschnitt zu einem Reiseantrag hinzu
+     * Nur möglich im Status DRAFT
+     * @param requestId die ID des Reiseantrags
+     * @param dto die Daten für den Reiseabschnitt
+     * @return der hinzugefügte Reiseabschnitt als DTO
+     */
+    @Transactional
+    public TravelLegResponseDTO addTravelLeg(Long requestId, AddTravelLegDTO dto) {
+        TravelRequest travelRequest = travelRequestRepository.findById(requestId)
+            .orElseThrow(() -> new TravelRequestNotFoundException(requestId));
+        
+        // DTO zu Domain-Objekten konvertieren
+        TransportationType transportationType = TransportationType.valueOf(dto.transportationType());
+        Currency currency = Currency.valueOf(dto.currency());
+        Money cost = new Money(dto.costAmount(), currency);
+        
+        // Business-Logik aufrufen (Domain-Methode!)
+        TravelLeg travelLeg = travelRequest.addTravelLeg(
+            dto.departureLocation(),
+            dto.arrivalLocation(),
+            transportationType,
+            cost
+        );
+        
+        // Optionale Felder setzen
+        if (dto.description() != null) {
+            travelLeg.setDescription(dto.description());
+        }
+        if (dto.departureDateTime() != null) {
+            travelLeg.setDepartureDateTime(dto.departureDateTime());
+        }
+        if (dto.arrivalDateTime() != null) {
+            travelLeg.setArrivalDateTime(dto.arrivalDateTime());
+        }
+        if (dto.distanceKm() != null) {
+            travelLeg.setDistanceKm(dto.distanceKm());
+        }
+        
+        // Persistieren
+        TravelRequest saved = travelRequestRepository.save(travelRequest);
+        
+        // Finde das neu hinzugefügte TravelLeg im gespeicherten Request
+        TravelLeg savedLeg = saved.getTravelLegs().stream()
+            .filter(leg -> leg.getDepartureLocation().equals(dto.departureLocation()) &&
+                          leg.getArrivalLocation().equals(dto.arrivalLocation()) &&
+                          leg.getTransportationType() == transportationType)
+            .reduce((first, second) -> second) // Nimm das zuletzt hinzugefügte
+            .orElseThrow(() -> new IllegalStateException("TravelLeg konnte nicht gespeichert werden"));
+        
+        return toTravelLegDTO(savedLeg);
+    }
+    
+    /**
+     * Entfernt einen Reiseabschnitt von einem Reiseantrag
+     * Nur möglich im Status DRAFT
+     * @param requestId die ID des Reiseantrags
+     * @param legId die ID des zu entfernenden Reiseabschnitts
+     */
+    @Transactional
+    public void removeTravelLeg(Long requestId, Long legId) {
+        TravelRequest travelRequest = travelRequestRepository.findById(requestId)
+            .orElseThrow(() -> new TravelRequestNotFoundException(requestId));
+        
+        // Business-Logik aufrufen (Domain-Methode!)
+        travelRequest.removeTravelLegById(legId);
+        
+        // Persistieren
+        travelRequestRepository.save(travelRequest);
+    }
+    
+    /**
+     * Gibt alle Reiseabschnitte eines Reiseantrags zurück
+     * @param requestId die ID des Reiseantrags
+     * @return Liste aller Reiseabschnitte als DTOs
+     */
+    public List<TravelLegResponseDTO> getTravelLegsByRequestId(Long requestId) {
+        TravelRequest travelRequest = travelRequestRepository.findById(requestId)
+            .orElseThrow(() -> new TravelRequestNotFoundException(requestId));
+        
+        return travelRequest.getTravelLegs().stream()
+            .map(this::toTravelLegDTO)
+            .toList();
     }
 }

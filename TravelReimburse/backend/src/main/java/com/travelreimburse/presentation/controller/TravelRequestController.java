@@ -1,6 +1,8 @@
 package com.travelreimburse.presentation.controller;
 
+import com.travelreimburse.application.dto.AddTravelLegDTO;
 import com.travelreimburse.application.dto.CreateTravelRequestDTO;
+import com.travelreimburse.application.dto.TravelLegResponseDTO;
 import com.travelreimburse.application.dto.TravelRequestResponseDTO;
 import com.travelreimburse.application.service.TravelRequestService;
 import jakarta.validation.Valid;
@@ -109,5 +111,41 @@ public class TravelRequestController {
             request.reason()
         );
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Fügt einen Reiseabschnitt zu einem Reiseantrag hinzu
+     * POST /api/travel-requests/{id}/travel-legs
+     * Nur möglich im Status DRAFT
+     */
+    @PostMapping("/{id}/travel-legs")
+    public ResponseEntity<TravelLegResponseDTO> addTravelLeg(
+            @PathVariable Long id,
+            @Valid @RequestBody AddTravelLegDTO request) {
+        TravelLegResponseDTO response = travelRequestService.addTravelLeg(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
+    /**
+     * Gibt alle Reiseabschnitte eines Reiseantrags zurück
+     * GET /api/travel-requests/{id}/travel-legs
+     */
+    @GetMapping("/{id}/travel-legs")
+    public ResponseEntity<List<TravelLegResponseDTO>> getTravelLegs(@PathVariable Long id) {
+        List<TravelLegResponseDTO> response = travelRequestService.getTravelLegsByRequestId(id);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Entfernt einen Reiseabschnitt von einem Reiseantrag
+     * DELETE /api/travel-requests/{id}/travel-legs/{legId}
+     * Nur möglich im Status DRAFT
+     */
+    @DeleteMapping("/{id}/travel-legs/{legId}")
+    public ResponseEntity<Void> removeTravelLeg(
+            @PathVariable Long id,
+            @PathVariable Long legId) {
+        travelRequestService.removeTravelLeg(id, legId);
+        return ResponseEntity.noContent().build();
     }
 }

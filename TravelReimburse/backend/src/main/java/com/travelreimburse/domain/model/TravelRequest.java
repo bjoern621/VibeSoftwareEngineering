@@ -2,10 +2,13 @@ package com.travelreimburse.domain.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Aggregate Root für Reiseanträge
- * Verwaltet alle Informationen zu einer beantragten Dienstreise
+ * Verwaltet alle Informationen zu einer beantragten Dienstreise inklusive Reiserouten
  */
 @Entity
 @Table(name = "travel_requests")
@@ -55,6 +58,9 @@ public class TravelRequest {
 
     @Column(length = 1000)
     private String rejectionReason;
+    
+    @OneToMany(mappedBy = "travelRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TravelLeg> travelLegs = new ArrayList<>();
 
     // JPA benötigt Default-Konstruktor
     protected TravelRequest() {
@@ -147,6 +153,98 @@ public class TravelRequest {
         this.approverId = approverId;
         this.rejectedAt = LocalDateTime.now();
         this.rejectionReason = reason;
+    }
+    
+    /**
+     * Business-Methode: Reiseabschnitt hinzufügen
+     * Darf nur im Status DRAFT erfolgen
+     */
+    public TravelLeg addTravelLeg(String departureLocation, String arrivalLocation, 
+                                  TransportationType transportationType, Money cost) {
+        if (status != TravelRequestStatus.DRAFT) {
+            throw new IllegalStateException(
+                "Reiseabschnitte können nur im Entwurfsstatus hinzugefügt werden. Aktueller Status: " + status
+            );
+        }
+        
+        TravelLeg travelLeg = new TravelLeg(this, departureLocation, arrivalLocation, 
+                                            transportationType, cost);
+        this.travelLegs.add(travelLeg);
+        return travelLeg;
+    }
+    
+    /**
+     * Business-Methode: Reiseabschnitt entfernen
+     * Darf nur im Status DRAFT erfolgen
+     */
+    public void removeTravelLeg(TravelLeg travelLeg) {
+        if (status != TravelRequestStatus.DRAFT) {
+            throw new IllegalStateException(
+                "Reiseabschnitte können nur im Entwurfsstatus entfernt werden. Aktueller Status: " + status
+            );
+        }
+        if (travelLeg == null) {
+            throw new IllegalArgumentException("TravelLeg darf nicht null sein");
+        }
+        
+        // Bidirektionale Beziehung auflösen
+        travelLeg.setTravelRequest(null);
+        this.travelLegs.remove(travelLeg);
+    }
+    
+    /**
+     * Business-Methode: Reiseabschnitt anhand der ID entfernen
+     * Darf nur im Status DRAFT erfolgen
+     */
+    public void removeTravelLegById(Long legId) {
+        if (status != TravelRequestStatus.DRAFT) {
+            throw new IllegalStateException(
+                "Reiseabschnitte können nur im Entwurfsstatus entfernt werden. Aktueller Status: " + status
+            );
+        }
+        
+        TravelLeg legToRemove = this.travelLegs.stream()
+            .filter(leg -> leg.getId() != null && leg.getId().equals(legId))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("TravelLeg mit ID " + legId + " nicht gefunden"));
+        
+        // Bidirektionale Beziehung auflösen
+        legToRemove.setTravelRequest(null);
+        this.travelLegs.remove(legToRemove);
+    }
+    
+    /**
+     * Gibt eine unveränderliche Liste aller Reiseabschnitte zurück
+     */
+    public List<TravelLeg> getTravelLegs() {
+        return Collections.unmodifiableList(travelLegs);
+    }
+    
+    /**
+     * Berechnet die Gesamtkosten aller Reiseabschnitte
+     * Alle Währungen müssen identisch sein
+     */
+    public Money calculateTotalLegCost() {
+        if (travelLegs.isEmpty()) {
+            return estimatedCost;
+        }
+        
+        Currency baseCurrency = travelLegs.get(0).getCost().getCurrency();
+        Money total = new Money(java.math.BigDecimal.ZERO, baseCurrency);
+        
+        for (TravelLeg leg : travelLegs) {
+            if (!leg.getCost().getCurrency().equals(baseCurrency)) {
+                throw new IllegalStateException(
+                    "Alle Reiseabschnitte müssen die gleiche Währung haben"
+                );
+            }
+            total = new Money(
+                total.getAmount().add(leg.getCost().getAmount()), 
+                baseCurrency
+            );
+        }
+        
+        return total;
     }
 
     // Getters
