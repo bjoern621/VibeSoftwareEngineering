@@ -2,8 +2,10 @@ package com.travelreimburse.application.service;
 
 import com.travelreimburse.application.dto.CreateTravelRequestDTO;
 import com.travelreimburse.application.dto.TravelRequestResponseDTO;
+import com.travelreimburse.domain.event.TravelRequestStatusChangedEvent;
 import com.travelreimburse.domain.model.*;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,9 +20,12 @@ import java.util.List;
 public class TravelRequestService {
     
     private final TravelRequestRepository travelRequestRepository;
-    
-    public TravelRequestService(TravelRequestRepository travelRequestRepository) {
+    private final ApplicationEventPublisher eventPublisher;
+
+    public TravelRequestService(TravelRequestRepository travelRequestRepository,
+                               ApplicationEventPublisher eventPublisher) {
         this.travelRequestRepository = travelRequestRepository;
+        this.eventPublisher = eventPublisher;
     }
     
     /**
@@ -85,12 +90,20 @@ public class TravelRequestService {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
         
+        // Alten Status merken
+        TravelRequestStatus oldStatus = travelRequest.getStatus();
+
         // Business-Logik aufrufen (Domain-Methode!)
         travelRequest.submit();
         
         // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
         
+        // Event publizieren
+        eventPublisher.publishEvent(
+            new TravelRequestStatusChangedEvent(saved, oldStatus, saved.getStatus())
+        );
+
         return toResponseDTO(saved);
     }
     
@@ -116,11 +129,19 @@ public class TravelRequestService {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
 
+        // Alten Status merken
+        TravelRequestStatus oldStatus = travelRequest.getStatus();
+
         // Business-Logik aufrufen (Domain-Methode!)
         travelRequest.approve(approverId);
 
         // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
+
+        // Event publizieren
+        eventPublisher.publishEvent(
+            new TravelRequestStatusChangedEvent(saved, oldStatus, saved.getStatus())
+        );
 
         return toResponseDTO(saved);
     }
@@ -137,11 +158,19 @@ public class TravelRequestService {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
 
+        // Alten Status merken
+        TravelRequestStatus oldStatus = travelRequest.getStatus();
+
         // Business-Logik aufrufen (Domain-Methode!)
         travelRequest.reject(approverId, reason);
 
         // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
+
+        // Event publizieren
+        eventPublisher.publishEvent(
+            new TravelRequestStatusChangedEvent(saved, oldStatus, saved.getStatus())
+        );
 
         return toResponseDTO(saved);
     }
