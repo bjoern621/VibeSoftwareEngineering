@@ -4,7 +4,7 @@ POST http://localhost:8080/api/travel-requests
 Content-Type: application/json
 
 {
-  "employeeId": 2,
+  "employeeId": 1,
   "destination": "Berlin",
   "purpose": "Kundentermin bei ABC GmbH - Präsentation neuer Softwarelösungen",
   "startDate": "2025-11-10",
@@ -26,7 +26,7 @@ GET http://localhost:8080/api/travel-requests?employeeId=1
 
 ### 04-Submit Travel Request
 # [cite_start]Reicht einen Reiseantrag ein (DRAFT -> SUBMITTED). [cite: 59]
-POST http://localhost:8080/api/travel-requests/2/submit
+POST http://localhost:8080/api/travel-requests/1/submit
 
 
 ### 05-Get Pending Approvals
