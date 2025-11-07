@@ -4,10 +4,8 @@ import com.travelreimburse.application.dto.AddTravelLegDTO;
 import com.travelreimburse.application.dto.CreateTravelRequestDTO;
 import com.travelreimburse.application.dto.TravelLegResponseDTO;
 import com.travelreimburse.application.dto.TravelRequestResponseDTO;
-import com.travelreimburse.domain.event.TravelRequestStatusChangedEvent;
 import com.travelreimburse.domain.model.*;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +20,9 @@ import java.util.List;
 public class TravelRequestService {
     
     private final TravelRequestRepository travelRequestRepository;
-    private final ApplicationEventPublisher eventPublisher;
 
-    public TravelRequestService(TravelRequestRepository travelRequestRepository,
-                               ApplicationEventPublisher eventPublisher) {
+    public TravelRequestService(TravelRequestRepository travelRequestRepository) {
         this.travelRequestRepository = travelRequestRepository;
-        this.eventPublisher = eventPublisher;
     }
     
     /**
@@ -91,20 +86,12 @@ public class TravelRequestService {
     public TravelRequestResponseDTO submitTravelRequest(Long id) {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
-        
-        // Alten Status merken
-        TravelRequestStatus oldStatus = travelRequest.getStatus();
 
-        // Business-Logik aufrufen (Domain-Methode!)
-        travelRequest.submit();
-        
-        // Persistieren
+        // Use domain model method (publishes event automatically)
+        travelRequest.updateStatus(TravelRequestStatus.SUBMITTED);
+
+        // Persistieren (Spring Data publishes events automatically)
         TravelRequest saved = travelRequestRepository.save(travelRequest);
-        
-        // Event publizieren
-        eventPublisher.publishEvent(
-            new TravelRequestStatusChangedEvent(saved, oldStatus, saved.getStatus())
-        );
 
         return toResponseDTO(saved);
     }
@@ -123,7 +110,7 @@ public class TravelRequestService {
     /**
      * Genehmigt einen Reiseantrag (SUBMITTED -> APPROVED)
      * @param id die ID des Reiseantrags
-     * @param approverId die ID der genehmigenden Führungskraft
+     * @param approverId die ID der genehmigenden Führungskraft (für Backward Compatibility, wird aktuell nicht verwendet)
      * @return der genehmigte Reiseantrag als DTO
      */
     @Transactional
@@ -131,19 +118,11 @@ public class TravelRequestService {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
 
-        // Alten Status merken
-        TravelRequestStatus oldStatus = travelRequest.getStatus();
+        // Use domain model method (publishes event automatically)
+        travelRequest.updateStatus(TravelRequestStatus.APPROVED);
 
-        // Business-Logik aufrufen (Domain-Methode!)
-        travelRequest.approve(approverId);
-
-        // Persistieren
+        // Persistieren (Spring Data publishes events automatically)
         TravelRequest saved = travelRequestRepository.save(travelRequest);
-
-        // Event publizieren
-        eventPublisher.publishEvent(
-            new TravelRequestStatusChangedEvent(saved, oldStatus, saved.getStatus())
-        );
 
         return toResponseDTO(saved);
     }
@@ -151,7 +130,7 @@ public class TravelRequestService {
     /**
      * Lehnt einen Reiseantrag ab (SUBMITTED -> REJECTED)
      * @param id die ID des Reiseantrags
-     * @param approverId die ID der ablehnenden Führungskraft
+     * @param approverId die ID der ablehnenden Führungskraft (für Backward Compatibility, wird aktuell nicht verwendet)
      * @param reason der Grund für die Ablehnung
      * @return der abgelehnte Reiseantrag als DTO
      */
@@ -160,19 +139,12 @@ public class TravelRequestService {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
 
-        // Alten Status merken
-        TravelRequestStatus oldStatus = travelRequest.getStatus();
+        // Use domain model method (publishes event automatically)
+        travelRequest.updateStatus(TravelRequestStatus.REJECTED);
 
-        // Business-Logik aufrufen (Domain-Methode!)
-        travelRequest.reject(approverId, reason);
-
-        // Persistieren
+        // Persistieren (Spring Data publishes events automatically)
         TravelRequest saved = travelRequestRepository.save(travelRequest);
 
-        // Event publizieren
-        eventPublisher.publishEvent(
-            new TravelRequestStatusChangedEvent(saved, oldStatus, saved.getStatus())
-        );
 
         return toResponseDTO(saved);
     }
