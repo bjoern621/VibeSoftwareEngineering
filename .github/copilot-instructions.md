@@ -778,3 +778,226 @@ cd backend
 - Nach jedem Schritt: **Code Review** durch KI
 - Frage explizit: "Entspricht das DDD Best Practices?"
 - Teste Schritt für Schritt
+
+
+---
+
+# SECTION 8: DDD VALIDATION & QUALITY ASSURANCE
+
+## KRITISCH: Nach JEDER Klasse und Methode durchführen!
+
+Diese Checklisten MÜSSEN vor dem Commit erfüllt sein:
+
+### 8.1 Entity Validation (MUSS durchgeführt werden)
+
+Wenn du eine Entity erstellst oder änderst:
+
+- [ ] Hat die Entity geschäftliche Methoden? (nicht nur Getter/Setter)
+- [ ] Sind kritische Felder `protected` statt `public`?
+- [ ] Validiert die Entity ihre Invarianten im Konstruktor?
+- [ ] Gibt es sprechende Business-Methoden wie `submit()`, `approve()` statt `setStatus()`?
+- [ ] Wirft die Entity spezifische DDD-Exceptions (nicht `IllegalArgumentException`)?
+- [ ] Wenn es ein Aggregate Root ist: Schützt es seine Child-Entities?
+
+**Bei Verstoß**: Refaktoriere sofort!
+
+### 8.2 Value Object Validation
+
+- [ ] Alle Felder sind `final`?
+- [ ] Es gibt KEINE public Setter?
+- [ ] Validierung läuft im Konstruktor?
+- [ ] Überschreibt die Klasse `equals()` und `hashCode()`?
+- [ ] Hat die Klasse KEINE ID/Identität?
+
+**Bei Verstoß**: Umschreiben!
+
+### 8.3 Service Validation
+
+- [ ] Der Service ruft Entity-Methoden auf (delegiert)?
+- [ ] Es gibt KEINE Geschäftslogik im Service selbst?
+- [ ] Es gibt KEINE Validierung im Service (raus zur Entity)?
+- [ ] Der Service managt Transaktionen mit `@Transactional`?
+- [ ] Der Service ruft korrekt Repositories auf?
+
+**Bei Verstoß**: Logik zur Entity verschieben!
+
+### 8.4 Repository Validation
+
+- [ ] Repository-Interface ist im `domain/repository` Package?
+- [ ] Implementierung ist im `infrastructure/persistence` Package?
+- [ ] Es gibt KEINE Business-Logik in Queries?
+- [ ] Es werden Entities zurückgegeben (nicht DTOs)?
+
+---
+
+## SECTION 9: DDD Kontext aus "Domain-Driven Design Quickly"
+
+Das Projekt folgt den Prinzipien aus **"Domain-Driven Design Quickly"** (InfoQ Buch, Open Source):
+
+### Wichtigste Konzepte:
+
+1. **Ubiquitous Language**: Team (Entwickler + Fachexperten) spricht eine gemeinsame Sprache
+   - Begriffe aus der Business-Welt werden direkt in Code abgebildet
+   - Klasse heißt `TravelRequest`, nicht `TR` oder `Request`
+   - Methode heißt `submit()`, nicht `changeStatus()`
+
+2. **Building Domain Knowledge**: Wir verstehen die Business-Domain tief
+   - Reisekosten-Abrechnung ist kein "CRUD-System"
+   - Es gibt komplexe Geschäftsregeln (Genehmigungen, Richtlinien, Wechselkurse)
+   - Diese Regeln gehören ins Domain Model!
+
+3. **Model-Driven Design**: Code ist direkter Ausdruck des Domain Models
+   - Die Architektur spiegelt die Business-Realität
+   - Entwickler arbeiten mit denselben Konzepten wie Business-Analysten
+
+4. **Layered Architecture**: Klare Separation of Concerns
+   - Domain Layer ist das Herz (Business-Logik)
+   - Application Layer orchestriert Use Cases
+   - Infrastructure Layer ist Plumbing (DB, APIs)
+   - Presentation Layer ist nur UI-Mapping
+
+5. **Taktische Patterns**: Konkrete Implementierungsmuster
+   - **Entities**: Geschäftsobjekte mit Identität und Business-Methoden
+   - **Value Objects**: Unverändbare Werte ohne Identität
+   - **Services**: Orchestrierung, nicht Business-Logik
+   - **Repositories**: Persistierung abstrakt machen
+   - **Aggregates**: Konsistenzgrenzen definieren
+
+### Warum DDD für dieses Projekt?
+
+- ✅ Business-Logik ist komplex → DDD hilft zu strukturieren
+- ✅ Anforderungen ändern sich → Rich Models sind wartbar
+- ✅ Team mit verschiedenen Rollen → Ubiquitous Language hilft
+- ✅ Code soll lange leben → DDD macht Maintenance leichter
+
+---
+
+## SECTION 10: Copilot Prompt für KI-Assisted Coding
+
+**IMMER diesen Prompt verwenden, wenn du der KI Code-Generierung gibst:**
+
+### Template: DDD-Konformer Code
+
+Ich arbeite an einem DDD (Domain-Driven Design) Projekt nach den Prinzipien
+aus "Domain-Driven Design".
+
+Generiere den folgenden Code:
+[Deine Code-Anforderung]
+
+KRITISCHE DDD-REGELN (NICHT brechen!):
+
+    ENTITIES: Haben Business-Methoden, KEINE public Setter für geschäftskritische Felder
+    Beispiel: public void submit() statt public void setStatus()
+
+    INVARIANTEN: Werden in der Entity selbst validiert
+    NICHT im Service oder Controller!
+
+    VALUE OBJECTS: Sind immutable (final fields)
+    Keine Setter! Validierung im Konstruktor!
+
+    SERVICES: Sind Orchestratoren
+    Rufen Entity-Methoden auf, implementieren NICHT selbst Geschäftslogik
+
+    EXCEPTIONS: Sind spezifisch für die Domain
+    Nicht: IllegalArgumentException, ValidationException
+    Sondern: InvalidTravelPeriodException, TravelRequestAlreadySubmittedException
+
+    REPOSITORIES: Interface abstrakt, Implementierung konkret
+    Repository gibt Entities zurück, NICHT DTOs
+
+    AGGREGATE ROOTS: Schützen ihre Children
+    Child-Entities nur über Root ändern (cascading)
+
+Nach Code-Generierung:
+
+    Durchlaufe Checklisten (Section 8.1-8.4)
+
+    Prüfe auf Anemic Models
+
+    Validiere Layer-Struktur
+
+text
+
+---
+
+## SECTION 11: Häufige Fehler & Fixes
+
+### ❌ Fehler 1: Public Setter in Entity
+
+// FALSCH:
+request.setStatus(APPROVED); // Bypasst Business-Regeln!
+
+text
+undefined
+
+// RICHTIG:
+request.approve(managerId); // Validiert, loggt, updated state
+
+text
+
+### ❌ Fehler 2: Business-Logik im Service
+
+// FALSCH:
+@Service public class TravelRequestService {
+public void submit(Long id) {
+if (request.getStatus() != DRAFT) {
+throw new Exception("..."); // ← FALSCH!
+}
+request.setStatus(SUBMITTED);
+}
+}
+
+text
+undefined
+
+// RICHTIG:
+@Service public class TravelRequestService {
+public void submit(Long id) {
+request.submit(); // ← Business-Logik in Entity!
+repository.save(request);
+}
+}
+
+text
+
+### ❌ Fehler 3: Anämisches Domain Model
+
+// FALSCH - Anemic Model:
+public class Employee {
+private String firstName;
+public void setFirstName(String fn) { this.firstName = fn; }
+public String getFirstName() { return firstName; }
+// ← KEINE Business-Methoden!
+}
+
+text
+undefined
+
+// RICHTIG - Rich Model:
+public class Employee {
+private EmployeeName name;
+public void changeName(EmployeeName newName) {
+if (!isActive()) throw new InactiveEmployeeException();
+this.name = newName;
+registerEvent(new EmployeeNameChangedEvent(...));
+}
+}
+
+text
+
+---
+
+## SECTION 12: Code Review Checkliste
+
+Nutze diese Checkliste vor Commit:
+
+[ ] Gibt es public Setter? → Remove oder Refactor zu Business-Methode
+[ ] Ist Validierung im Service? → Move zu Entity
+[ ] Ist die Entity "anämisch"? → Add Business-Methoden
+[ ] Gibt es generische Exceptions? → Replace mit Domain-spezifisch
+[ ] Ist das Entity ein Aggregate Root? → Schützt es seine Children?
+[ ] Sind Value Objects immutable? → Alle final? Keine Setter?
+[ ] Ist das Repository-Interface abstrakt? → Interface im Domain Layer
+[ ] Validiert die Entity ihre Invarianten? → Ja? Gut!
+[ ] Gibt es Zustandsübergänge ohne Validation? → Add Validation
+[ ] Sind DTOs nur für Controller? → Ja? Gut!
