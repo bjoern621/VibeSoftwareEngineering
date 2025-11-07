@@ -110,7 +110,7 @@ public class TravelRequestService {
     /**
      * Genehmigt einen Reiseantrag (SUBMITTED -> APPROVED)
      * @param id die ID des Reiseantrags
-     * @param approverId die ID der genehmigenden Führungskraft
+     * @param approverId die ID der genehmigenden Führungskraft (für Backward Compatibility, wird aktuell nicht verwendet)
      * @return der genehmigte Reiseantrag als DTO
      */
     @Transactional
@@ -130,7 +130,7 @@ public class TravelRequestService {
     /**
      * Lehnt einen Reiseantrag ab (SUBMITTED -> REJECTED)
      * @param id die ID des Reiseantrags
-     * @param approverId die ID der ablehnenden Führungskraft
+     * @param approverId die ID der ablehnenden Führungskraft (für Backward Compatibility, wird aktuell nicht verwendet)
      * @param reason der Grund für die Ablehnung
      * @return der abgelehnte Reiseantrag als DTO
      */
