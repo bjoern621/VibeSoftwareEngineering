@@ -12,15 +12,13 @@ public record ReceiptStatusChangedEvent(
     Long receiptId,
     ReceiptStatus oldStatus,
     ReceiptStatus newStatus,
-    Long changedByUserId,
     LocalDateTime occurredOn
 ) implements DomainEvent {
     
     public ReceiptStatusChangedEvent(Long receiptId, 
                                       ReceiptStatus oldStatus,
-                                      ReceiptStatus newStatus, 
-                                      Long changedByUserId) {
-        this(receiptId, oldStatus, newStatus, changedByUserId, LocalDateTime.now());
+                                      ReceiptStatus newStatus) {
+        this(receiptId, oldStatus, newStatus, LocalDateTime.now());
     }
 }
 

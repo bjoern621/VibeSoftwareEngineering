@@ -131,9 +131,7 @@ public class ReceiptController {
     })
     @PostMapping("/{id}/validate")
     public ResponseEntity<ReceiptDTO> validateReceipt(@PathVariable Long id) {
-        // TODO: Extract user ID from Spring Security context when auth is implemented
-        Long userId = 1L; // Hardcoded for now
-        ReceiptDTO validatedReceipt = receiptService.validateReceipt(id, userId);
+        ReceiptDTO validatedReceipt = receiptService.validateReceipt(id);
         return ResponseEntity.ok(validatedReceipt);
     }
 

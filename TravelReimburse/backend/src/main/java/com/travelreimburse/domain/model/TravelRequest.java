@@ -1,6 +1,9 @@
 package com.travelreimburse.domain.model;
 
+import com.travelreimburse.domain.event.travelrequest.TravelRequestStatusChangedEvent;
+import com.travelreimburse.domain.exception.InvalidStatusTransitionException;
 import jakarta.persistence.*;
+import org.springframework.data.domain.AbstractAggregateRoot;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,8 +15,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "travel_requests")
-public class TravelRequest {
-    
+public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -298,5 +301,58 @@ public class TravelRequest {
 
     public String getRejectionReason() {
         return rejectionReason;
+    }
+
+    /**
+     * Business-Methode: Status ändern mit Validierung und Event Publishing
+     * DDD: Rich Domain Model - Business logic belongs in the entity
+     */
+    public void updateStatus(TravelRequestStatus newStatus) {
+        if (newStatus == null) {
+            throw new IllegalArgumentException("Status cannot be null");
+        }
+        if (!canTransitionTo(newStatus)) {
+            throw new InvalidStatusTransitionException(
+                String.format("Cannot transition from %s to %s for TravelRequest %d",
+                    this.status, newStatus, this.id)
+            );
+        }
+
+        TravelRequestStatus oldStatus = this.status;
+        this.status = newStatus;
+
+        // Register domain event (will be published on save)
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            newStatus
+        ));
+    }
+
+    /**
+     * Business logic for valid status transitions.
+     * State machine implementation.
+     */
+    private boolean canTransitionTo(TravelRequestStatus targetStatus) {
+        if (this.status == targetStatus) {
+            return false;
+        }
+
+        return switch (this.status) {
+            case DRAFT -> targetStatus == TravelRequestStatus.SUBMITTED;
+            case SUBMITTED -> targetStatus == TravelRequestStatus.APPROVED ||
+                             targetStatus == TravelRequestStatus.REJECTED;
+            case APPROVED -> targetStatus == TravelRequestStatus.COMPLETED ||
+                            targetStatus == TravelRequestStatus.CANCELLED;
+            case REJECTED, CANCELLED, COMPLETED -> false;
+        };
+    }
+
+    /**
+     * @deprecated Use updateStatus() instead for business logic and event publishing
+     */
+    @Deprecated(forRemoval = true)
+    public void setStatus(TravelRequestStatus status) {
+        this.status = status;
     }
 }

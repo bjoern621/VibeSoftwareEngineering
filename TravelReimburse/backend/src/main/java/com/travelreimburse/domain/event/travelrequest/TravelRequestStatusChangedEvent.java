@@ -12,15 +12,13 @@ public record TravelRequestStatusChangedEvent(
     Long travelRequestId,
     TravelRequestStatus oldStatus,
     TravelRequestStatus newStatus,
-    Long changedByUserId,
     LocalDateTime occurredOn
 ) implements DomainEvent {
     
     public TravelRequestStatusChangedEvent(Long travelRequestId, 
                                             TravelRequestStatus oldStatus,
-                                            TravelRequestStatus newStatus, 
-                                            Long changedByUserId) {
-        this(travelRequestId, oldStatus, newStatus, changedByUserId, LocalDateTime.now());
+                                            TravelRequestStatus newStatus) {
+        this(travelRequestId, oldStatus, newStatus, LocalDateTime.now());
     }
 }
 

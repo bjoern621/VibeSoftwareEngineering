@@ -1,6 +1,8 @@
 package com.travelreimburse.domain.model;
 
+import com.travelreimburse.domain.event.receipt.ReceiptStatusChangedEvent;
 import jakarta.persistence.*;
+import org.springframework.data.domain.AbstractAggregateRoot;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -8,10 +10,11 @@ import java.util.Objects;
 /**
  * Receipt Entity - Repräsentiert einen digitalen Beleg.
  * Gehört immer zu einem TravelRequest (Aggregate Root).
+ * DDD: Extended from AbstractAggregateRoot to support domain events.
  */
 @Entity
 @Table(name = "receipts")
-public class Receipt {
+public class Receipt extends AbstractAggregateRoot<Receipt> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -126,18 +129,35 @@ public class Receipt {
     }
 
     /**
-     * Business-Methode: Beleg als validiert markieren
+     * Business-Methode: Beleg als validiert markieren.
+     * DDD: Publishes domain event for side-effects (email notifications).
+     *
+     * @throws IllegalStateException if receipt is not in UPLOADED status
      */
     public void validate() {
         if (this.status != ReceiptStatus.UPLOADED) {
             throw new IllegalStateException("Nur hochgeladene Belege können validiert werden");
         }
+
+        ReceiptStatus oldStatus = this.status;
         this.status = ReceiptStatus.VALIDATED;
         this.validatedAt = LocalDateTime.now();
+
+        // Register domain event
+        registerEvent(new ReceiptStatusChangedEvent(
+            this.id,
+            oldStatus,
+            ReceiptStatus.VALIDATED
+        ));
     }
 
     /**
-     * Business-Methode: Beleg ablehnen
+     * Business-Methode: Beleg ablehnen.
+     * DDD: Publishes domain event for side-effects.
+     *
+     * @param reason Reason for rejection
+     * @throws IllegalArgumentException if reason is blank
+     * @throws IllegalStateException if receipt is already archived
      */
     public void reject(String reason) {
         if (reason == null || reason.isBlank()) {
@@ -146,18 +166,39 @@ public class Receipt {
         if (this.status == ReceiptStatus.ARCHIVED) {
             throw new IllegalStateException("Archivierte Belege können nicht abgelehnt werden");
         }
+
+        ReceiptStatus oldStatus = this.status;
         this.status = ReceiptStatus.REJECTED;
         this.rejectionReason = reason;
+
+        // Register domain event
+        registerEvent(new ReceiptStatusChangedEvent(
+            this.id,
+            oldStatus,
+            ReceiptStatus.REJECTED
+        ));
     }
 
     /**
-     * Business-Methode: Beleg archivieren
+     * Business-Methode: Beleg archivieren.
+     * DDD: Publishes domain event for archival tracking.
+     *
+     * @throws IllegalStateException if receipt is already archived
      */
     public void archive() {
         if (this.status == ReceiptStatus.ARCHIVED) {
             throw new IllegalStateException("Beleg ist bereits archiviert");
         }
+
+        ReceiptStatus oldStatus = this.status;
         this.status = ReceiptStatus.ARCHIVED;
+
+        // Register domain event
+        registerEvent(new ReceiptStatusChangedEvent(
+            this.id,
+            oldStatus,
+            ReceiptStatus.ARCHIVED
+        ));
     }
 
     /**

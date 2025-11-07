@@ -3,12 +3,10 @@ package com.travelreimburse.application.service;
 import com.travelreimburse.application.dto.CreateReceiptDTO;
 import com.travelreimburse.application.dto.ReceiptDTO;
 import com.travelreimburse.application.dto.UpdateReceiptDTO;
-import com.travelreimburse.domain.event.ReceiptStatusChangedEvent;
 import com.travelreimburse.domain.model.*;
 import com.travelreimburse.domain.repository.ReceiptRepository;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
 import com.travelreimburse.infrastructure.storage.FileStorageService;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,18 +26,15 @@ public class ReceiptService {
     private final TravelRequestRepository travelRequestRepository;
     private final FileStorageService fileStorageService;
     private final ReceiptMapper receiptMapper;
-    private final ApplicationEventPublisher eventPublisher;
 
     public ReceiptService(ReceiptRepository receiptRepository,
                           TravelRequestRepository travelRequestRepository,
                           FileStorageService fileStorageService,
-                          ReceiptMapper receiptMapper,
-                          ApplicationEventPublisher eventPublisher) {
+                          ReceiptMapper receiptMapper) {
         this.receiptRepository = receiptRepository;
         this.travelRequestRepository = travelRequestRepository;
         this.fileStorageService = fileStorageService;
         this.receiptMapper = receiptMapper;
-        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -154,15 +149,12 @@ public class ReceiptService {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> new ReceiptNotFoundException(id));
 
-        ReceiptStatus oldStatus = receipt.getStatus();
+        // Use domain model method (publishes event automatically)
         receipt.validate();
 
+        // Persistieren (Spring Data publishes events automatically)
         Receipt validatedReceipt = receiptRepository.save(receipt);
 
-        // Publish event für E-Mail Benachrichtigung
-        eventPublisher.publishEvent(
-                new ReceiptStatusChangedEvent(validatedReceipt, oldStatus, validatedReceipt.getStatus())
-        );
 
         return receiptMapper.toDTO(validatedReceipt);
     }
@@ -179,17 +171,14 @@ public class ReceiptService {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> new ReceiptNotFoundException(id));
 
-        ReceiptStatus oldStatus = receipt.getStatus();
+        // Use domain model method (publishes event automatically)
         receipt.reject(reason);
 
+        // Persistieren (Spring Data publishes events automatically)
         Receipt rejectedReceipt = receiptRepository.save(receipt);
 
-        // Publish event für E-Mail Benachrichtigung
-        eventPublisher.publishEvent(
-                new ReceiptStatusChangedEvent(rejectedReceipt, oldStatus, rejectedReceipt.getStatus())
-        );
-
         return receiptMapper.toDTO(rejectedReceipt);
+    }
     }
 
     /**
