@@ -1,0 +1,79 @@
+### 1. Upload Receipt
+# WICHTIG: Ersetze /path/to/your/sample-receipt.pdf mit dem TATSÄCHLICHEN Pfad zu deiner Datei auf deinem Computer.
+POST {{baseUrl}}/api/receipts
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="sample-receipt.pdf"
+# Du musst den Content-Type der Datei angeben, z.B. application/pdf oder image/jpeg
+Content-Type: application/pdf
+
+< /path/to/your/sample-receipt.pdf
+
+--boundary
+Content-Disposition: form-data; name="travelRequestId"
+
+1
+--boundary
+Content-Disposition: form-data; name="type"
+
+HOTEL
+--boundary
+Content-Disposition: form-data; name="issueDate"
+
+2024-11-01
+--boundary
+Content-Disposition: form-data; name="description"
+
+Hotelrechnung für Geschäftsreise nach Berlin
+--boundary
+Content-Disposition: form-data; name="amount"
+
+150.00
+--boundary
+Content-Disposition: form-data; name="currency"
+
+EUR
+--boundary
+Content-Disposition: form-data; name="vendor"
+
+Hotel Berlin Mitte
+--boundary--
+
+### 2. Get Receipt by ID
+GET {{baseUrl}}/api/receipts/1
+
+
+### 3. Get Receipts by Travel Request
+GET {{baseUrl}}/api/receipts/travel-request/1
+
+
+### 4. Update Receipt
+PUT {{baseUrl}}/api/receipts/1
+Content-Type: application/json
+
+{
+  "description": "Hotelrechnung - aktualisiert",
+  "amount": 175.50,
+  "currency": "EUR",
+  "vendor": "Hotel Berlin Mitte GmbH"
+}
+
+### 5. Validate Receipt
+POST {{baseUrl}}/api/receipts/1/validate
+
+
+### 6. Reject Receipt
+POST {{baseUrl}}/api/receipts/1/reject
+Content-Type: application/json
+
+{
+  "reason": "Beleg ist unleserlich, bitte erneut hochladen"
+}
+
+### 7. Download Receipt
+GET {{baseUrl}}/api/receipts/1/download
+
+
+### 8. Delete Receipt
+DELETE {{baseUrl}}/api/receipts/1
