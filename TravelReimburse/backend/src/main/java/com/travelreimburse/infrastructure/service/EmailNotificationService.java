@@ -1,5 +1,7 @@
 package com.travelreimburse.infrastructure.service;
 
+import com.travelreimburse.domain.model.Receipt;
+import com.travelreimburse.domain.model.ReceiptStatus;
 import com.travelreimburse.domain.model.TravelRequest;
 import com.travelreimburse.domain.model.TravelRequestStatus;
 import org.slf4j.Logger;
@@ -53,6 +55,82 @@ public class EmailNotificationService {
     }
 
     /**
+     * Sendet eine Mock-E-Mail bei Statusänderung eines Belegs
+     *
+     * @param receipt Der betroffene Beleg
+     * @param oldStatus Der alte Status
+     * @param newStatus Der neue Status
+     */
+    public void sendReceiptStatusChangeNotification(Receipt receipt,
+                                                   ReceiptStatus oldStatus,
+                                                   ReceiptStatus newStatus) {
+        String emailContent = buildReceiptEmailContent(receipt, oldStatus, newStatus);
+        String employeeEmail = "employee" + receipt.getTravelRequest().getEmployeeId() + "@company.com";
+
+        logger.info("""
+                
+                ╔═══════════════════════════════════════════════════════════════════╗
+                ║                    MOCK E-MAIL VERSANDT                           ║
+                ╠═══════════════════════════════════════════════════════════════════╣
+                ║ An: {}
+                ║ Betreff: Beleg Status-Änderung: {}
+                ║ Zeitpunkt: {}
+                ╠═══════════════════════════════════════════════════════════════════╣
+                {}
+                ╚═══════════════════════════════════════════════════════════════════╝
+                """,
+                employeeEmail,
+                receipt.getId(),
+                LocalDateTime.now().format(FORMATTER),
+                emailContent
+        );
+    }
+
+    /**
+     * Erstellt den E-Mail-Inhalt für eine Beleg-Statusänderung
+     */
+    private String buildReceiptEmailContent(Receipt receipt,
+                                           ReceiptStatus oldStatus,
+                                           ReceiptStatus newStatus) {
+        String amountInfo = receipt.getAmount() != null
+            ? receipt.getAmount().toString()
+            : "Nicht angegeben";
+
+        String rejectionInfo = receipt.getStatus() == ReceiptStatus.REJECTED && receipt.getRejectionReason() != null
+            ? String.format("║ Ablehnungsgrund: %s\n", receipt.getRejectionReason())
+            : "";
+
+        return String.format("""
+            ║ Sehr geehrte/r Mitarbeiter/in,
+            ║
+            ║ Ihr Beleg hat eine Statusänderung erfahren:
+            ║
+            ║ Beleg-ID: %d
+            ║ Alter Status: %s
+            ║ Neuer Status: %s
+            ║
+            ║ Reiseantrag-ID: %d
+            ║ Belegtyp: %s
+            ║ Ausstellungsdatum: %s
+            ║ Betrag: %s
+            ║ Anbieter: %s
+            ║ %s
+            ║ Mit freundlichen Grüßen
+            ║ Ihr TravelReimburse Team
+            """,
+            receipt.getId(),
+            getReceiptStatusDisplayName(oldStatus),
+            getReceiptStatusDisplayName(newStatus),
+            receipt.getTravelRequest().getId(),
+            getReceiptTypeDisplayName(receipt.getType()),
+            receipt.getIssueDate(),
+            amountInfo,
+            receipt.getVendor() != null ? receipt.getVendor() : "Nicht angegeben",
+            rejectionInfo
+        );
+    }
+
+    /**
      * Erstellt den E-Mail-Inhalt für eine Statusänderung
      */
     private String buildEmailContent(TravelRequest travelRequest,
@@ -96,6 +174,25 @@ public class EmailNotificationService {
             case APPROVED -> "Genehmigt";
             case REJECTED -> "Abgelehnt";
         };
+    }
+
+    /**
+     * Gibt den deutschen Anzeigenamen für einen Beleg-Status zurück
+     */
+    private String getReceiptStatusDisplayName(ReceiptStatus status) {
+        return switch (status) {
+            case UPLOADED -> "Hochgeladen";
+            case VALIDATED -> "Validiert";
+            case REJECTED -> "Abgelehnt";
+            case ARCHIVED -> "Archiviert";
+        };
+    }
+
+    /**
+     * Gibt den deutschen Anzeigenamen für einen Beleg-Typ zurück
+     */
+    private String getReceiptTypeDisplayName(com.travelreimburse.domain.model.ReceiptType type) {
+        return type.getDisplayName();
     }
 }
 
