@@ -126,7 +126,6 @@ public class TravelRequestService {
 
         return toResponseDTO(saved);
     }
-    }
 
     /**
      * Lehnt einen Reiseantrag ab (SUBMITTED -> REJECTED)

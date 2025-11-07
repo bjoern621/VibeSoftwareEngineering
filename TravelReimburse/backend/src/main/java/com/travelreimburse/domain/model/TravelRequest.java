@@ -342,9 +342,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
             case DRAFT -> targetStatus == TravelRequestStatus.SUBMITTED;
             case SUBMITTED -> targetStatus == TravelRequestStatus.APPROVED ||
                              targetStatus == TravelRequestStatus.REJECTED;
-            case APPROVED -> targetStatus == TravelRequestStatus.COMPLETED ||
-                            targetStatus == TravelRequestStatus.CANCELLED;
-            case REJECTED, CANCELLED, COMPLETED -> false;
+            case APPROVED, REJECTED -> false; // Terminal states
         };
     }
 

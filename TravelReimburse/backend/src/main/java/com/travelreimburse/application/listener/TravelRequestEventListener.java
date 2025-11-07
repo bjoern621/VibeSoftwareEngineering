@@ -4,8 +4,8 @@ import com.travelreimburse.domain.event.travelrequest.TravelRequestStatusChanged
 import com.travelreimburse.domain.model.TravelRequest;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
 import com.travelreimburse.infrastructure.service.EmailNotificationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -18,12 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
  * DDD: Decouples email logic from business logic.
  */
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class TravelRequestEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(TravelRequestEventListener.class);
 
     private final EmailNotificationService emailService;
     private final TravelRequestRepository repository;
+
+    public TravelRequestEventListener(EmailNotificationService emailService,
+                                       TravelRequestRepository repository) {
+        this.emailService = emailService;
+        this.repository = repository;
+    }
 
     /**
      * Handle status change events by sending email notifications.

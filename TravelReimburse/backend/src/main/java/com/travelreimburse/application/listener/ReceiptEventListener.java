@@ -4,8 +4,8 @@ import com.travelreimburse.domain.event.receipt.ReceiptStatusChangedEvent;
 import com.travelreimburse.domain.model.Receipt;
 import com.travelreimburse.domain.repository.ReceiptRepository;
 import com.travelreimburse.infrastructure.service.EmailNotificationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -18,12 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
  * DDD: Decouples email logic from business logic.
  */
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class ReceiptEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(ReceiptEventListener.class);
 
     private final EmailNotificationService emailService;
     private final ReceiptRepository repository;
+
+    public ReceiptEventListener(EmailNotificationService emailService,
+                                 ReceiptRepository repository) {
+        this.emailService = emailService;
+        this.repository = repository;
+    }
 
     /**
      * Handle status change events by sending email notifications.

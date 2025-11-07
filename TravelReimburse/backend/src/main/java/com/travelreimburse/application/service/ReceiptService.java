@@ -179,7 +179,6 @@ public class ReceiptService {
 
         return receiptMapper.toDTO(rejectedReceipt);
     }
-    }
 
     /**
      * Löscht einen Beleg
