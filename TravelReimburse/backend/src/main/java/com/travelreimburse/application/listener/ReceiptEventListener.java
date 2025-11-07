@@ -1,46 +1,58 @@
 package com.travelreimburse.application.listener;
 
-import com.travelreimburse.domain.event.ReceiptStatusChangedEvent;
+import com.travelreimburse.domain.event.receipt.ReceiptStatusChangedEvent;
+import com.travelreimburse.domain.model.Receipt;
+import com.travelreimburse.domain.repository.ReceiptRepository;
 import com.travelreimburse.infrastructure.service.EmailNotificationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Event Listener für Beleg-Events
- * Reagiert auf Statusänderungen und triggert E-Mail-Benachrichtigungen
+ * Event listener for Receipt domain events.
+ * Handles side-effects like email notifications.
+ * DDD: Decouples email logic from business logic.
  */
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class ReceiptEventListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReceiptEventListener.class);
     private final EmailNotificationService emailService;
-
-    public ReceiptEventListener(EmailNotificationService emailService) {
-        this.emailService = emailService;
-    }
+    private final ReceiptRepository repository;
 
     /**
-     * Behandelt Statusänderungs-Events für Belege und sendet E-Mail-Benachrichtigungen
-     * 
-     * @param event Das Event mit den Statusänderungs-Informationen
+     * Handle status change events by sending email notifications.
+     * Runs asynchronously to avoid blocking the main transaction.
      */
     @EventListener
-    public void handleStatusChange(ReceiptStatusChangedEvent event) {
-        logger.info("Event empfangen: Status-Änderung für Beleg ID {} ({} -> {})",
-                   event.getReceipt().getId(),
-                   event.getOldStatus(),
-                   event.getNewStatus());
-        
-        emailService.sendReceiptStatusChangeNotification(
-            event.getReceipt(),
-            event.getOldStatus(),
-            event.getNewStatus()
-        );
-        
-        logger.info("E-Mail-Benachrichtigung erfolgreich versendet für Beleg ID {}",
-                   event.getReceipt().getId());
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onStatusChanged(ReceiptStatusChangedEvent event) {
+        log.info("Processing ReceiptStatusChangedEvent: {} -> {}",
+                 event.oldStatus(), event.newStatus());
+
+        try {
+            Receipt receipt = repository.findById(event.receiptId())
+                .orElseThrow(() -> new IllegalStateException(
+                    "Receipt not found: " + event.receiptId()));
+
+            emailService.sendReceiptStatusChangeNotification(
+                receipt,
+                event.oldStatus(),
+                event.newStatus()
+            );
+
+            log.info("Email notification sent for Receipt {}", event.receiptId());
+        } catch (Exception e) {
+            log.error("Failed to send email notification for Receipt {}",
+                     event.receiptId(), e);
+            // Don't throw - email failure shouldn't break business logic
+        }
     }
 }
 
