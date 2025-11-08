@@ -1,0 +1,70 @@
+meta {
+  name: 04-Get Active Employees Only
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/employees?activeOnly=true
+  body: none
+  auth: none
+}
+
+params:query {
+  activeOnly: true
+}
+
+tests {
+  test("Status should be 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Should return array of employees", function() {
+    const data = res.getBody();
+    expect(data).to.be.an('array');
+  });
+  
+  test("Should return 8 active employees", function() {
+    const data = res.getBody();
+    expect(data.length).to.equal(8);
+  });
+  
+  test("All employees should be active", function() {
+    const data = res.getBody();
+    data.forEach(emp => {
+      expect(emp.active).to.equal(true);
+    });
+  });
+  
+  test("Should not contain inactive employee 999", function() {
+    const data = res.getBody();
+    const ids = data.map(emp => emp.id);
+    expect(ids).to.not.include(999);
+  });
+  
+  test("Should contain active IDs 1, 2, 3, 100, 101, 200, 300, 400", function() {
+    const data = res.getBody();
+    const ids = data.map(emp => emp.id);
+    [1, 2, 3, 100, 101, 200, 300, 400].forEach(id => {
+      expect(ids).to.include(id);
+    });
+  });
+}
+
+docs {
+  # Nur aktive Employees abrufen
+  
+  Gibt nur aktive Employees zurück (ohne ID 999).
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 200 OK
+  - Liste mit 8 Employees (ohne deaktivierten User 999)
+  - Alle haben active: true
+  
+  **Tests prüfen:**
+  - Status Code 200
+  - Exakt 8 Employees
+  - Alle active = true
+  - ID 999 nicht enthalten
+  - Alle erwarteten aktiven IDs vorhanden
+}

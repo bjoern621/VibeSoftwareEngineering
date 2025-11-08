@@ -5,6 +5,7 @@ import com.travelreimburse.application.service.ReceiptNotFoundException;
 import com.travelreimburse.application.service.TravelRequestNotFoundException;
 import com.travelreimburse.domain.exception.AbsenceConflictException;
 import com.travelreimburse.domain.exception.DestinationNotFoundException;
+import com.travelreimburse.domain.exception.EmployeeNotFoundException;
 import com.travelreimburse.domain.exception.InvalidCountryCodeException;
 import com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException;
 import com.travelreimburse.infrastructure.external.exrat.ExRatClientException;
@@ -43,6 +44,19 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ReceiptNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleReceiptNotFound(ReceiptNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Behandelt EmployeeNotFoundException (404)
+     */
+    @ExceptionHandler(EmployeeNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEmployeeNotFound(EmployeeNotFoundException ex) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(),
             ex.getMessage(),
@@ -185,9 +199,13 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericError(Exception ex) {
+        // Log die echte Exception für Debugging
+        ex.printStackTrace();
+        System.err.println("UNERWARTETER FEHLER: " + ex.getClass().getName() + ": " + ex.getMessage());
+        
         ErrorResponse error = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            "Ein interner Fehler ist aufgetreten",
+            "Ein interner Fehler ist aufgetreten: " + ex.getMessage(),
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);

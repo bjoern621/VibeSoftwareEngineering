@@ -1,0 +1,70 @@
+meta {
+  name: 06-Create New Employee
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/employees
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName": "Sarah",
+    "lastName": "Müller",
+    "email": "sarah.mueller@company.com",
+    "role": "EMPLOYEE",
+    "managerId": 100
+  }
+}
+
+tests {
+  test("Status should be 201 Created", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Should have ID", function() {
+    const data = res.getBody();
+    expect(data.id).to.be.a('number');
+  });
+  
+  test("Should have correct role", function() {
+    const data = res.getBody();
+    expect(data.role).to.equal('EMPLOYEE');
+  });
+  
+  test("Should be active", function() {
+    const data = res.getBody();
+    expect(data.active).to.equal(true);
+  });
+  
+  test("Should have createdAt timestamp", function() {
+    const data = res.getBody();
+    expect(data.createdAt).to.not.be.null;
+  });
+  
+  // Speichere ID für nachfolgende Tests
+  test("Save employee ID for later use", function() {
+    const data = res.getBody();
+    bru.setEnvVar('newEmployeeId', data.id);
+  });
+}
+
+docs {
+  # Neuen Employee erstellen
+  
+  Erstellt einen neuen Employee mit Rolle EMPLOYEE.
+  Dies sollte der ERSTE Test sein, um einen neuen Employee anzulegen.
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 201 Created
+  - Response enthält neue ID (wird in Variable gespeichert)
+  - role: "EMPLOYEE"
+  - active: true
+  - createdAt ist gesetzt
+  
+  **Nach Ausführung:**
+  - Variable `newEmployeeId` enthält die ID des neuen Employees
+}

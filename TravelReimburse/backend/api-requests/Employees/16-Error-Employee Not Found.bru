@@ -1,0 +1,33 @@
+meta {
+  name: 16-Error - Employee Not Found
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/employees/99999
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status should be 404 Not Found", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("Error message should mention ID", function() {
+    const data = res.getBody();
+    expect(data.message).to.include('99999');
+    expect(data.message).to.include('nicht gefunden');
+  });
+}
+
+docs {
+  # Error-Test: Employee nicht gefunden
+  
+  Versucht einen nicht existierenden Employee abzurufen.
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 404 Not Found
+  - Fehlermeldung: "Employee mit ID 99999 nicht gefunden"
+}

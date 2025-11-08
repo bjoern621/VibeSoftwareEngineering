@@ -1,0 +1,53 @@
+meta {
+  name: 12-Get HR and Finance Roles
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/employees?role=HR
+  body: none
+  auth: none
+}
+
+params:query {
+  role: HR
+}
+
+tests {
+  test("Status should be 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Should return only HR employees", function() {
+    const data = res.getBody();
+    expect(data).to.be.an('array');
+    expect(data.length).to.be.at.least(1);
+    
+    data.forEach(employee => {
+      expect(employee.role).to.equal('HR');
+    });
+  });
+  
+  test("Should include employee 200", function() {
+    const data = res.getBody();
+    const ids = data.map(e => e.id);
+    expect(ids).to.include(200);
+  });
+}
+
+docs {
+  # HR-Mitarbeiter abrufen
+  
+  Filtert Employees nach Rolle HR (Personalabteilung).
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 200 OK
+  - Liste enthält nur Employees mit role: "HR"
+  - ID 200 (Peter Personal) sollte enthalten sein
+  
+  **Weitere Test-Rollen:**
+  - ASSISTANT: ID 300
+  - FINANCE: ID 400
+  - Ändere Query-Parameter um andere Rollen zu testen
+}

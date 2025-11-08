@@ -1,0 +1,75 @@
+meta {
+  name: 01-Get All Employees
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/employees
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status should be 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Should return array of employees", function() {
+    const data = res.getBody();
+    expect(data).to.be.an('array');
+  });
+  
+  test("Should contain 9 employees", function() {
+    const data = res.getBody();
+    expect(data.length).to.equal(9);
+  });
+  
+  test("Should contain all role types", function() {
+    const data = res.getBody();
+    const roles = data.map(emp => emp.role);
+    expect(roles).to.include('EMPLOYEE');
+    expect(roles).to.include('MANAGER');
+    expect(roles).to.include('HR');
+    expect(roles).to.include('ASSISTANT');
+    expect(roles).to.include('FINANCE');
+  });
+  
+  test("Should contain both active and inactive employees", function() {
+    const data = res.getBody();
+    const activeStatuses = data.map(emp => emp.active);
+    expect(activeStatuses).to.include(true);
+    expect(activeStatuses).to.include(false);
+  });
+  
+  test("Each employee should have required fields", function() {
+    const data = res.getBody();
+    data.forEach(emp => {
+      expect(emp).to.have.property('id');
+      expect(emp).to.have.property('firstName');
+      expect(emp).to.have.property('lastName');
+      expect(emp).to.have.property('email');
+      expect(emp).to.have.property('role');
+      expect(emp).to.have.property('active');
+      expect(emp).to.have.property('createdAt');
+    });
+  });
+}
+
+docs {
+  # Alle Employees abrufen
+  
+  Gibt alle Employees zurück (aktive und inaktive).
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 200 OK
+  - Liste mit 9 Employees (1-3, 100, 101, 200, 300, 400, 999)
+  - Enthält alle Rollen: EMPLOYEE, MANAGER, HR, ASSISTANT, FINANCE
+  
+  **Tests prüfen:**
+  - Status Code 200
+  - Array mit 9 Elementen
+  - Alle 5 Rollen vorhanden
+  - Mix aus aktiven/inaktiven Employees
+  - Jeder Employee hat Pflichtfelder
+}

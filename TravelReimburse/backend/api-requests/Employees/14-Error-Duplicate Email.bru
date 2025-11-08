@@ -1,0 +1,47 @@
+meta {
+  name: 14-Error - Duplicate Email
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/employees
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName": "Duplicate",
+    "lastName": "User",
+    "email": "max.mustermann@company.com",
+    "role": "EMPLOYEE",
+    "managerId": 100
+  }
+}
+
+tests {
+  test("Status should be 400 Bad Request", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("Error message should mention email", function() {
+    const data = res.getBody();
+    expect(data.message).to.include('E-Mail');
+    expect(data.message).to.include('vergeben');
+  });
+}
+
+docs {
+  # Error-Test: Doppelte E-Mail
+  
+  Versucht einen Employee mit bereits existierender E-Mail zu erstellen.
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 400 Bad Request
+  - Fehlermeldung: "E-Mail-Adresse bereits vergeben"
+  
+  **Business-Regel:**
+  - E-Mail-Adressen müssen eindeutig sein
+  - max.mustermann@company.com existiert bereits (ID 1)
+}

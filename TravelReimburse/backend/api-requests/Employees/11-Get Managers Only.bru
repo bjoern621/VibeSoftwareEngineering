@@ -1,0 +1,50 @@
+meta {
+  name: 11-Get Managers Only
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/employees?role=MANAGER
+  body: none
+  auth: none
+}
+
+params:query {
+  role: MANAGER
+}
+
+tests {
+  test("Status should be 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Should return only managers", function() {
+    const data = res.getBody();
+    expect(data).to.be.an('array');
+    
+    // Alle sollten Rolle MANAGER haben
+    data.forEach(employee => {
+      expect(employee.role).to.equal('MANAGER');
+    });
+  });
+  
+  test("Should include employee 100 and 101", function() {
+    const data = res.getBody();
+    const ids = data.map(e => e.id);
+    expect(ids).to.include(100);
+    expect(ids).to.include(101);
+  });
+}
+
+docs {
+  # Nur Manager abrufen
+  
+  Filtert Employees nach Rolle MANAGER.
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 200 OK
+  - Liste enthält nur Employees mit role: "MANAGER"
+  - Mindestens IDs 100 und 101 sollten enthalten sein
+  - Möglicherweise auch der neu erstellte Employee (wurde zu MANAGER geändert)
+}

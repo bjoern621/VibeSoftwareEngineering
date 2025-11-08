@@ -149,3 +149,75 @@ INSERT INTO travel_destinations (
     'Einreise mit Reisepass (Personalausweis nicht mehr ausreichend seit Brexit).',
     CURRENT_TIMESTAMP
 );
+
+-- ===================================================================
+-- Testdaten für Employees (Mitarbeiter) mit verschiedenen Rollen
+-- ===================================================================
+
+-- EMPLOYEES (normale Mitarbeiter) - IDs 1, 2, 3
+-- Diese werden in Bruno-Tests verwendet (employeeId: 1, 2, 3)
+
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at
+) VALUES (
+    1, 'Max', 'Mustermann', 'max.mustermann@company.com', 'EMPLOYEE', 100, true, CURRENT_TIMESTAMP
+);
+
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at
+) VALUES (
+    2, 'Anna', 'Schmidt', 'anna.schmidt@company.com', 'EMPLOYEE', 100, true, CURRENT_TIMESTAMP
+);
+
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at
+) VALUES (
+    3, 'Thomas', 'Weber', 'thomas.weber@company.com', 'EMPLOYEE', 100, true, CURRENT_TIMESTAMP
+);
+
+-- MANAGER - ID 100
+-- Wird in Bruno-Tests verwendet (approverId: 100)
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at
+) VALUES (
+    100, 'Maria', 'Führung', 'maria.fuehrung@company.com', 'MANAGER', null, true, CURRENT_TIMESTAMP
+);
+
+-- HR (Personalabteilung) - ID 200
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at
+) VALUES (
+    200, 'Peter', 'Personal', 'peter.personal@company.com', 'HR', null, true, CURRENT_TIMESTAMP
+);
+
+-- ASSISTANT (Assistent für Delegationen) - ID 300
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at
+) VALUES (
+    300, 'Lisa', 'Assistent', 'lisa.assistent@company.com', 'ASSISTANT', 100, true, CURRENT_TIMESTAMP
+);
+
+-- FINANCE (Finanzabteilung) - ID 400
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at
+) VALUES (
+    400, 'Stefan', 'Finanzen', 'stefan.finanzen@company.com', 'FINANCE', null, true, CURRENT_TIMESTAMP
+);
+
+-- Weiterer Manager für Tests - ID 101
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at
+) VALUES (
+    101, 'Julia', 'Abteilungsleiter', 'julia.abteilungsleiter@company.com', 'MANAGER', null, true, CURRENT_TIMESTAMP
+);
+
+-- Deaktivierter Employee für Tests - ID 999
+INSERT INTO employees (
+    id, first_name, last_name, email, role, manager_id, active, created_at, deactivated_at
+) VALUES (
+    999, 'Inactive', 'User', 'inactive.user@company.com', 'EMPLOYEE', 100, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+);
+
+-- Setze die Auto-Increment Sequenz auf den nächsten freien Wert (1000)
+-- Dies ist notwendig, da wir manuelle IDs (1-999) verwendet haben
+ALTER TABLE employees ALTER COLUMN id RESTART WITH 1000;
