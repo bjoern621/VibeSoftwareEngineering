@@ -221,3 +221,158 @@ INSERT INTO employees (
 -- Setze die Auto-Increment Sequenz auf den nächsten freien Wert (1000)
 -- Dies ist notwendig, da wir manuelle IDs (1-999) verwendet haben
 ALTER TABLE employees ALTER COLUMN id RESTART WITH 1000;
+
+-- ========================================
+-- Testdaten für Reiseanträge mit Kostenstellen
+-- ========================================
+
+-- Reise 1: IT-Abteilung, London, APPROVED
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name, 
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at, approver_id, approved_at
+) VALUES (
+    1, 'IT-001', 'IT Development',
+    'London, UK', 'Teilnahme an Tech Conference',
+    '2025-12-01', '2025-12-05',
+    2500.00, 'EUR',
+    'APPROVED', '2025-01-15 10:00:00', '2025-01-16 09:00:00', 100, '2025-01-17 14:30:00'
+);
+
+-- Reise 2: Sales-Abteilung, New York, APPROVED
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at, approver_id, approved_at
+) VALUES (
+    2, 'SALES-001', 'Sales Department',
+    'New York, USA', 'Kundengespräch und Vertragsverhandlung',
+    '2025-02-15', '2025-02-20',
+    3500.00, 'EUR',
+    'APPROVED', '2025-01-20 11:00:00', '2025-01-21 10:00:00', 100, '2025-01-22 16:00:00'
+);
+
+-- Reise 3: Marketing, Paris, APPROVED
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at, approver_id, approved_at
+) VALUES (
+    3, 'MKT-001', 'Marketing',
+    'Paris, Frankreich', 'Marketingkampagne Launch Event',
+    '2025-03-10', '2025-03-12',
+    1500.00, 'EUR',
+    'APPROVED', '2025-02-25 09:00:00', '2025-02-26 08:00:00', 100, '2025-02-27 10:00:00'
+);
+
+-- Reise 4: IT-Abteilung, Berlin, SUBMITTED (wartet auf Genehmigung)
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at
+) VALUES (
+    1, 'IT-001', 'IT Development',
+    'Berlin, Deutschland', 'Cloud Infrastructure Workshop',
+    '2025-12-15', '2025-12-17',
+    1200.00, 'EUR',
+    'SUBMITTED', '2025-10-05 14:00:00', '2025-10-06 09:00:00'
+);
+
+-- Reise 5: Executive, Tokyo, APPROVED (hoher Betrag)
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at, approver_id, approved_at
+) VALUES (
+    10, 'EXEC-001', 'Executive Management',
+    'Tokyo, Japan', 'Strategische Partnerschaft Verhandlungen',
+    '2025-06-10', '2025-06-18',
+    8500.00, 'EUR',
+    'APPROVED', '2025-04-15 16:00:00', '2025-04-16 08:00:00', 100, '2025-04-16 15:00:00'
+);
+
+-- Reise 6: HR, München, REJECTED
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at, approver_id, rejected_at, rejection_reason
+) VALUES (
+    5, 'HR-001', 'Human Resources',
+    'München, Deutschland', 'HR Software Evaluation',
+    '2025-07-25', '2025-07-26',
+    800.00, 'EUR',
+    'REJECTED', '2025-07-01 12:00:00', '2025-07-02 10:00:00', 100, '2025-07-03 11:00:00',
+    'Budget für Q3 bereits ausgeschöpft. Bitte auf Q4 verschieben.'
+);
+
+-- Reise 7: Sales, Shanghai, APPROVED
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at, approver_id, approved_at
+) VALUES (
+    2, 'SALES-001', 'Sales Department',
+    'Shanghai, China', 'Messebesuch und Kundentermine',
+    '2025-09-05', '2025-09-12',
+    4200.00, 'EUR',
+    'APPROVED', '2025-07-28 13:00:00', '2025-07-29 09:00:00', 100, '2025-07-30 14:00:00'
+);
+
+-- Reise 8: IT, Zürich, DRAFT (noch nicht eingereicht)
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at
+) VALUES (
+    4, 'IT-001', 'IT Development',
+    'Zürich, Schweiz', 'Kubernetes Training',
+    '2026-01-20', '2026-01-22',
+    1800.00, 'EUR',
+    'DRAFT', '2025-10-07 15:00:00'
+);
+
+-- Reise 9: Marketing, Amsterdam, APPROVED
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at, approver_id, approved_at
+) VALUES (
+    3, 'MKT-001', 'Marketing',
+    'Amsterdam, Niederlande', 'Digital Marketing Summit',
+    '2025-08-28', '2025-08-30',
+    1600.00, 'EUR',
+    'APPROVED', '2025-08-10 10:00:00', '2025-08-11 09:00:00', 100, '2025-08-12 11:00:00'
+);
+
+-- Reise 10: Finance, Frankfurt, APPROVED
+INSERT INTO travel_requests (
+    employee_id, cost_center_code, cost_center_name,
+    destination, purpose,
+    start_date, end_date,
+    estimated_amount, estimated_currency,
+    status, created_at, submitted_at, approver_id, approved_at
+) VALUES (
+    6, 'FIN-001', 'Finance Department',
+    'Frankfurt, Deutschland', 'Bankengespräch und Jahresabschluss',
+    '2025-12-08', '2025-12-09',
+    900.00, 'EUR',
+    'APPROVED', '2025-09-18 11:00:00', '2025-09-19 08:00:00', 100, '2025-09-20 10:00:00'
+);

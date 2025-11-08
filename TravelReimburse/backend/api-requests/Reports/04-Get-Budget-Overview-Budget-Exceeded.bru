@@ -1,0 +1,29 @@
+meta {
+  name: 04-Get Budget Overview Budget Exceeded
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/reports/budget
+  body: none
+  auth: none
+}
+
+params:query {
+  allocated: 10000
+  currency: EUR
+  ~startDate: 2025-01-01
+  ~endDate: 2025-12-31
+}
+
+docs {
+  # Budget-Überschreitung testen
+  
+  Beispiel mit niedrigem Budget um Überschreitung zu simulieren.
+  
+  Wenn `budgetExceeded: true`:
+  - `remainingBudget`: 0.00
+  - `overrunAmount`: positiver Betrag (Überschreitung)
+  - `utilizationPercentage`: > 100%
+}

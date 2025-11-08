@@ -39,12 +39,15 @@ public class TravelRequestService {
     public TravelRequestResponseDTO createTravelRequest(CreateTravelRequestDTO dto) {
         // DTO zu Domain-Objekten konvertieren
         DateRange travelPeriod = new DateRange(dto.startDate(), dto.endDate());
-        Currency currency = Currency.valueOf(dto.currency());
+        com.travelreimburse.domain.model.Currency currency = 
+            com.travelreimburse.domain.model.Currency.valueOf(dto.currency());
         Money estimatedCost = new Money(dto.estimatedAmount(), currency);
+        CostCenter costCenter = new CostCenter(dto.costCenterCode(), dto.costCenterName());
         
         // Domain-Entity erstellen
         TravelRequest travelRequest = new TravelRequest(
             dto.employeeId(),
+            costCenter,
             dto.destination(),
             dto.purpose(),
             travelPeriod,
@@ -178,6 +181,8 @@ public class TravelRequestService {
         return new TravelRequestResponseDTO(
             entity.getId(),
             entity.getEmployeeId(),
+            entity.getCostCenter() != null ? entity.getCostCenter().getCode() : null,
+            entity.getCostCenter() != null ? entity.getCostCenter().getName() : null,
             entity.getDestination(),
             entity.getPurpose(),
             entity.getTravelPeriod().getStartDate(),

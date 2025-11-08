@@ -7,6 +7,8 @@ import com.travelreimburse.domain.exception.AbsenceConflictException;
 import com.travelreimburse.domain.exception.DestinationNotFoundException;
 import com.travelreimburse.domain.exception.EmployeeNotFoundException;
 import com.travelreimburse.domain.exception.InvalidCountryCodeException;
+import com.travelreimburse.domain.exception.InvalidTravelRequestDataException;
+import com.travelreimburse.domain.exception.InvalidTravelRequestStateException;
 import com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException;
 import com.travelreimburse.infrastructure.external.exrat.ExRatClientException;
 import org.springframework.http.HttpStatus;
@@ -99,9 +101,38 @@ public class GlobalExceptionHandler {
     
     /**
      * Behandelt IllegalArgumentException und IllegalStateException (400)
+     * DEPRECATED: Wird durch Domain-spezifische Exceptions ersetzt
      */
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    /**
+     * Behandelt InvalidTravelRequestStateException (409 - Conflict)
+     * Zustandsübergang ist im aktuellen Status nicht erlaubt
+     */
+    @ExceptionHandler(InvalidTravelRequestStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidState(InvalidTravelRequestStateException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.CONFLICT.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    
+    /**
+     * Behandelt InvalidTravelRequestDataException (400 - Bad Request)
+     * Ungültige Eingabedaten bei Erstellung/Update
+     */
+    @ExceptionHandler(InvalidTravelRequestDataException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidData(InvalidTravelRequestDataException ex) {
         ErrorResponse error = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
             ex.getMessage(),

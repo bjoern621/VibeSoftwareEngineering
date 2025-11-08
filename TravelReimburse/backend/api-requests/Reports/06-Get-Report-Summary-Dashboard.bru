@@ -1,0 +1,41 @@
+meta {
+  name: 06-Get Report Summary (HR Dashboard)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/reports/summary
+  body: none
+  auth: none
+}
+
+params:query {
+  ~startDate: 2025-01-01
+  ~endDate: 2025-12-31
+  ~defaultBudget: 50000
+  ~currency: EUR
+}
+
+docs {
+  # Gesamt-Report für HR-Dashboard
+  
+  Kombiniert alle Reports in einer Response.
+  
+  ## Query Parameter (alle optional):
+  - `startDate`: Startdatum
+  - `endDate`: Enddatum
+  - `defaultBudget`: Standard-Budget für Budget-Übersicht (Default: 50000)
+  - `currency`: Währung (Default: EUR)
+  
+  ## Response:
+  ```json
+  {
+    "statistics": { ... },
+    "budget": { ... },
+    "costCenters": [ ... ]
+  }
+  ```
+  
+  Perfekt für ein HR-Dashboard mit allen Kennzahlen auf einen Blick!
+}

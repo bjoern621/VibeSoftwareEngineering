@@ -15,6 +15,14 @@ public record CreateTravelRequestDTO(
     @NotNull(message = "EmployeeId darf nicht null sein")
     Long employeeId,
     
+    @NotBlank(message = "Kostenstellen-Code darf nicht leer sein")
+    @Size(max = 20, message = "Kostenstellen-Code darf maximal 20 Zeichen lang sein")
+    String costCenterCode,
+    
+    @NotBlank(message = "Kostenstellen-Name darf nicht leer sein")
+    @Size(max = 100, message = "Kostenstellen-Name darf maximal 100 Zeichen lang sein")
+    String costCenterName,
+    
     @NotBlank(message = "Reiseziel darf nicht leer sein")
     @Size(max = 500, message = "Reiseziel darf maximal 500 Zeichen lang sein")
     String destination,
