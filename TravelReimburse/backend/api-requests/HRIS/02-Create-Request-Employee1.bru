@@ -13,7 +13,9 @@ post {
 body:json {
   {
     "employeeId": 1,
-    "destination": "München",
+    "costCenterCode": "CC-002",
+    "costCenterName": "Sales Department",
+    "destination": "Hamburg",
     "purpose": "Messe",
     "startDate": "2025-11-10",
     "endDate": "2025-11-15",
@@ -44,7 +46,7 @@ tests {
   
   test("Should have correct destination", function() {
     const data = res.getBody();
-    expect(data.destination).to.equal('München');
+    expect(data.destination).to.equal('Hamburg');
   });
   
   test("Should have correct dates", function() {
