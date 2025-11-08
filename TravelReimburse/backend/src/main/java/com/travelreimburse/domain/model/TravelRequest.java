@@ -2,6 +2,8 @@ package com.travelreimburse.domain.model;
 
 import com.travelreimburse.domain.event.travelrequest.TravelRequestStatusChangedEvent;
 import com.travelreimburse.domain.exception.InvalidStatusTransitionException;
+import com.travelreimburse.domain.exception.InvalidTravelRequestDataException;
+import com.travelreimburse.domain.exception.InvalidTravelRequestStateException;
 import jakarta.persistence.*;
 import org.springframework.data.domain.AbstractAggregateRoot;
 import java.time.LocalDateTime;
@@ -78,22 +80,22 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     public TravelRequest(Long employeeId, CostCenter costCenter, String destination, String purpose, 
                          DateRange travelPeriod, Money estimatedCost) {
         if (employeeId == null) {
-            throw new IllegalArgumentException("EmployeeId darf nicht null sein");
+            throw new InvalidTravelRequestDataException("employeeId", "darf nicht null sein");
         }
         if (costCenter == null) {
-            throw new IllegalArgumentException("Kostenstelle darf nicht null sein");
+            throw new InvalidTravelRequestDataException("costCenter", "darf nicht null sein");
         }
         if (destination == null || destination.trim().isEmpty()) {
-            throw new IllegalArgumentException("Reiseziel darf nicht leer sein");
+            throw new InvalidTravelRequestDataException("destination", "darf nicht leer sein");
         }
         if (purpose == null || purpose.trim().isEmpty()) {
-            throw new IllegalArgumentException("Reisezweck darf nicht leer sein");
+            throw new InvalidTravelRequestDataException("purpose", "darf nicht leer sein");
         }
         if (travelPeriod == null) {
-            throw new IllegalArgumentException("Reisezeitraum darf nicht null sein");
+            throw new InvalidTravelRequestDataException("travelPeriod", "darf nicht null sein");
         }
         if (estimatedCost == null) {
-            throw new IllegalArgumentException("Geschätzte Kosten dürfen nicht null sein");
+            throw new InvalidTravelRequestDataException("estimatedCost", "darf nicht null sein");
         }
         
         this.employeeId = employeeId;
@@ -112,9 +114,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
      */
     public void submit() {
         if (status != TravelRequestStatus.DRAFT) {
-            throw new IllegalStateException(
-                "Nur Entwürfe können eingereicht werden. Aktueller Status: " + status
-            );
+            throw new InvalidTravelRequestStateException(status, "submit");
         }
         this.status = TravelRequestStatus.SUBMITTED;
         this.submittedAt = LocalDateTime.now();
@@ -128,12 +128,10 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
      */
     public void approve(Long approverId) {
         if (approverId == null) {
-            throw new IllegalArgumentException("ApproverId darf nicht null sein");
+            throw new InvalidTravelRequestDataException("approverId", "darf nicht null sein");
         }
         if (status != TravelRequestStatus.SUBMITTED) {
-            throw new IllegalStateException(
-                "Nur eingereichte Anträge können genehmigt werden. Aktueller Status: " + status
-            );
+            throw new InvalidTravelRequestStateException(status, "approve");
         }
         this.status = TravelRequestStatus.APPROVED;
         this.approverId = approverId;
@@ -149,15 +147,13 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
      */
     public void reject(Long approverId, String reason) {
         if (approverId == null) {
-            throw new IllegalArgumentException("ApproverId darf nicht null sein");
+            throw new InvalidTravelRequestDataException("approverId", "darf nicht null sein");
         }
         if (reason == null || reason.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ablehnungsgrund darf nicht leer sein");
+            throw new InvalidTravelRequestDataException("rejectionReason", "darf nicht leer sein");
         }
         if (status != TravelRequestStatus.SUBMITTED) {
-            throw new IllegalStateException(
-                "Nur eingereichte Anträge können abgelehnt werden. Aktueller Status: " + status
-            );
+            throw new InvalidTravelRequestStateException(status, "reject");
         }
         this.status = TravelRequestStatus.REJECTED;
         this.approverId = approverId;
