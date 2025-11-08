@@ -24,6 +24,9 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     @Column(nullable = false)
     private Long employeeId;
     
+    @Embedded
+    private CostCenter costCenter;
+    
     @Column(nullable = false, length = 500)
     private String destination;
     
@@ -72,10 +75,13 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     /**
      * Erstellt einen neuen Reiseantrag im Status DRAFT
      */
-    public TravelRequest(Long employeeId, String destination, String purpose, 
+    public TravelRequest(Long employeeId, CostCenter costCenter, String destination, String purpose, 
                          DateRange travelPeriod, Money estimatedCost) {
         if (employeeId == null) {
             throw new IllegalArgumentException("EmployeeId darf nicht null sein");
+        }
+        if (costCenter == null) {
+            throw new IllegalArgumentException("Kostenstelle darf nicht null sein");
         }
         if (destination == null || destination.trim().isEmpty()) {
             throw new IllegalArgumentException("Reiseziel darf nicht leer sein");
@@ -91,6 +97,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         }
         
         this.employeeId = employeeId;
+        this.costCenter = costCenter;
         this.destination = destination;
         this.purpose = purpose;
         this.travelPeriod = travelPeriod;
@@ -299,6 +306,10 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     
     public Long getEmployeeId() {
         return employeeId;
+    }
+    
+    public CostCenter getCostCenter() {
+        return costCenter;
     }
     
     public String getDestination() {

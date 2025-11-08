@@ -1,0 +1,46 @@
+meta {
+  name: 01-Get Travel Statistics
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/reports/statistics
+  body: none
+  auth: none
+}
+
+params:query {
+  ~startDate: 2024-01-01
+  ~endDate: 2024-12-31
+}
+
+docs {
+  # Reisestatistiken abrufen
+  
+  Ruft aggregierte Statistiken über Reiseaktivitäten ab.
+  
+  ## Query Parameter (optional):
+  - `startDate`: Startdatum (Format: YYYY-MM-DD)
+  - `endDate`: Enddatum (Format: YYYY-MM-DD)
+  
+  Wenn nicht angegeben: Standard ist letztes Jahr bis heute.
+  
+  ## Response:
+  ```json
+  {
+    "periodStart": "2024-01-01",
+    "periodEnd": "2024-12-31",
+    "totalRequests": 150,
+    "approvedRequests": 120,
+    "rejectedRequests": 20,
+    "pendingRequests": 10,
+    "totalEstimatedCost": 250000.00,
+    "currency": "EUR",
+    "averageCostPerTrip": 1666.67,
+    "totalTravelDays": 1200,
+    "approvalRate": 80.0,
+    "rejectionRate": 13.33
+  }
+  ```
+}

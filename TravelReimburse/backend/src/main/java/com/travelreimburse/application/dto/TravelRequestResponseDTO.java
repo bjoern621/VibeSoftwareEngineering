@@ -12,6 +12,8 @@ import java.util.List;
 public record TravelRequestResponseDTO(
     Long id,
     Long employeeId,
+    String costCenterCode,
+    String costCenterName,
     String destination,
     String purpose,
     LocalDate startDate,
