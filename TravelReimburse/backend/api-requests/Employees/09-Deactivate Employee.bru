@@ -1,0 +1,35 @@
+meta {
+  name: 09-Deactivate Employee
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/employees/{{newEmployeeId}}/deactivate
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status should be 204 No Content", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}
+
+docs {
+  # Employee deaktivieren
+  
+  Deaktiviert einen Employee (setzt active = false).
+  Verwendet die ID aus dem Create-Test (Variable `newEmployeeId`).
+  
+  **Voraussetzung:**
+  - Test 00-Create New Employee muss zuerst ausgeführt werden
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 204 No Content
+  - Employee ist danach deaktiviert
+  
+  **Business-Regel:**
+  - Deaktivierte Employees können keine Aktionen ausführen
+  - Kann mit Test 10-Activate Employee reaktiviert werden
+}

@@ -1,0 +1,45 @@
+meta {
+  name: 07-Get Employee By Email
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/employees/by-email?email=max.mustermann@company.com
+  body: none
+  auth: none
+}
+
+params:query {
+  email: max.mustermann@company.com
+}
+
+tests {
+  test("Status should be 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Should return correct employee", function() {
+    const data = res.getBody();
+    expect(data.email).to.equal('max.mustermann@company.com');
+    expect(data.firstName).to.equal('Max');
+    expect(data.lastName).to.equal('Mustermann');
+  });
+  
+  test("Should have correct role", function() {
+    const data = res.getBody();
+    expect(data.role).to.equal('EMPLOYEE');
+  });
+}
+
+docs {
+  # Employee anhand E-Mail abrufen
+  
+  Findet einen Employee anhand seiner E-Mail-Adresse.
+  
+  **Erwartetes Ergebnis:**
+  - HTTP 200 OK
+  - Employee mit E-Mail "max.mustermann@company.com"
+  - firstName: "Max", lastName: "Mustermann"
+  - role: "EMPLOYEE"
+}
