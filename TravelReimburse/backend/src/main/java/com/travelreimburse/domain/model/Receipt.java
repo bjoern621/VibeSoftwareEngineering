@@ -282,16 +282,45 @@ public class Receipt extends AbstractAggregateRoot<Receipt> {
         return rejectionReason;
     }
 
-    // Setters für beschreibende Felder
-    public void setDescription(String description) {
+    /**
+     * Business-Methode: Aktualisiert die Beschreibung des Belegs
+     * Nur erlaubt wenn Beleg noch nicht validiert oder archiviert ist
+     */
+    public void updateDescription(String description) {
+        if (this.status == ReceiptStatus.VALIDATED || this.status == ReceiptStatus.ARCHIVED) {
+            throw new IllegalStateException(
+                "Beschreibung kann nicht geändert werden - Beleg ist " + this.status
+            );
+        }
         this.description = description;
     }
 
-    public void setAmount(Money amount) {
+    /**
+     * Business-Methode: Aktualisiert den Betrag des Belegs
+     * Nur erlaubt wenn Beleg noch nicht validiert oder archiviert ist
+     */
+    public void updateAmount(Money amount) {
+        if (this.status == ReceiptStatus.VALIDATED || this.status == ReceiptStatus.ARCHIVED) {
+            throw new IllegalStateException(
+                "Betrag kann nicht geändert werden - Beleg ist " + this.status
+            );
+        }
+        if (amount == null || amount.isZero()) {
+            throw new IllegalArgumentException("Betrag muss positiv sein");
+        }
         this.amount = amount;
     }
 
-    public void setVendor(String vendor) {
+    /**
+     * Business-Methode: Aktualisiert den Händler/Anbieter des Belegs
+     * Nur erlaubt wenn Beleg noch nicht validiert oder archiviert ist
+     */
+    public void updateVendor(String vendor) {
+        if (this.status == ReceiptStatus.VALIDATED || this.status == ReceiptStatus.ARCHIVED) {
+            throw new IllegalStateException(
+                "Händler kann nicht geändert werden - Beleg ist " + this.status
+            );
+        }
         this.vendor = vendor;
     }
 

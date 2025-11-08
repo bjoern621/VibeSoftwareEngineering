@@ -91,11 +91,18 @@ public class TravelLeg {
     
     // Business-Methoden
     
-    public void setDescription(String description) {
+    /**
+     * Business-Methode: Aktualisiert die Beschreibung des Reiseabschnitts
+     */
+    public void updateDescription(String description) {
         this.description = description;
     }
     
-    public void setDepartureDateTime(LocalDateTime departureDateTime) {
+    /**
+     * Business-Methode: Aktualisiert die Abfahrtszeit
+     * Validiert dass Abfahrtszeit vor Ankunftszeit liegt
+     */
+    public void updateDepartureDateTime(LocalDateTime departureDateTime) {
         if (arrivalDateTime != null && departureDateTime != null && 
             departureDateTime.isAfter(arrivalDateTime)) {
             throw new IllegalArgumentException("Abfahrtszeit muss vor Ankunftszeit liegen");
@@ -103,7 +110,11 @@ public class TravelLeg {
         this.departureDateTime = departureDateTime;
     }
     
-    public void setArrivalDateTime(LocalDateTime arrivalDateTime) {
+    /**
+     * Business-Methode: Aktualisiert die Ankunftszeit
+     * Validiert dass Ankunftszeit nach Abfahrtszeit liegt
+     */
+    public void updateArrivalDateTime(LocalDateTime arrivalDateTime) {
         if (departureDateTime != null && arrivalDateTime != null && 
             arrivalDateTime.isBefore(departureDateTime)) {
             throw new IllegalArgumentException("Ankunftszeit muss nach Abfahrtszeit liegen");
@@ -111,13 +122,20 @@ public class TravelLeg {
         this.arrivalDateTime = arrivalDateTime;
     }
     
-    public void setDistanceKm(Double distanceKm) {
+    /**
+     * Business-Methode: Aktualisiert die Distanz in Kilometern
+     * Validiert dass Distanz nicht negativ ist
+     */
+    public void updateDistanceKm(Double distanceKm) {
         if (distanceKm != null && distanceKm < 0) {
             throw new IllegalArgumentException("Distanz darf nicht negativ sein");
         }
         this.distanceKm = distanceKm;
     }
     
+    /**
+     * Business-Methode: Aktualisiert die Kosten des Reiseabschnitts
+     */
     public void updateCost(Money newCost) {
         if (newCost == null) {
             throw new IllegalArgumentException("Neue Kosten dürfen nicht null sein");

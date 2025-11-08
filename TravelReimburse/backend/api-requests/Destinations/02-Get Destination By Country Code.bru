@@ -1,0 +1,30 @@
+meta {
+  name: 02-Get Destination By Country Code
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/destinations/country/US
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Destination By Country Code
+  
+  Ruft ein spezifisches Reiseziel anhand des ISO-Ländercodes ab.
+  
+  ## URL Parameter
+  - countryCode: ISO 3166-1 Alpha-2 Code (z.B. US, CN, IN, BR)
+  
+  ## Response
+  - 200 OK: Reiseziel gefunden
+  - 404 NOT FOUND: Kein Reiseziel für diesen Code hinterlegt
+  
+  ## Beispiele
+  - US: USA (Visum erforderlich)
+  - CN: China (Visum + Impfungen erforderlich)
+  - JP: Japan (Kein Visum, kaum Impfungen)
+  - BR: Brasilien (Gelbfieber-Impfung erforderlich)
+}

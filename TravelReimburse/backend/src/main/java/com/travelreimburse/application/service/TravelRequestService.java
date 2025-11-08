@@ -87,8 +87,8 @@ public class TravelRequestService {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
 
-        // Use domain model method (publishes event automatically)
-        travelRequest.updateStatus(TravelRequestStatus.SUBMITTED);
+        // ✅ DDD: Verwende semantisch korrekte Business-Methode statt generisches updateStatus()
+        travelRequest.submit();
 
         // Persistieren (Spring Data publishes events automatically)
         TravelRequest saved = travelRequestRepository.save(travelRequest);
@@ -110,7 +110,7 @@ public class TravelRequestService {
     /**
      * Genehmigt einen Reiseantrag (SUBMITTED -> APPROVED)
      * @param id die ID des Reiseantrags
-     * @param approverId die ID der genehmigenden Führungskraft (für Backward Compatibility, wird aktuell nicht verwendet)
+     * @param approverId die ID der genehmigenden Führungskraft
      * @return der genehmigte Reiseantrag als DTO
      */
     @Transactional
@@ -118,8 +118,8 @@ public class TravelRequestService {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
 
-        // Use domain model method (publishes event automatically)
-        travelRequest.updateStatus(TravelRequestStatus.APPROVED);
+        // ✅ DDD: Verwende semantisch korrekte Business-Methode mit approverId
+        travelRequest.approve(approverId);
 
         // Persistieren (Spring Data publishes events automatically)
         TravelRequest saved = travelRequestRepository.save(travelRequest);
@@ -130,7 +130,7 @@ public class TravelRequestService {
     /**
      * Lehnt einen Reiseantrag ab (SUBMITTED -> REJECTED)
      * @param id die ID des Reiseantrags
-     * @param approverId die ID der ablehnenden Führungskraft (für Backward Compatibility, wird aktuell nicht verwendet)
+     * @param approverId die ID der ablehnenden Führungskraft
      * @param reason der Grund für die Ablehnung
      * @return der abgelehnte Reiseantrag als DTO
      */
@@ -139,8 +139,8 @@ public class TravelRequestService {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
 
-        // Use domain model method (publishes event automatically)
-        travelRequest.updateStatus(TravelRequestStatus.REJECTED);
+        // ✅ DDD: Verwende semantisch korrekte Business-Methode mit approverId und reason
+        travelRequest.reject(approverId, reason);
 
         // Persistieren (Spring Data publishes events automatically)
         TravelRequest saved = travelRequestRepository.save(travelRequest);
@@ -221,18 +221,18 @@ public class TravelRequestService {
             cost
         );
         
-        // Optionale Felder setzen
+        // ✅ DDD: Optionale Felder über Business-Methoden setzen
         if (dto.description() != null) {
-            travelLeg.setDescription(dto.description());
+            travelLeg.updateDescription(dto.description());
         }
         if (dto.departureDateTime() != null) {
-            travelLeg.setDepartureDateTime(dto.departureDateTime());
+            travelLeg.updateDepartureDateTime(dto.departureDateTime());
         }
         if (dto.arrivalDateTime() != null) {
-            travelLeg.setArrivalDateTime(dto.arrivalDateTime());
+            travelLeg.updateArrivalDateTime(dto.arrivalDateTime());
         }
         if (dto.distanceKm() != null) {
-            travelLeg.setDistanceKm(dto.distanceKm());
+            travelLeg.updateDistanceKm(dto.distanceKm());
         }
         
         // Persistieren
@@ -247,6 +247,57 @@ public class TravelRequestService {
             .orElseThrow(() -> new IllegalStateException("TravelLeg konnte nicht gespeichert werden"));
         
         return toTravelLegDTO(savedLeg);
+    }
+    
+    /**
+     * Fügt mehrere Reiseabschnitte zu einem Reiseantrag hinzu (Batch-Add)
+     * Nur möglich im Status DRAFT
+     * @param requestId die ID des Reiseantrags
+     * @param dtos Liste von Reiseabschnitt-Daten
+     * @return Liste der hinzugefügten Reiseabschnitte als DTOs
+     */
+    @Transactional
+    public List<TravelLegResponseDTO> addTravelLegs(Long requestId, List<AddTravelLegDTO> dtos) {
+        TravelRequest travelRequest = travelRequestRepository.findById(requestId)
+            .orElseThrow(() -> new TravelRequestNotFoundException(requestId));
+        
+        // Alle Travel Legs hinzufügen
+        for (AddTravelLegDTO dto : dtos) {
+            // DTO zu Domain-Objekten konvertieren
+            TransportationType transportationType = TransportationType.valueOf(dto.transportationType());
+            Currency currency = Currency.valueOf(dto.currency());
+            Money cost = new Money(dto.costAmount(), currency);
+            
+            // Business-Logik aufrufen (Domain-Methode!)
+            TravelLeg travelLeg = travelRequest.addTravelLeg(
+                dto.departureLocation(),
+                dto.arrivalLocation(),
+                transportationType,
+                cost
+            );
+            
+            // ✅ DDD: Optionale Felder über Business-Methoden setzen
+            if (dto.description() != null) {
+                travelLeg.updateDescription(dto.description());
+            }
+            if (dto.departureDateTime() != null) {
+                travelLeg.updateDepartureDateTime(dto.departureDateTime());
+            }
+            if (dto.arrivalDateTime() != null) {
+                travelLeg.updateArrivalDateTime(dto.arrivalDateTime());
+            }
+            if (dto.distanceKm() != null) {
+                travelLeg.updateDistanceKm(dto.distanceKm());
+            }
+        }
+        
+        // Persistieren
+        TravelRequest saved = travelRequestRepository.save(travelRequest);
+        
+        // Alle TravelLegs zurückgeben
+        return saved.getTravelLegs().stream()
+            .map(this::toTravelLegDTO)
+            .toList();
     }
     
     /**

@@ -1,0 +1,45 @@
+meta {
+  name: 06-Update Visa Requirement
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/destinations/US/visa
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "required": true,
+    "type": "BUSINESS",
+    "processingDays": 30,
+    "notes": "B-1 Visum für Geschäftsreisen. Verschärfte Anforderungen seit 2025."
+  }
+}
+
+docs {
+  # Update Visa Requirement
+  
+  Aktualisiert die Visa-Anforderungen für ein existierendes Reiseziel.
+  
+  ## URL Parameter
+  - countryCode: ISO 3166-1 Alpha-2 Code
+  
+  ## Request Body
+  - required: boolean (Pflicht)
+  - type: VisaType Enum (nur wenn required=true)
+  - processingDays: Integer (optional)
+  - notes: String (optional)
+  
+  ## Response
+  - 200 OK: Visa-Anforderungen aktualisiert
+  - 404 NOT FOUND: Reiseziel nicht gefunden
+  - 400 BAD REQUEST: Ungültige Daten
+  
+  ## Use Case
+  - Änderung von Visa-Bestimmungen
+  - Aktualisierung der Bearbeitungszeiten
+  - Hinzufügen neuer Hinweise
+}
