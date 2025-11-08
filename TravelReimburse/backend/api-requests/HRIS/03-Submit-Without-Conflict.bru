@@ -1,0 +1,43 @@
+meta {
+  name: Submit Without Conflict (Employee 3)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/travel-requests/{{requestIdNoConflict}}/submit
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status should be 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response should be JSON", function() {
+    expect(res.getHeader('content-type')).to.contain('application/json');
+  });
+  
+  test("Status should be SUBMITTED", function() {
+    const data = res.getBody();
+    expect(data.status).to.equal('SUBMITTED');
+  });
+  
+  test("Should have submittedAt timestamp", function() {
+    const data = res.getBody();
+    expect(data.submittedAt).to.not.be.null;
+  });
+}
+
+docs {
+  # Submit Reiseantrag ohne HRIS-Konflikt
+  
+  Voraussetzung:
+  - Reiseantrag für Employee 3 wurde erstellt
+  - Employee 3 hat keine Abwesenheiten
+  
+  Erwartetes Ergebnis:
+  - HTTP 200 OK
+  - Status wechselt zu SUBMITTED
+}
