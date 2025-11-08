@@ -114,15 +114,16 @@ public class TravelRequestController {
     }
     
     /**
-     * Fügt einen Reiseabschnitt zu einem Reiseantrag hinzu
+     * Fügt einen oder mehrere Reiseabschnitte zu einem Reiseantrag hinzu
      * POST /api/travel-requests/{id}/travel-legs
+     * Akzeptiert sowohl ein einzelnes Objekt als auch ein Array
      * Nur möglich im Status DRAFT
      */
     @PostMapping("/{id}/travel-legs")
-    public ResponseEntity<TravelLegResponseDTO> addTravelLeg(
+    public ResponseEntity<List<TravelLegResponseDTO>> addTravelLegs(
             @PathVariable Long id,
-            @Valid @RequestBody AddTravelLegDTO request) {
-        TravelLegResponseDTO response = travelRequestService.addTravelLeg(id, request);
+            @Valid @RequestBody List<AddTravelLegDTO> requests) {
+        List<TravelLegResponseDTO> response = travelRequestService.addTravelLegs(id, requests);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     

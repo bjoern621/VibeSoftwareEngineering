@@ -1,0 +1,57 @@
+meta {
+  name: 05-Create Destination
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/destinations
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "countryCode": "TH",
+    "countryName": "Thailand",
+    "visaRequirement": {
+      "required": true,
+      "type": "TOURIST",
+      "processingDays": 7,
+      "notes": "Visa on Arrival für 30 Tage möglich. Verlängerung vor Ort."
+    },
+    "vaccinationRequirement": {
+      "required": false,
+      "requiredVaccinations": null,
+      "recommendedVaccinations": "Hepatitis A, Hepatitis B, Typhus, Japanische Enzephalitis",
+      "notes": "Malaria-Prophylaxe für ländliche Gebiete empfohlen"
+    },
+    "generalTravelAdvice": "Sicheres Reiseland mit guter touristischer Infrastruktur. Kulturelle Besonderheiten beachten (Königshaus)."
+  }
+}
+
+docs {
+  # Create Destination
+  
+  Erstellt ein neues Reiseziel mit Visa- und Impfanforderungen.
+  
+  ## Request Body
+  - countryCode: ISO 3166-1 Alpha-2 (2 Großbuchstaben, z.B. TH, VN, KE)
+  - countryName: Vollständiger Ländername
+  - visaRequirement:
+    - required: boolean (Pflicht)
+    - type: BUSINESS, TOURIST, WORK, TRANSIT, E_VISA, VISA_ON_ARRIVAL (optional wenn required=false)
+    - processingDays: Integer (optional)
+    - notes: String (optional)
+  - vaccinationRequirement:
+    - required: boolean (Pflicht)
+    - requiredVaccinations: String kommasepariert (nur wenn required=true)
+    - recommendedVaccinations: String kommasepariert (optional)
+    - notes: String (optional)
+  - generalTravelAdvice: String (optional)
+  
+  ## Response
+  - 201 CREATED: Reiseziel erfolgreich erstellt
+  - 400 BAD REQUEST: Ungültige Daten (z.B. falscher Ländercode)
+  - 409 CONFLICT: Reiseziel für diesen Ländercode existiert bereits
+}

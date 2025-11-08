@@ -2,6 +2,7 @@ package com.travelreimburse.infrastructure.external.exrat;
 
 import com.travelreimburse.domain.model.Currency;
 import com.travelreimburse.domain.model.ExchangeRate;
+import com.travelreimburse.domain.service.ExchangeRateProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,15 +13,17 @@ import org.springframework.web.client.RestClientException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 /**
  * Client für ExRat-API (externer Währungskurs-Service)
  * Holt aktuelle und historische Wechselkurse
+ * 
+ * ✅ DDD: Implementiert Domain-Interface ExchangeRateProvider
+ * ✅ Infrastructure Layer implementiert Domain-Interface (Dependency Inversion)
  */
 @Service
-public class ExRatClient {
+public class ExRatClient implements ExchangeRateProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(ExRatClient.class);
 
@@ -39,6 +42,7 @@ public class ExRatClient {
      * Holt den aktuellen Wechselkurs zwischen zwei Währungen
      * Ergebnis wird gecacht für bessere Performance
      */
+    @Override
     @Cacheable(value = "exchangeRates", key = "#from + '_' + #to + '_' + #date")
     public ExchangeRate getExchangeRate(Currency from, Currency to, LocalDate date) {
         if (from == to) {

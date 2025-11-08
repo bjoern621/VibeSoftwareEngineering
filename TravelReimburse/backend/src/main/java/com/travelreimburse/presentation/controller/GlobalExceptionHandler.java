@@ -3,6 +3,9 @@ package com.travelreimburse.presentation.controller;
 import com.travelreimburse.application.service.InvalidFileException;
 import com.travelreimburse.application.service.ReceiptNotFoundException;
 import com.travelreimburse.application.service.TravelRequestNotFoundException;
+import com.travelreimburse.domain.exception.DestinationNotFoundException;
+import com.travelreimburse.domain.exception.InvalidCountryCodeException;
+import com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException;
 import com.travelreimburse.infrastructure.external.exrat.ExRatClientException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -103,6 +106,47 @@ public class GlobalExceptionHandler {
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    /**
+     * Behandelt DestinationNotFoundException (404)
+     */
+    @ExceptionHandler(DestinationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDestinationNotFound(DestinationNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Behandelt InvalidCountryCodeException (400)
+     */
+    @ExceptionHandler(InvalidCountryCodeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCountryCode(InvalidCountryCodeException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Behandelt InsufficientVisaProcessingTimeException (400)
+     */
+    @ExceptionHandler(InsufficientVisaProcessingTimeException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientVisaProcessingTime(
+        InsufficientVisaProcessingTimeException ex
+    ) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     /**

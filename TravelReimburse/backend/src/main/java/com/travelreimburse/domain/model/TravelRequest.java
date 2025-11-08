@@ -250,6 +250,48 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         return total;
     }
 
+    /**
+     * Business-Methode: Prüft ob für das Reiseziel genug Vorlaufzeit für Visa-Beantragung vorhanden ist
+     * 
+     * DDD: Business-Logik gehört in die Entity
+     * 
+     * @param destination Reiseziel mit Visa-Anforderungen
+     * @throws com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException 
+     *         wenn nicht genug Zeit vorhanden ist
+     */
+    public void validateVisaProcessingTime(TravelDestination destination) {
+        if (destination == null) {
+            return; // Keine Validierung nötig
+        }
+
+        long daysUntilTravel = java.time.temporal.ChronoUnit.DAYS.between(
+            LocalDateTime.now().toLocalDate(),
+            this.travelPeriod.getStartDate()
+        );
+
+        if (!destination.hasEnoughPreparationTime(daysUntilTravel)) {
+            Integer requiredDays = destination.getVisaRequirement().getProcessingDays();
+            throw new com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException(
+                destination.getCountryCode().getCode(),
+                requiredDays != null ? requiredDays : 0,
+                daysUntilTravel
+            );
+        }
+    }
+
+    /**
+     * Business-Methode: Gibt an ob die Reise spezielle Vorbereitung (Visa/Impfung) benötigt
+     * 
+     * @param destination Reiseziel (optional)
+     * @return true wenn Vorbereitung nötig, false sonst
+     */
+    public boolean requiresSpecialPreparation(TravelDestination destination) {
+        if (destination == null) {
+            return false;
+        }
+        return destination.requiresPreparation();
+    }
+
     // Getters
     public Long getId() {
         return id;
@@ -344,13 +386,5 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
                              targetStatus == TravelRequestStatus.REJECTED;
             case APPROVED, REJECTED -> false; // Terminal states
         };
-    }
-
-    /**
-     * @deprecated Use updateStatus() instead for business logic and event publishing
-     */
-    @Deprecated(forRemoval = true)
-    public void setStatus(TravelRequestStatus status) {
-        this.status = status;
     }
 }

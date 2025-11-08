@@ -9,17 +9,22 @@ import java.util.Objects;
 /**
  * Value Object für Geldbeträge (unveränderlich)
  * Verhindert Rundungsfehler durch Verwendung von BigDecimal
+ * 
+ * ✅ DDD: Value Object - immutable (final fields)
  */
 @Embeddable
 public class Money {
     
-    private BigDecimal amount;
+    private final BigDecimal amount;
     
     @Enumerated(EnumType.STRING)
-    private Currency currency;
+    private final Currency currency;
     
-    // JPA benötigt Default-Konstruktor
+    // JPA benötigt Default-Konstruktor (nur für Framework-Zugriff)
+    // ✅ DDD: Final fields werden hier mit null initialisiert (JPA setzt echte Werte via Reflection)
     protected Money() {
+        this.amount = null;
+        this.currency = null;
     }
     
     public Money(BigDecimal amount, Currency currency) {
@@ -99,6 +104,30 @@ public class Money {
             throw new IllegalArgumentException("Kann nur Beträge gleicher Währung vergleichen");
         }
         return this.amount.compareTo(other.amount) < 0;
+    }
+
+    /**
+     * Prüft ob der Betrag Null ist
+     */
+    public boolean isZero() {
+        return this.amount.compareTo(BigDecimal.ZERO) == 0;
+    }
+
+    /**
+     * Prüft ob der Betrag positiv ist (größer als Null)
+     */
+    public boolean isPositive() {
+        return this.amount.compareTo(BigDecimal.ZERO) > 0;
+    }
+
+    /**
+     * Prüft ob der Betrag größer oder gleich dem anderen ist
+     */
+    public boolean isGreaterThanOrEqual(Money other) {
+        if (!this.currency.equals(other.currency)) {
+            throw new IllegalArgumentException("Kann nur Beträge gleicher Währung vergleichen");
+        }
+        return this.amount.compareTo(other.amount) >= 0;
     }
 
     @Override

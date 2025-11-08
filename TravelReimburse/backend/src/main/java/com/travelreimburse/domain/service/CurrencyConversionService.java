@@ -3,7 +3,6 @@ package com.travelreimburse.domain.service;
 import com.travelreimburse.domain.model.Currency;
 import com.travelreimburse.domain.model.ExchangeRate;
 import com.travelreimburse.domain.model.Money;
-import com.travelreimburse.infrastructure.external.exrat.ExRatClient;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -11,14 +10,16 @@ import java.time.LocalDate;
 /**
  * Domain Service für Währungsumrechnung
  * Orchestriert die Umrechnung von Geldbeträgen zwischen verschiedenen Währungen
+ * 
+ * ✅ DDD: Verwendet Domain-Interface statt direkter Infrastructure-Abhängigkeit
  */
 @Service
 public class CurrencyConversionService {
 
-    private final ExRatClient exRatClient;
+    private final ExchangeRateProvider exchangeRateProvider;
 
-    public CurrencyConversionService(ExRatClient exRatClient) {
-        this.exRatClient = exRatClient;
+    public CurrencyConversionService(ExchangeRateProvider exchangeRateProvider) {
+        this.exchangeRateProvider = exchangeRateProvider;
     }
 
     /**
@@ -35,8 +36,8 @@ public class CurrencyConversionService {
             return amount;
         }
 
-        // Hole Wechselkurs vom ExRat-Service
-        ExchangeRate exchangeRate = exRatClient.getExchangeRate(
+        // Hole Wechselkurs vom ExchangeRateProvider (Domain-Interface)
+        ExchangeRate exchangeRate = exchangeRateProvider.getExchangeRate(
             amount.getCurrency(),
             targetCurrency,
             date
@@ -56,13 +57,14 @@ public class CurrencyConversionService {
 
     /**
      * Holt den aktuellen Wechselkurs zwischen zwei Währungen
+     * ✅ DDD: Verwendet Domain-Interface
      */
     public ExchangeRate getExchangeRate(Currency from, Currency to, LocalDate date) {
         if (from == null || to == null || date == null) {
             throw new IllegalArgumentException("Währungen und Datum dürfen nicht null sein");
         }
 
-        return exRatClient.getExchangeRate(from, to, date);
+        return exchangeRateProvider.getExchangeRate(from, to, date);
     }
 
     /**

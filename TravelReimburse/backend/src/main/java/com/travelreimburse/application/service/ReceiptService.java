@@ -117,24 +117,18 @@ public class ReceiptService {
         Receipt receipt = receiptRepository.findById(id)
                 .orElseThrow(() -> new ReceiptNotFoundException(id));
 
-        // Aktualisiere nur wenn Status UPLOADED ist
-        if (receipt.getStatus() != ReceiptStatus.UPLOADED) {
-            throw new IllegalStateException(
-                    "Nur hochgeladene Belege können bearbeitet werden"
-            );
-        }
-
+        // ✅ DDD: Delegiere zu Entity Business-Methoden statt Service-Validierung
         if (dto.description() != null) {
-            receipt.setDescription(dto.description());
+            receipt.updateDescription(dto.description());
         }
 
         if (dto.amount() != null && dto.currency() != null) {
             Money amount = new Money(dto.amount(), Currency.valueOf(dto.currency()));
-            receipt.setAmount(amount);
+            receipt.updateAmount(amount);
         }
 
         if (dto.vendor() != null) {
-            receipt.setVendor(dto.vendor());
+            receipt.updateVendor(dto.vendor());
         }
 
         Receipt updatedReceipt = receiptRepository.save(receipt);
