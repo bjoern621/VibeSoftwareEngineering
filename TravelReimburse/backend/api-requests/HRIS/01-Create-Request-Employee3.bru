@@ -1,0 +1,70 @@
+meta {
+  name: Create Request for Employee 3 (No Conflicts)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/travel-requests
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "employeeId": 3,
+    "destination": "Berlin",
+    "purpose": "Kundenmeeting",
+    "startDate": "2025-11-10",
+    "endDate": "2025-11-15",
+    "estimatedAmount": "1500.00",
+    "currency": "EUR"
+  }
+}
+
+tests {
+  test("Status should be 201 Created", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response should be JSON", function() {
+    expect(res.getHeader('content-type')).to.contain('application/json');
+  });
+  
+  test("Should return created travel request", function() {
+    const data = res.getBody();
+    expect(data.id).to.not.be.null;
+    expect(data.employeeId).to.equal(3);
+  });
+  
+  test("Status should be DRAFT", function() {
+    const data = res.getBody();
+    expect(data.status).to.equal('DRAFT');
+  });
+  
+  test("Should have correct destination", function() {
+    const data = res.getBody();
+    expect(data.destination).to.equal('Berlin');
+  });
+  
+  test("Should have correct dates", function() {
+    const data = res.getBody();
+    expect(data.startDate).to.equal('2025-11-10');
+    expect(data.endDate).to.equal('2025-11-15');
+  });
+  
+  // Speichere ID für nachfolgende Requests
+  test("Save request ID for later use", function() {
+    const data = res.getBody();
+    bru.setEnvVar('requestIdNoConflict', data.id);
+  });
+}
+
+docs {
+  # Erstelle Reiseantrag für Employee 3
+  
+  Employee 3 hat keine Abwesenheiten.
+  Dieser Antrag sollte später erfolgreich submitted werden können.
+  
+  Nach Erstellung: Kopiere die ID aus der Response für den Submit-Request.
+}

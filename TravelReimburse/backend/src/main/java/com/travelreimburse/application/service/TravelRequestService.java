@@ -4,8 +4,10 @@ import com.travelreimburse.application.dto.AddTravelLegDTO;
 import com.travelreimburse.application.dto.CreateTravelRequestDTO;
 import com.travelreimburse.application.dto.TravelLegResponseDTO;
 import com.travelreimburse.application.dto.TravelRequestResponseDTO;
+import com.travelreimburse.domain.exception.AbsenceConflictException;
 import com.travelreimburse.domain.model.*;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
+import com.travelreimburse.domain.service.AbsenceValidationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +22,12 @@ import java.util.List;
 public class TravelRequestService {
     
     private final TravelRequestRepository travelRequestRepository;
+    private final AbsenceValidationService absenceValidationService;
 
-    public TravelRequestService(TravelRequestRepository travelRequestRepository) {
+    public TravelRequestService(TravelRequestRepository travelRequestRepository,
+                                AbsenceValidationService absenceValidationService) {
         this.travelRequestRepository = travelRequestRepository;
+        this.absenceValidationService = absenceValidationService;
     }
     
     /**
@@ -79,13 +84,26 @@ public class TravelRequestService {
     
     /**
      * Reicht einen Reiseantrag ein (DRAFT -> SUBMITTED)
+     * Validiert vorher gegen HRIS-Abwesenheiten
      * @param id die ID des Reiseantrags
      * @return der eingereichte Reiseantrag als DTO
+     * @throws AbsenceConflictException wenn Reise mit Abwesenheiten kollidiert
      */
     @Transactional
     public TravelRequestResponseDTO submitTravelRequest(Long id) {
         TravelRequest travelRequest = travelRequestRepository.findById(id)
             .orElseThrow(() -> new TravelRequestNotFoundException(id));
+
+        // HRIS-Validierung: Prüfe auf Abwesenheitskonflikte
+        List<AbsenceInfo> conflicts = absenceValidationService.validateTravelAgainstAbsences(
+            travelRequest.getEmployeeId(),
+            travelRequest.getTravelPeriod()
+        );
+
+        // Bei Konflikten: Exception werfen
+        if (!conflicts.isEmpty()) {
+            throw new AbsenceConflictException(conflicts);
+        }
 
         // ✅ DDD: Verwende semantisch korrekte Business-Methode statt generisches updateStatus()
         travelRequest.submit();

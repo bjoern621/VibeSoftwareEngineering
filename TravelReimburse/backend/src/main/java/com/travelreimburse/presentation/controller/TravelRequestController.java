@@ -5,6 +5,10 @@ import com.travelreimburse.application.dto.CreateTravelRequestDTO;
 import com.travelreimburse.application.dto.TravelLegResponseDTO;
 import com.travelreimburse.application.dto.TravelRequestResponseDTO;
 import com.travelreimburse.application.service.TravelRequestService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/travel-requests")
 @CrossOrigin(origins = "http://localhost:3000")
+@Tag(name = "Reiseanträge", description = "Verwaltung von Reiseanträgen mit Genehmigungsworkflow und HRIS-Validierung")
 public class TravelRequestController {
     
     private final TravelRequestService travelRequestService;
@@ -31,10 +36,16 @@ public class TravelRequestController {
      * Erstellt einen neuen Reiseantrag im Status DRAFT
      * POST /api/travel-requests
      */
+    @Operation(summary = "Neuen Reiseantrag erstellen", 
+               description = "Erstellt einen Reiseantrag im Status DRAFT")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Reiseantrag erfolgreich erstellt"),
+        @ApiResponse(responseCode = "400", description = "Ungültige Eingabedaten")
+    })
     @PostMapping
     public ResponseEntity<TravelRequestResponseDTO> createTravelRequest(
-            @Valid @RequestBody CreateTravelRequestDTO request) {
-        TravelRequestResponseDTO response = travelRequestService.createTravelRequest(request);
+            @Valid @RequestBody CreateTravelRequestDTO dto) {
+        TravelRequestResponseDTO response = travelRequestService.createTravelRequest(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
@@ -52,6 +63,10 @@ public class TravelRequestController {
      * Ruft alle Reiseanträge eines Mitarbeiters ab
      * GET /api/travel-requests?employeeId={employeeId}
      */
+    @Operation(summary = "Reiseanträge eines Mitarbeiters abrufen")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Liste erfolgreich abgerufen")
+    })
     @GetMapping
     public ResponseEntity<List<TravelRequestResponseDTO>> getTravelRequestsByEmployee(
             @RequestParam Long employeeId) {
@@ -62,7 +77,16 @@ public class TravelRequestController {
     /**
      * Reicht einen Reiseantrag ein (DRAFT -> SUBMITTED)
      * POST /api/travel-requests/{id}/submit
+     * Validiert automatisch gegen HRIS-Abwesenheiten
      */
+    @Operation(summary = "Reiseantrag einreichen", 
+               description = "Reicht einen Reiseantrag zur Genehmigung ein. Validiert automatisch gegen HRIS-Abwesenheiten (Urlaub, Krankheit).")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Reiseantrag erfolgreich eingereicht"),
+        @ApiResponse(responseCode = "404", description = "Reiseantrag nicht gefunden"),
+        @ApiResponse(responseCode = "409", description = "Konflikt mit bestehenden Abwesenheiten (HRIS). Details in Response enthalten."),
+        @ApiResponse(responseCode = "400", description = "Reiseantrag ist nicht im Status DRAFT")
+    })
     @PostMapping("/{id}/submit")
     public ResponseEntity<TravelRequestResponseDTO> submitTravelRequest(@PathVariable Long id) {
         TravelRequestResponseDTO response = travelRequestService.submitTravelRequest(id);
@@ -85,6 +109,13 @@ public class TravelRequestController {
      * POST /api/travel-requests/{id}/approve
      * Für Führungskräfte
      */
+    @Operation(summary = "Reiseantrag genehmigen", 
+               description = "Genehmigt einen eingereichten Reiseantrag")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Reiseantrag erfolgreich genehmigt"),
+        @ApiResponse(responseCode = "404", description = "Reiseantrag nicht gefunden"),
+        @ApiResponse(responseCode = "400", description = "Reiseantrag ist nicht im Status SUBMITTED")
+    })
     @PostMapping("/{id}/approve")
     public ResponseEntity<TravelRequestResponseDTO> approveTravelRequest(
             @PathVariable Long id,
