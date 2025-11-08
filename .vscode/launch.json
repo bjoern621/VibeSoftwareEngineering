@@ -3,12 +3,20 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Spring Boot Backend",
+            "name": "Spring Boot Backend - MyMensa2",
             "request": "launch",
             "cwd": "${workspaceFolder}\\MyMensa2\\backend",
             "mainClass": "com.mymensa2.backend.BackendApplication",
             "args": "",
             "envFile": "${workspaceFolder}\\MyMensa2\\backend\\.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot Backend - TravelReimburse",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\TravelReimburse\\backend",
+            "mainClass": "com.travelreimburse.TravelReimburseApplication",
+            "args": ""
         },
         {
             "type": "node",
@@ -23,8 +31,11 @@
     ],
     "compounds": [
         {
-            "name": "Full Stack: Frontend + Backend",
-            "configurations": ["Spring Boot Backend", "React Frontend"],
+            "name": "Full Stack: Frontend + Backend (MyMensa2)",
+            "configurations": [
+                "Spring Boot Backend - MyMensa2",
+                "React Frontend"
+            ],
             "stopAll": true
         }
     ]
