@@ -3,6 +3,7 @@ package com.travelreimburse.presentation.controller;
 import com.travelreimburse.application.service.InvalidFileException;
 import com.travelreimburse.application.service.ReceiptNotFoundException;
 import com.travelreimburse.application.service.TravelRequestNotFoundException;
+import com.travelreimburse.domain.exception.AbsenceConflictException;
 import com.travelreimburse.domain.exception.DestinationNotFoundException;
 import com.travelreimburse.domain.exception.InvalidCountryCodeException;
 import com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException;
@@ -147,6 +148,36 @@ public class GlobalExceptionHandler {
             LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Behandelt AbsenceConflictException (409 Conflict)
+     * Wird geworfen wenn Reiseantrag mit Abwesenheiten kollidiert
+     */
+    @ExceptionHandler(AbsenceConflictException.class)
+    public ResponseEntity<ErrorResponse> handleAbsenceConflict(AbsenceConflictException ex) {
+        Map<String, String> conflictDetails = new HashMap<>();
+        
+        // Formatiere jeden Konflikt als Detail-Eintrag
+        for (int i = 0; i < ex.getConflicts().size(); i++) {
+            var conflict = ex.getConflicts().get(i);
+            String key = "konflikt_" + (i + 1);
+            String value = String.format("%s: %s bis %s (%s)",
+                conflict.getType(),
+                conflict.getPeriod().getStartDate(),
+                conflict.getPeriod().getEndDate(),
+                conflict.getReason() != null ? conflict.getReason() : "Keine Angabe"
+            );
+            conflictDetails.put(key, value);
+        }
+        
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.CONFLICT.value(),
+            ex.getMessage(),
+            LocalDateTime.now(),
+            conflictDetails
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     /**
