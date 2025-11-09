@@ -180,4 +180,24 @@ public class TravelRequestController {
         travelRequestService.removeTravelLeg(id, legId);
         return ResponseEntity.noContent().build();
     }
+    
+    /**
+     * Erstellt einen Reiseantrag im Namen eines anderen Mitarbeiters
+     * POST /api/travel-requests/on-behalf?assistantId={assistantId}
+     * Kann nur von Assistenten ausgeführt werden
+     */
+    @Operation(summary = "Reiseantrag im Namen eines anderen erstellen",
+               description = "Assistenten können Reiseanträge für beliebige Mitarbeiter erstellen")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Reiseantrag erfolgreich erstellt"),
+        @ApiResponse(responseCode = "400", description = "Ungültige Eingabedaten"),
+        @ApiResponse(responseCode = "403", description = "Keine Berechtigung (nur ASSISTANT-Rolle)")
+    })
+    @PostMapping("/on-behalf")
+    public ResponseEntity<TravelRequestResponseDTO> createTravelRequestOnBehalf(
+            @Valid @RequestBody CreateTravelRequestDTO dto,
+            @RequestParam Long assistantId) {
+        TravelRequestResponseDTO response = travelRequestService.createTravelRequestOnBehalf(dto, assistantId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }

@@ -1,0 +1,35 @@
+meta {
+  name: 04-Error - Invalid Assistant ID
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/travel-requests/on-behalf?assistantId=9999
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "employeeId": 1,
+    "costCenterCode": "CC-001",
+    "costCenterName": "IT Department",
+    "destination": "Frankfurt",
+    "purpose": "Test - sollte fehlschlagen",
+    "startDate": "2025-11-15",
+    "endDate": "2025-11-17",
+    "estimatedAmount": 1000.00,
+    "currency": "EUR"
+  }
+}
+
+tests {
+  test("Status sollte 404 NOT FOUND sein", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Fehlermeldung sollte 'nicht gefunden' erwähnen", function() {
+    expect(res.body.message).to.include('nicht gefunden');
+  });
+}

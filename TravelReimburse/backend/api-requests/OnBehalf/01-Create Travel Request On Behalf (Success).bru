@@ -1,0 +1,38 @@
+meta {
+  name: 01-Create Travel Request On Behalf (Success)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/travel-requests/on-behalf?assistantId=300
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "employeeId": 1,
+    "costCenterCode": "CC-001",
+    "costCenterName": "IT Department",
+    "destination": "Berlin",
+    "purpose": "Kundenmeeting - erstellt von Assistant",
+    "startDate": "2025-11-15",
+    "endDate": "2025-11-17",
+    "estimatedAmount": 1500.00,
+    "currency": "EUR"
+  }
+}
+
+tests {
+  test("Status sollte 201 CREATED sein", function() {
+    expect(res.status).to.equal(201);
+  });
+  
+  test("Response sollte TravelRequest enthalten", function() {
+    expect(res.body).to.have.property('id');
+    expect(res.body).to.have.property('employeeId', 1);
+    expect(res.body).to.have.property('destination', 'Berlin');
+    expect(res.body).to.have.property('status', 'DRAFT');
+  });
+}

@@ -1,0 +1,36 @@
+meta {
+  name: 03-Error - Non-Assistant Tries To Act On Behalf
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/travel-requests/on-behalf?assistantId=1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "employeeId": 100,
+    "costCenterCode": "CC-001",
+    "costCenterName": "IT Department",
+    "destination": "Hamburg",
+    "purpose": "Test - sollte fehlschlagen",
+    "startDate": "2025-11-15",
+    "endDate": "2025-11-17",
+    "estimatedAmount": 1000.00,
+    "currency": "EUR"
+  }
+}
+
+tests {
+  test("Status sollte 403 FORBIDDEN sein", function() {
+    expect(res.status).to.equal(403);
+  });
+  
+  test("Fehlermeldung sollte Berechtigung erwähnen", function() {
+    expect(res.body.message).to.include('Berechtigung');
+    expect(res.body.message).to.include('ASSISTANT');
+  });
+}
