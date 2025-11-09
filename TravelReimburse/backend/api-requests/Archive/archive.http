@@ -51,18 +51,6 @@ Content-Type: application/json
 GET http://localhost:8080/api/travel-requests/1
 
 
-### 08-Check Retention Period Details
-# Zeigt detaillierte Informationen zur Aufbewahrungsfrist
-# Wird automatisch in Response von 03/04 zurückgegeben
-# Beispiel-Response:
-# {
-#   "id": 1,
-#   "status": "ARCHIVED",
-#   "retentionPeriod": {
-#     "archivedAt": "2025-01-20",
-#     "retentionEndDate": "2035-01-20",
-#     "retentionYears": 10,
-#     "expired": false,
-#     "remainingDays": 3650
-#   }
-# }
+### 08 - Get Expired Archives
+# Ruft alle Reiseanträge mit abgelaufener Aufbewahrungsfrist ab
+GET {{baseUrl}}/archiving/expired

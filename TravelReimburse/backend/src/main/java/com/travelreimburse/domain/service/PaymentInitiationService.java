@@ -6,6 +6,7 @@ import com.travelreimburse.domain.model.TravelRequest;
 import com.travelreimburse.domain.model.TravelRequestStatus;
 import com.travelreimburse.domain.repository.PaymentRequestRepository;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
+import org.springframework.stereotype.Service;
 
 /**
  * Domain Service für Payment-Initiierung.
@@ -14,6 +15,7 @@ import com.travelreimburse.domain.repository.TravelRequestRepository;
  * WICHTIG: Das ist ein Domain Service, KEINE Application Service!
  * Er bleibt im Domain Layer und wird von Application Services verwendet.
  */
+@Service
 public class PaymentInitiationService {
 
     private final PaymentRequestRepository paymentRequestRepository;

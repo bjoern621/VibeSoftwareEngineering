@@ -1,0 +1,59 @@
+### Variables
+@baseUrl = http://localhost:8080/api
+@travelRequestId = 1
+@financeId = 200
+
+### 01 - Process Payment (APPROVED → PAID)
+# VORAUSSETZUNG:
+# - TravelRequest Status = APPROVED
+# - Alle Receipts Status = VALIDATED
+# - User hat Rolle FINANCE
+POST {{baseUrl}}/travel-requests/{{travelRequestId}}/payment/process
+Content-Type: application/json
+
+{
+  "financeApproverId": {{financeId}}
+}
+
+### Expected Response 201 CREATED
+# {
+#   "transactionId": "TXN-MOCK-A1B2C3D4",
+#   "totalAmount": 450.50,
+#   "currency": "EUR",
+#   "paidAt": "2025-01-15T14:30:00",
+#   "paidByFinanceId": 200
+# }
+
+### 02 - Get Payment Status
+GET {{baseUrl}}/travel-requests/{{travelRequestId}}/payment/status
+
+### Expected Response 200 OK
+# {
+#   "transactionId": "TXN-MOCK-A1B2C3D4",
+#   "totalAmount": 450.50,
+#   "currency": "EUR",
+#   "paidAt": "2025-01-15T14:30:00",
+#   "paidByFinanceId": 200
+# }
+
+### Error Case: Status nicht APPROVED
+# Response 400 BAD REQUEST
+# {
+#   "error": "PAYMENT_NOT_ALLOWED",
+#   "message": "Reiseantrag 1 kann nicht ausgezahlt werden. Aktueller Status: SUBMITTED (erwartet: APPROVED)"
+# }
+
+### Error Case: Receipts nicht validiert
+# Response 409 CONFLICT
+# {
+#   "error": "INVALID_RECEIPT_STATE",
+#   "message": "Reiseantrag 1 hat nicht-validierte Belege: [3, 5]",
+#   "invalidReceiptIds": [3, 5]
+# }
+
+### Error Case: TravelRequest nicht gefunden
+# Response 404 NOT FOUND
+# {
+#   "error": "NOT_FOUND",
+#   "message": "Reiseantrag mit ID 999 nicht gefunden"
+# }

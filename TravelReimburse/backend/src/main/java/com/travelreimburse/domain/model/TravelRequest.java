@@ -128,10 +128,18 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         if (status != TravelRequestStatus.DRAFT) {
             throw new InvalidTravelRequestStateException(status, "submit");
         }
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.SUBMITTED;
         this.submittedAt = LocalDateTime.now();
+
+        // Register domain event for status change
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.SUBMITTED
+        ));
     }
-    
+
     /**
      * Business-Methode: Reiseantrag genehmigen
      * Zustandsübergang: SUBMITTED -> APPROVED
@@ -145,9 +153,17 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         if (status != TravelRequestStatus.SUBMITTED) {
             throw new InvalidTravelRequestStateException(status, "approve");
         }
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.APPROVED;
         this.approverId = approverId;
         this.approvedAt = LocalDateTime.now();
+
+        // Register domain event for status change
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.APPROVED
+        ));
     }
 
     /**
@@ -167,12 +183,20 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         if (status != TravelRequestStatus.SUBMITTED) {
             throw new InvalidTravelRequestStateException(status, "reject");
         }
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.REJECTED;
         this.approverId = approverId;
         this.rejectedAt = LocalDateTime.now();
         this.rejectionReason = reason;
+
+        // Register domain event for status change
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.REJECTED
+        ));
     }
-    
+
     /**
      * Business-Methode: Reiseabschnitt hinzufügen
      * Darf nur im Status DRAFT erfolgen
@@ -435,8 +459,15 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
      */
     public void archive() {
         validateCanBeArchived();
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.ARCHIVED;
         this.retentionPeriod = RetentionPeriod.standard();
+
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.ARCHIVED
+        ));
     }
 
     /**
@@ -444,8 +475,15 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
      */
     public void archiveWithCustomRetention(int retentionYears) {
         validateCanBeArchived();
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.ARCHIVED;
         this.retentionPeriod = RetentionPeriod.custom(LocalDate.now(), retentionYears);
+
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.ARCHIVED
+        ));
     }
 
     /**
@@ -456,8 +494,15 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         if (this.status != TravelRequestStatus.APPROVED) {
             throw new InvalidTravelRequestStateException(this.status, "pay");
         }
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.PAID;
         this.paidAt = LocalDateTime.now();
+
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.PAID
+        ));
     }
 
     /**
@@ -500,5 +545,17 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
      */
     public boolean isPaid() {
         return this.status == TravelRequestStatus.PAID;
+    }
+
+    /**
+     * Publishes all pending domain events.
+     * Call this after persisting to trigger event listeners.
+     *
+     * @return Collection of domain events to publish
+     */
+    public java.util.Collection<Object> getAndPublishDomainEvents() {
+        java.util.Collection<Object> events = new java.util.ArrayList<>(domainEvents());
+        clearDomainEvents();
+        return events;
     }
 }

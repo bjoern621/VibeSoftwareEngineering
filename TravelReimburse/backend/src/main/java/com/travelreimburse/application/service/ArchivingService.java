@@ -84,5 +84,39 @@ public class ArchivingService {
     public List<TravelRequest> findArchivedInPeriod(LocalDate start, LocalDate end) {
         return repository.findArchivedBetween(start, end);
     }
+
+    /**
+     * Use Case: Archiviere Reise nach erfolgreicher Zahlung
+     *
+     * Wird vom PaymentEventHandler aufgerufen, wenn PaymentSuccessEvent publishet wird.
+     * Flow: Payment erfolgreich → TravelRequest.status = PAID → Archivierung
+     *
+     * Invariante: TravelRequest muss Status PAID haben
+     */
+    @Transactional
+    public void archiveAfterPaymentSuccess(Long travelRequestId) {
+        TravelRequest request = repository.findById(travelRequestId)
+            .orElseThrow(() -> new TravelRequestNotFoundException(travelRequestId));
+
+        // Prüfe dass Payment erfolgreich war (Status = PAID)
+        if (!request.isPaid()) {
+            throw new IllegalArgumentException(
+                String.format("TravelRequest %d muss Status PAID haben, aktuell: %s",
+                    travelRequestId, request.getStatus())
+            );
+        }
+
+        try {
+            // Archiviere mit Standard-Frist (10 Jahre)
+            request.archive();
+            repository.save(request);
+        } catch (CannotArchiveTravelRequestException e) {
+            // Log Fehler aber werfe Exception nicht - Payment ist bereits erfolg!
+            throw new IllegalStateException(
+                String.format("Archivierung fehlgeschlagen für TravelRequest %d: %s",
+                    travelRequestId, e.getMessage())
+            );
+        }
+    }
 }
 
