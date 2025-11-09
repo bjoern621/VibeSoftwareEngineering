@@ -7,6 +7,7 @@ import com.travelreimburse.application.dto.TravelRequestResponseDTO;
 import com.travelreimburse.domain.exception.AbsenceConflictException;
 import com.travelreimburse.domain.exception.EmployeeNotFoundException;
 import com.travelreimburse.domain.exception.InsufficientPermissionException;
+import com.travelreimburse.domain.exception.TravelRequestNotFoundException;
 import com.travelreimburse.domain.model.*;
 import com.travelreimburse.domain.repository.EmployeeRepository;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
