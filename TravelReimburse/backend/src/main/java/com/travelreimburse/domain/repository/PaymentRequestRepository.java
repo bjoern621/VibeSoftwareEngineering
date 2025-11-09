@@ -38,14 +38,5 @@ public interface PaymentRequestRepository {
      */
     List<PaymentRequest> findAllWithStatus(PaymentStatus status);
 
-    /**
-     * Findet alle fehlgeschlagenen PaymentRequests
-     */
-    List<PaymentRequest> findAllFailedPayments();
-
-    /**
-     * Findet einen PaymentRequest nach EasyPay TransactionId
-     */
-    Optional<PaymentRequest> findByEasyPayTransactionId(String easyPayTransactionId);
 }
 

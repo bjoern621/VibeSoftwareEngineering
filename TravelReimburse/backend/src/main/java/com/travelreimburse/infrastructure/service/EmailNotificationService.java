@@ -32,12 +32,11 @@ public class EmailNotificationService {
     public void sendStatusChangeNotification(TravelRequest travelRequest,
                                             TravelRequestStatus oldStatus,
                                             TravelRequestStatus newStatus) {
-        System.out.println("==> INSIDE EMAIL SERVICE - sendStatusChangeNotification");
         String emailContent = buildEmailContent(travelRequest, oldStatus, newStatus);
         String employeeEmail = "employee" + travelRequest.getEmployeeId() + "@company.com";
 
         logger.info("""
-                
+
                 ╔═══════════════════════════════════════════════════════════════════╗
                 ║                    MOCK E-MAIL VERSANDT                           ║
                 ╠═══════════════════════════════════════════════════════════════════╣
@@ -69,7 +68,7 @@ public class EmailNotificationService {
         String employeeEmail = "employee" + receipt.getTravelRequest().getEmployeeId() + "@company.com";
 
         logger.info("""
-                
+
                 ╔═══════════════════════════════════════════════════════════════════╗
                 ║                    MOCK E-MAIL VERSANDT                           ║
                 ╠═══════════════════════════════════════════════════════════════════╣

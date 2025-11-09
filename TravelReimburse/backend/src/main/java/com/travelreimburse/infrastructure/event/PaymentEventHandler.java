@@ -1,8 +1,8 @@
 package com.travelreimburse.infrastructure.event;
 
 import com.travelreimburse.application.service.ArchivingService;
-import com.travelreimburse.domain.event.PaymentFailedEvent;
-import com.travelreimburse.domain.event.PaymentSuccessEvent;
+import com.travelreimburse.domain.event.payment.PaymentFailedEvent;
+import com.travelreimburse.domain.event.payment.PaymentSuccessEvent;
 import com.travelreimburse.domain.model.TravelRequest;
 import com.travelreimburse.domain.model.TravelRequestStatus;
 import com.travelreimburse.domain.repository.TravelRequestRepository;

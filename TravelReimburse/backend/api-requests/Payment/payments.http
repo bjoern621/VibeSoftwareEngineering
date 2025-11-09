@@ -1,59 +1,76 @@
 ### Variables
 @baseUrl = http://localhost:8080/api
 @travelRequestId = 1
-@financeId = 200
+@paymentId = 1
 
-### 01 - Process Payment (APPROVED → PAID)
+### 01 - Create and Submit Payment (TravelRequest APPROVED → Payment PENDING)
+# Erstellt einen Payment-Request und sendet ihn zu EasyPay (Mock)
 # VORAUSSETZUNG:
-# - TravelRequest Status = APPROVED
-# - Alle Receipts Status = VALIDATED
-# - User hat Rolle FINANCE
-POST {{baseUrl}}/travel-requests/{{travelRequestId}}/payment/process
+# - TravelRequest Status MUSS = APPROVED sein
+# - Alle Receipts MÜSSEN = VALIDATED sein
+# RESULT: TravelRequest Status ändert sich zu PAID, Payment Status = PENDING
+POST {{baseUrl}}/payments/travel-requests/{{travelRequestId}}/submit
 Content-Type: application/json
 
-{
-  "financeApproverId": {{financeId}}
-}
+{}
 
 ### Expected Response 201 CREATED
+# Payment wird erstellt mit Status PENDING
+# TravelRequest erhält Status PAID
 # {
-#   "transactionId": "TXN-MOCK-A1B2C3D4",
+#   "id": 1,
+#   "travelRequestId": 1,
 #   "totalAmount": 450.50,
 #   "currency": "EUR",
-#   "paidAt": "2025-01-15T14:30:00",
-#   "paidByFinanceId": 200
+#   "paymentReference": "PAY-2025-001",
+#   "status": "PENDING",
+#   "createdAt": "2025-11-09T18:27:42.538453085",
+#   "submittedAt": "2025-11-09T18:27:42.538453085",
+#   "completedAt": null,
+#   "easyPayTransactionId": "TXN-MOCK-A1B2C3D4",
+#   "failureReason": null
 # }
 
-### 02 - Get Payment Status
-GET {{baseUrl}}/travel-requests/{{travelRequestId}}/payment/status
+### 02 - Get Payment Status (Poll für Completion)
+# Ruft den aktuellen Status eines Payments ab
+# Nach kurzer Zeit ändert sich status von PENDING → COMPLETED (Mock)
+GET {{baseUrl}}/payments/{{paymentId}}
 
 ### Expected Response 200 OK
+# Nach Mock-Verarbeitung: status wird COMPLETED
 # {
-#   "transactionId": "TXN-MOCK-A1B2C3D4",
+#   "id": 1,
+#   "travelRequestId": 1,
 #   "totalAmount": 450.50,
 #   "currency": "EUR",
-#   "paidAt": "2025-01-15T14:30:00",
-#   "paidByFinanceId": 200
+#   "paymentReference": "PAY-2025-001",
+#   "status": "COMPLETED",
+#   "createdAt": "2025-11-09T18:27:42.538453085",
+#   "submittedAt": "2025-11-09T18:27:42.538453085",
+#   "completedAt": "2025-11-09T19:00:00.000000000",
+#   "easyPayTransactionId": "TXN-MOCK-A1B2C3D4",
+#   "failureReason": null
 # }
 
-### Error Case: Status nicht APPROVED
-# Response 400 BAD REQUEST
-# {
-#   "error": "PAYMENT_NOT_ALLOWED",
-#   "message": "Reiseantrag 1 kann nicht ausgezahlt werden. Aktueller Status: SUBMITTED (erwartet: APPROVED)"
-# }
+### 03 - Get All Pending Payments (Admin-Übersicht)
+# Ruft alle Payments mit Status PENDING ab
+# Nützlich für Dashboards/Admin-Interface
+GET {{baseUrl}}/payments/pending
 
-### Error Case: Receipts nicht validiert
-# Response 409 CONFLICT
-# {
-#   "error": "INVALID_RECEIPT_STATE",
-#   "message": "Reiseantrag 1 hat nicht-validierte Belege: [3, 5]",
-#   "invalidReceiptIds": [3, 5]
-# }
-
-### Error Case: TravelRequest nicht gefunden
-# Response 404 NOT FOUND
-# {
-#   "error": "NOT_FOUND",
-#   "message": "Reiseantrag mit ID 999 nicht gefunden"
-# }
+### Expected Response 200 OK
+# Array mit allen ausstehenden Zahlungen
+# [
+#   {
+#     "id": 1,
+#     "travelRequestId": 1,
+#     "totalAmount": 450.50,
+#     "currency": "EUR",
+#     "paymentReference": "PAY-2025-001",
+#     "status": "PENDING",
+#     "createdAt": "2025-11-09T18:27:42.538453085",
+#     "submittedAt": "2025-11-09T18:27:42.538453085",
+#     "completedAt": null,
+#     "easyPayTransactionId": "TXN-MOCK-A1B2C3D4",
+#     "failureReason": null
+#   }
+# ]

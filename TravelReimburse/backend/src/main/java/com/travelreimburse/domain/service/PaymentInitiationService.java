@@ -67,21 +67,6 @@ public class PaymentInitiationService {
         return PaymentRequest.create(travelRequest, travelRequest.getEstimatedCost());
     }
 
-    /**
-     * Query-Methode: Findet einen zahlungsbereiten TravelRequest
-     */
-    public boolean canTravelRequestBePaid(Long travelRequestId) {
-        var travelRequest = travelRequestRepository.findById(travelRequestId);
-        if (travelRequest.isEmpty()) {
-            return false;
-        }
 
-        try {
-            validateCanPayTravelRequest(travelRequest.get());
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 }
 

@@ -30,13 +30,13 @@ public class ArchivingService {
     public TravelRequest archiveTravelRequest(Long requestId) {
         TravelRequest request = repository.findById(requestId)
             .orElseThrow(() -> new TravelRequestNotFoundException(requestId));
-        
+
         // Business-Logik in Entity!
         request.archive();
-        
+
         return repository.save(request);
     }
-    
+
     /**
      * Use Case: Reise mit benutzerdefinierter Frist archivieren
      */
@@ -44,12 +44,12 @@ public class ArchivingService {
     public TravelRequest archiveWithCustomRetention(Long requestId, int retentionYears) {
         TravelRequest request = repository.findById(requestId)
             .orElseThrow(() -> new TravelRequestNotFoundException(requestId));
-        
+
         request.archiveWithCustomRetention(retentionYears);
-        
+
         return repository.save(request);
     }
-    
+
     /**
      * Use Case: Alle bereiten Reisen automatisch archivieren (Batch)
      */

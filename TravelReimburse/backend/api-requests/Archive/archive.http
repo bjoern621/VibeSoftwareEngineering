@@ -27,30 +27,8 @@ Content-Type: application/json
 }
 
 
-### 05-Batch Archive All PAID Requests
-# Archiviert alle Reiseanträge mit Status PAID automatisch
-# Gibt die Anzahl der archivierten Anträge zurück
-POST http://localhost:8080/api/archiving/batch
-
-
-### 06-Prepare Test Data (PAID Status)
-# Hilfsmethode: Setzt einen Reiseantrag auf Status PAID zum Testen
-# WICHTIG: Diese Methode existiert nur in Dev-Umgebung!
-# Ersetze '1' durch existierende Travel Request ID
-PATCH http://localhost:8080/api/travel-requests/1
-Content-Type: application/json
-
-{
-  "status": "PAID"
-}
-
-
 ### 07-Verify Archiving Result
 # Prüft ob die Archivierung erfolgreich war
 # WICHTIG: Ersetze '1' durch die ID des archivierten Antrags
 GET http://localhost:8080/api/travel-requests/1
 
-
-### 08 - Get Expired Archives
-# Ruft alle Reiseanträge mit abgelaufener Aufbewahrungsfrist ab
-GET {{baseUrl}}/archiving/expired

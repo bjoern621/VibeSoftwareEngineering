@@ -22,14 +22,14 @@ public class ArchivingController {
     public ArchivingController(ArchivingService archivingService) {
         this.archivingService = archivingService;
     }
-    
+
     @PostMapping("/travel-requests/{id}")
     @Operation(summary = "Reiseantrag archivieren (Standard-Frist 10 Jahre)")
     public ResponseEntity<TravelRequest> archiveTravelRequest(@PathVariable Long id) {
         TravelRequest archived = archivingService.archiveTravelRequest(id);
         return ResponseEntity.ok(archived);
     }
-    
+
     @PostMapping("/travel-requests/{id}/custom")
     @Operation(summary = "Reiseantrag mit benutzerdefinierter Frist archivieren")
     public ResponseEntity<TravelRequest> archiveWithCustomRetention(
@@ -39,7 +39,7 @@ public class ArchivingController {
         TravelRequest archived = archivingService.archiveWithCustomRetention(id, dto.retentionYears());
         return ResponseEntity.ok(archived);
     }
-    
+
     @PostMapping("/batch")
     @Operation(summary = "Alle bereiten Reisen archivieren (Batch-Job)")
     public ResponseEntity<Integer> archiveAllReady() {

@@ -36,12 +36,7 @@ public class TravelRequestEventListener {
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onStatusChanged(TravelRequestStatusChangedEvent event) {
-        System.out.println("==> EVENT LISTENER CALLED: " + event.travelRequestId());
-        log.info("🔔 EVENT LISTENER TRIGGERED: {} -> {}",
-                 event.oldStatus(), event.newStatus());
-
         try {
-            System.out.println("==> FETCHING TRAVEL REQUEST FROM DB");
             TravelRequest request = repository.findById(event.travelRequestId())
                 .orElseThrow(() -> new IllegalStateException(
                     "TravelRequest not found: " + event.travelRequestId()));
@@ -49,18 +44,13 @@ public class TravelRequestEventListener {
             // Get employee email - for now using mock, TODO: implement Employee entity
             String employeeEmail = "employee" + request.getEmployeeId() + "@company.com";
 
-            System.out.println("==> CALLING EMAIL SERVICE");
-            log.info("📧 Sending email notification to: {}", employeeEmail);
             emailService.sendStatusChangeNotification(
                 request,
                 event.oldStatus(),
                 event.newStatus()
             );
 
-            System.out.println("==> EMAIL SENT SUCCESSFULLY");
-            log.info("✅ Email notification sent for TravelRequest {}", event.travelRequestId());
         } catch (Exception e) {
-            System.out.println("==> ERROR IN LISTENER: " + e.getMessage());
             log.error("❌ Failed to send email notification for TravelRequest {}",
                      event.travelRequestId(), e);
             // Don't throw - email failure shouldn't break business logic

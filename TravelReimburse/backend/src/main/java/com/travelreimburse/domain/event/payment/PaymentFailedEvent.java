@@ -1,4 +1,4 @@
-package com.travelreimburse.domain.event;
+package com.travelreimburse.domain.event.payment;
 
 import java.time.LocalDateTime;
 

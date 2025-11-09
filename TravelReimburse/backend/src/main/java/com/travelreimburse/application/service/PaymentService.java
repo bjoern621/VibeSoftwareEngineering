@@ -1,10 +1,7 @@
 package com.travelreimburse.application.service;
 
-import com.travelreimburse.domain.event.PaymentFailedEvent;
-import com.travelreimburse.domain.event.PaymentSuccessEvent;
 import com.travelreimburse.domain.exception.CannotSubmitPaymentException;
 import com.travelreimburse.domain.model.PaymentRequest;
-import com.travelreimburse.domain.model.PaymentStatus;
 import com.travelreimburse.domain.model.TravelRequest;
 import com.travelreimburse.domain.repository.PaymentRequestRepository;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
@@ -15,18 +12,15 @@ import com.travelreimburse.presentation.dto.PaymentRequestDTO;
 import com.travelreimburse.presentation.dto.PaymentRequestMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Application Service für Payment-Management.
  * Orchestriert Use Cases - KEINE Business-Logik hier!
  * Business-Logik läuft in Entity und Domain Service.
+ *
+ * Flow: Payment erstellen → EasyPay (gemockt) → Sofort SUCCESS → TravelRequest PAID → Archivierung
  */
 @Service
 @Transactional(readOnly = true)
@@ -39,7 +33,7 @@ public class PaymentService {
     private final PaymentInitiationService paymentInitiationService;
     private final EasyPayAdapter easyPayAdapter;
     private final PaymentRequestMapper mapper;
-    private final ApplicationEventPublisher eventPublisher;
+    private final ArchivingService archivingService;
 
     public PaymentService(
             PaymentRequestRepository paymentRepository,
@@ -47,17 +41,23 @@ public class PaymentService {
             PaymentInitiationService paymentInitiationService,
             EasyPayAdapter easyPayAdapter,
             PaymentRequestMapper mapper,
-            ApplicationEventPublisher eventPublisher) {
+            ArchivingService archivingService) {
         this.paymentRepository = paymentRepository;
         this.travelRequestRepository = travelRequestRepository;
         this.paymentInitiationService = paymentInitiationService;
         this.easyPayAdapter = easyPayAdapter;
         this.mapper = mapper;
-        this.eventPublisher = eventPublisher;
+        this.archivingService = archivingService;
     }
 
     /**
-     * Use Case 1: Erstelle Payment und sende zu EasyPay
+     * Use Case: Erstelle Payment, sende zu EasyPay (gemockt), markiere als SUCCESS
+     *
+     * 1. PaymentRequest erstellen
+     * 2. EasyAdapter.submitPayment() - gibt sofort transactionId zurück (gemockt)
+     * 3. Payment Status → SUCCESS
+     * 4. TravelRequest Status → PAID
+     * 5. Automatisch archivieren
      */
     @Transactional
     public PaymentRequestDTO createAndSubmitPayment(Long travelRequestId) {
@@ -70,13 +70,26 @@ public class PaymentService {
         paymentRequest = paymentRepository.save(paymentRequest);
 
         try {
+            // EasyPay Adapter gibt sofort transactionId zurück (MOCK)
             EasyPayAdapter.EasyPayResponse easyPayResponse = easyPayAdapter.submitPayment(paymentRequest);
+            String transactionId = easyPayResponse.transactionId();
 
-            paymentRequest.submitToEasyPay();
-            paymentRequest.markAsProcessing();
+            // ⭐ Sofort SUCCESS - KEINE PROCESSING BULLSHIT
+            paymentRequest.markAsSuccess(transactionId);
             paymentRequest = paymentRepository.save(paymentRequest);
 
-            logger.info("Payment {} zu EasyPay übermittelt", paymentRequest.getId());
+            logger.info("Payment {} erfolgreich mit TransactionID: {}", paymentRequest.getId(), transactionId);
+
+            // ⭐ TravelRequest auf PAID setzen
+            travelRequest.pay();
+            travelRequestRepository.save(travelRequest);
+
+            logger.info("TravelRequest {} Status → PAID", travelRequestId);
+
+            // ⭐ Automatisch archivieren
+            archivingService.archiveAfterPaymentSuccess(travelRequestId);
+
+            logger.info("TravelRequest {} Status → ARCHIVED", travelRequestId);
 
         } catch (EasyPayException e) {
             logger.error("Fehler beim Absenden zu EasyPay: {}", e.getMessage());
@@ -89,45 +102,7 @@ public class PaymentService {
     }
 
     /**
-     * Use Case 2: Verarbeite EasyPay Callback
-     */
-    @Transactional
-    public void handlePaymentCallback(String easyPayTransactionId, String status, String reason) {
-        logger.info("EasyPay Callback empfangen - TransactionId: {}, Status: {}", easyPayTransactionId, status);
-
-        PaymentRequest payment = paymentRepository.findByEasyPayTransactionId(easyPayTransactionId)
-            .orElseThrow(() -> new IllegalArgumentException("Payment nicht gefunden: " + easyPayTransactionId));
-
-        if ("SUCCESS".equalsIgnoreCase(status)) {
-            payment.markAsSuccess(easyPayTransactionId);
-            paymentRepository.save(payment);
-
-            eventPublisher.publishEvent(new PaymentSuccessEvent(
-                payment.getId(),
-                payment.getTravelRequest().getId(),
-                easyPayTransactionId,
-                LocalDateTime.now()
-            ));
-
-            logger.info("Payment {} erfolgreich markiert", payment.getId());
-
-        } else if ("FAILED".equalsIgnoreCase(status)) {
-            payment.markAsFailed(reason != null ? reason : "Unbekannter Fehler");
-            paymentRepository.save(payment);
-
-            eventPublisher.publishEvent(new PaymentFailedEvent(
-                payment.getId(),
-                payment.getTravelRequest().getId(),
-                reason != null ? reason : "Unbekannter Fehler",
-                LocalDateTime.now()
-            ));
-
-            logger.error("Payment {} fehlgeschlagen: {}", payment.getId(), reason);
-        }
-    }
-
-    /**
-     * Use Case 3: Hole Payment-Status
+     * Use Case: Hole Payment-Status
      */
     public PaymentRequestDTO getPaymentStatus(Long paymentId) {
         PaymentRequest payment = paymentRepository.findById(paymentId)
@@ -136,46 +111,9 @@ public class PaymentService {
         return mapper.toDTO(payment);
     }
 
-    /**
-     * Use Case 4: Finde alle ausstehenden Zahlungen
-     */
-    public List<PaymentRequestDTO> findPendingPayments() {
-        return paymentRepository.findAllWithStatus(PaymentStatus.PENDING)
-            .stream()
-            .map(mapper::toDTO)
-            .collect(Collectors.toList());
-    }
 
     /**
-     * Use Case 5: Finde alle fehlgeschlagenen Zahlungen
-     */
-    public List<PaymentRequestDTO> findFailedPayments() {
-        return paymentRepository.findAllFailedPayments()
-            .stream()
-            .map(mapper::toDTO)
-            .collect(Collectors.toList());
-    }
-
-    /**
-     * Use Case 6: Wiederholen fehlgeschlagener Zahlung
-     */
-    @Transactional
-    public PaymentRequestDTO retryFailedPayment(Long paymentId) {
-        logger.info("Retrying failed payment: {}", paymentId);
-
-        PaymentRequest payment = paymentRepository.findById(paymentId)
-            .orElseThrow(() -> new IllegalArgumentException("Payment nicht gefunden: " + paymentId));
-
-        if (!payment.canBeRetried()) {
-            throw new CannotSubmitPaymentException(paymentId,
-                "Nur Payments im Status FAILED können wiederholt werden (aktuell: " + payment.getStatus() + ")");
-        }
-
-        return createAndSubmitPayment(payment.getTravelRequest().getId());
-    }
-
-    /**
-     * Use Case 7: Finde Payment nach Referenz
+     * Use Case: Finde Payment nach Referenz
      */
     public PaymentRequestDTO findByPaymentReference(String reference) {
         var payment = paymentRepository.findByPaymentReference(

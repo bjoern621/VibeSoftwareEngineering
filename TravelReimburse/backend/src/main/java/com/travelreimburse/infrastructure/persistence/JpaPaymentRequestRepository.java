@@ -32,12 +32,6 @@ public interface JpaPaymentRequestRepository
     @Query("SELECT pr FROM PaymentRequest pr WHERE pr.status = :status")
     List<PaymentRequest> findAllWithStatus(@Param("status") PaymentStatus status);
 
-    @Override
-    @Query("SELECT pr FROM PaymentRequest pr WHERE pr.status IN (com.travelreimburse.domain.model.PaymentStatus.FAILED, com.travelreimburse.domain.model.PaymentStatus.REJECTED)")
-    List<PaymentRequest> findAllFailedPayments();
 
-    @Override
-    @Query("SELECT pr FROM PaymentRequest pr WHERE pr.easyPayTransactionId = :easyPayTransactionId")
-    Optional<PaymentRequest> findByEasyPayTransactionId(@Param("easyPayTransactionId") String easyPayTransactionId);
 }
 

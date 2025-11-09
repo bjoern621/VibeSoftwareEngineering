@@ -72,42 +72,17 @@ public class PaymentRequest {
     }
 
     /**
-     * Business-Methode: Markiert Payment als zu EasyPay übermittelt
-     * Invariante: Status muss PENDING sein
-     */
-    public void submitToEasyPay() {
-        if (this.status != PaymentStatus.PENDING) {
-            throw new IllegalArgumentException(
-                String.format("Payment kann nur aus Status PENDING übermittelt werden (aktuell: %s)", this.status)
-            );
-        }
-        this.status = PaymentStatus.SUBMITTED_TO_EASYPAY;
-        this.submittedAt = LocalDateTime.now();
-    }
-
-    /**
-     * Business-Methode: Markiert Payment als in Bearbeitung
-     * Invariante: Status muss SUBMITTED_TO_EASYPAY sein
-     */
-    public void markAsProcessing() {
-        if (this.status != PaymentStatus.SUBMITTED_TO_EASYPAY) {
-            throw new IllegalArgumentException(
-                String.format("Payment kann nur aus Status SUBMITTED_TO_EASYPAY verarbeitet werden (aktuell: %s)", this.status)
-            );
-        }
-        this.status = PaymentStatus.PROCESSING;
-    }
-
-    /**
      * Business-Methode: Markiert Payment als erfolgreich
+     * EINFACHER FLOW: PENDING → SUCCESS (EasyPay ist gemockt!)
+     *
      * Invarianten:
-     *  - Status muss PROCESSING sein
+     *  - Status muss PENDING sein
      *  - transactionId darf nicht null sein
      */
     public void markAsSuccess(String transactionId) {
-        if (this.status != PaymentStatus.PROCESSING) {
+        if (this.status != PaymentStatus.PENDING) {
             throw new IllegalArgumentException(
-                String.format("Nur Payments im Status PROCESSING können erfolgreich sein (aktuell: %s)", this.status)
+                String.format("Nur Payments im Status PENDING können erfolgreich sein (aktuell: %s)", this.status)
             );
         }
         if (transactionId == null || transactionId.isBlank()) {
@@ -116,19 +91,22 @@ public class PaymentRequest {
 
         this.status = PaymentStatus.SUCCESS;
         this.easyPayTransactionId = transactionId;
+        this.submittedAt = LocalDateTime.now();
         this.completedAt = LocalDateTime.now();
     }
 
     /**
      * Business-Methode: Markiert Payment als fehlgeschlagen
+     * EINFACHER FLOW: PENDING → FAILED (EasyPay ist gemockt!)
+     *
      * Invarianten:
-     *  - Status muss PROCESSING sein
+     *  - Status muss PENDING sein
      *  - failureReason darf nicht null sein
      */
     public void markAsFailed(String failureReason) {
-        if (this.status != PaymentStatus.PROCESSING) {
+        if (this.status != PaymentStatus.PENDING) {
             throw new IllegalArgumentException(
-                String.format("Nur Payments im Status PROCESSING können fehlschlagen (aktuell: %s)", this.status)
+                String.format("Nur Payments im Status PENDING können fehlschlagen (aktuell: %s)", this.status)
             );
         }
         if (failureReason == null || failureReason.isBlank()) {
@@ -137,6 +115,7 @@ public class PaymentRequest {
 
         this.status = PaymentStatus.FAILED;
         this.failureReason = failureReason;
+        this.submittedAt = LocalDateTime.now();
         this.completedAt = LocalDateTime.now();
     }
 
