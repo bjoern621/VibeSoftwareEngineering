@@ -1,6 +1,6 @@
 ### Variables
 @baseUrl = http://localhost:8080/api
-@travelRequestId = 1
+@travelRequestId = 66
 @paymentId = 1
 
 ### 01 - Create and Submit Payment (TravelRequest APPROVED → Payment PENDING)
@@ -52,25 +52,4 @@ GET {{baseUrl}}/payments/{{paymentId}}
 #   "failureReason": null
 # }
 
-### 03 - Get All Pending Payments (Admin-Übersicht)
-# Ruft alle Payments mit Status PENDING ab
-# Nützlich für Dashboards/Admin-Interface
-GET {{baseUrl}}/payments/pending
-
-### Expected Response 200 OK
-# Array mit allen ausstehenden Zahlungen
-# [
-#   {
-#     "id": 1,
-#     "travelRequestId": 1,
-#     "totalAmount": 450.50,
-#     "currency": "EUR",
-#     "paymentReference": "PAY-2025-001",
-#     "status": "PENDING",
-#     "createdAt": "2025-11-09T18:27:42.538453085",
-#     "submittedAt": "2025-11-09T18:27:42.538453085",
-#     "completedAt": null,
-#     "easyPayTransactionId": "TXN-MOCK-A1B2C3D4",
-#     "failureReason": null
-#   }
 # ]
