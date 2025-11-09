@@ -6,6 +6,7 @@ import com.travelreimburse.application.service.TravelRequestNotFoundException;
 import com.travelreimburse.domain.exception.AbsenceConflictException;
 import com.travelreimburse.domain.exception.DestinationNotFoundException;
 import com.travelreimburse.domain.exception.EmployeeNotFoundException;
+import com.travelreimburse.domain.exception.InsufficientPermissionException;
 import com.travelreimburse.domain.exception.InvalidCountryCodeException;
 import com.travelreimburse.domain.exception.InvalidTravelRequestDataException;
 import com.travelreimburse.domain.exception.InvalidTravelRequestStateException;
@@ -223,6 +224,19 @@ public class GlobalExceptionHandler {
             conflictDetails
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    
+    /**
+     * Behandelt InsufficientPermissionException (403)
+     */
+    @ExceptionHandler(InsufficientPermissionException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientPermission(InsufficientPermissionException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.FORBIDDEN.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     /**

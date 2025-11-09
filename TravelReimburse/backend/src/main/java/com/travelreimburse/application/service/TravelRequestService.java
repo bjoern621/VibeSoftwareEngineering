@@ -5,7 +5,10 @@ import com.travelreimburse.application.dto.CreateTravelRequestDTO;
 import com.travelreimburse.application.dto.TravelLegResponseDTO;
 import com.travelreimburse.application.dto.TravelRequestResponseDTO;
 import com.travelreimburse.domain.exception.AbsenceConflictException;
+import com.travelreimburse.domain.exception.EmployeeNotFoundException;
+import com.travelreimburse.domain.exception.InsufficientPermissionException;
 import com.travelreimburse.domain.model.*;
+import com.travelreimburse.domain.repository.EmployeeRepository;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
 import com.travelreimburse.domain.service.AbsenceValidationService;
 import org.springframework.stereotype.Service;
@@ -22,11 +25,14 @@ import java.util.List;
 public class TravelRequestService {
     
     private final TravelRequestRepository travelRequestRepository;
+    private final EmployeeRepository employeeRepository;
     private final AbsenceValidationService absenceValidationService;
 
     public TravelRequestService(TravelRequestRepository travelRequestRepository,
+                                EmployeeRepository employeeRepository,
                                 AbsenceValidationService absenceValidationService) {
         this.travelRequestRepository = travelRequestRepository;
+        this.employeeRepository = employeeRepository;
         this.absenceValidationService = absenceValidationService;
     }
     
@@ -353,5 +359,36 @@ public class TravelRequestService {
         return travelRequest.getTravelLegs().stream()
             .map(this::toTravelLegDTO)
             .toList();
+    }
+    
+    /**
+     * Erstellt einen Reiseantrag im Namen eines anderen Mitarbeiters
+     * Kann nur von Assistenten ausgeführt werden
+     * 
+     * @param dto die Daten für den Reiseantrag
+     * @param assistantId die ID des Assistenten, der den Antrag erstellt
+     * @return der erstellte Reiseantrag als DTO
+     * @throws EmployeeNotFoundException wenn Assistant oder Employee nicht gefunden
+     * @throws InsufficientPermissionException wenn assistantId keine ASSISTANT-Rolle hat
+     */
+    @Transactional
+    public TravelRequestResponseDTO createTravelRequestOnBehalf(CreateTravelRequestDTO dto, Long assistantId) {
+        // 1. Assistant validieren
+        Employee assistant = employeeRepository.findById(assistantId)
+            .orElseThrow(() -> new EmployeeNotFoundException(assistantId));
+        
+        if (!assistant.canActOnBehalf()) {
+            throw new InsufficientPermissionException(
+                assistantId, 
+                "Reiseantrag im Namen eines anderen erstellen (benötigt ASSISTANT-Rolle)"
+            );
+        }
+        
+        // 2. Employee validieren (für den der Antrag erstellt wird)
+        Employee employee = employeeRepository.findById(dto.employeeId())
+            .orElseThrow(() -> new EmployeeNotFoundException(dto.employeeId()));
+        
+        // 3. Reiseantrag erstellen (verwende die normale Methode)
+        return createTravelRequest(dto);
     }
 }
