@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Event Handler für Payment-Events.
  * Reagiert auf Payment-Success und Payment-Failed Events und aktualisiert den TravelRequest Status.
- *
  * Nach erfolgreicher Zahlung:
  *  1. TravelRequest.status = PAID
  *  2. ArchivingService archiviert automatisch

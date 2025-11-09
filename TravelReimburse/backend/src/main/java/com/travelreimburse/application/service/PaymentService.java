@@ -19,8 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Application Service für Payment-Management.
  * Orchestriert Use Cases - KEINE Business-Logik hier!
  * Business-Logik läuft in Entity und Domain Service.
- *
- * Flow: Payment erstellen → EasyPay (gemockt) → Sofort SUCCESS → TravelRequest PAID → Archivierung
+  * Flow: Payment erstellen → EasyPay (gemockt) → Sofort SUCCESS → TravelRequest PAID → Archivierung
  */
 @Service
 @Transactional(readOnly = true)
@@ -52,8 +51,7 @@ public class PaymentService {
 
     /**
      * Use Case: Erstelle Payment, sende zu EasyPay (gemockt), markiere als SUCCESS
-     *
-     * 1. PaymentRequest erstellen
+          * 1. PaymentRequest erstellen
      * 2. EasyAdapter.submitPayment() - gibt sofort transactionId zurück (gemockt)
      * 3. Payment Status → SUCCESS
      * 4. TravelRequest Status → PAID

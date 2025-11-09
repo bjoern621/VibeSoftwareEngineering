@@ -87,10 +87,8 @@ public class ArchivingService {
 
     /**
      * Use Case: Archiviere Reise nach erfolgreicher Zahlung
-     *
      * Wird vom PaymentEventHandler aufgerufen, wenn PaymentSuccessEvent publishet wird.
      * Flow: Payment erfolgreich → TravelRequest.status = PAID → Archivierung
-     *
      * Invariante: TravelRequest muss Status PAID haben
      */
     @Transactional

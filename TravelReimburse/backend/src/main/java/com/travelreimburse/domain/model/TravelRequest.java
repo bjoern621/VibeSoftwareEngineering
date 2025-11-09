@@ -291,7 +291,6 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
 
     /**
      * Business-Methode: Prüft ob für das Reiseziel genug Vorlaufzeit für Visa-Beantragung vorhanden ist
-     *
      * DDD: Business-Logik gehört in die Entity
      *
      * @param destination Reiseziel mit Visa-Anforderungen
@@ -452,8 +451,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
 
     /**
      * Business-Methode: Archiviert den Reiseantrag
-     * Status: PAID → ARCHIVED
-     *
+     * Status: PAID → ARCHIVED*
      * Invarianten:
      *  - Status muss PAID sein
      */

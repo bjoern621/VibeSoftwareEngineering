@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 /**
  * Domain Service für Payment-Initiierung.
  * Orchestriert komplexe Business-Logik, die nicht zu einer einzelnen Entity gehört.
- *
  * WICHTIG: Das ist ein Domain Service, KEINE Application Service!
  * Er bleibt im Domain Layer und wird von Application Services verwendet.
  */
@@ -30,7 +29,6 @@ public class PaymentInitiationService {
 
     /**
      * Validiert, ob ein TravelRequest bezahlt werden kann.
-     *
      * Invarianten:
      *  - Status muss APPROVED sein
      *  - Es darf keine bereits laufende Payment existieren
@@ -56,7 +54,6 @@ public class PaymentInitiationService {
 
     /**
      * Erstellt einen neuen PaymentRequest mit berechneter Gesamtsumme.
-     *
      * Schritte:
      *  1. Validiere
      *  2. Erstelle PaymentRequest mit Status PENDING

@@ -41,7 +41,7 @@ public class TravelRequestEventListener {
                 .orElseThrow(() -> new IllegalStateException(
                     "TravelRequest not found: " + event.travelRequestId()));
 
-            // Get employee email - for now using mock, TODO: implement Employee entity
+            // Get employee email - for now using mock,
             String employeeEmail = "employee" + request.getEmployeeId() + "@company.com";
 
             emailService.sendStatusChangeNotification(

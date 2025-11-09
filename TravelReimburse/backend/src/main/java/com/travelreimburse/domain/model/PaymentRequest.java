@@ -74,7 +74,6 @@ public class PaymentRequest {
     /**
      * Business-Methode: Markiert Payment als erfolgreich
      * EINFACHER FLOW: PENDING → SUCCESS (EasyPay ist gemockt!)
-     *
      * Invarianten:
      *  - Status muss PENDING sein
      *  - transactionId darf nicht null sein
@@ -98,7 +97,6 @@ public class PaymentRequest {
     /**
      * Business-Methode: Markiert Payment als fehlgeschlagen
      * EINFACHER FLOW: PENDING → FAILED (EasyPay ist gemockt!)
-     *
      * Invarianten:
      *  - Status muss PENDING sein
      *  - failureReason darf nicht null sein
