@@ -61,6 +61,12 @@ public class EmployeeService {
         if (dto.managerId() != null) {
             employee.assignManager(dto.managerId());
         }
+        if (dto.departmentCode() != null) {
+            employee.assignDepartment(dto.departmentCode());
+        }
+        if (dto.location() != null) {
+            employee.assignLocation(dto.location());
+        }
         
         // Persistieren
         Employee saved = employeeRepository.save(employee);
@@ -172,6 +178,16 @@ public class EmployeeService {
             employee.assignManager(dto.managerId());
         }
         
+        // Abteilung zuweisen
+        if (dto.departmentCode() != null) {
+            employee.assignDepartment(dto.departmentCode());
+        }
+        
+        // Standort zuweisen
+        if (dto.location() != null) {
+            employee.assignLocation(dto.location());
+        }
+        
         // Persistieren
         Employee saved = employeeRepository.save(employee);
         
@@ -233,6 +249,8 @@ public class EmployeeService {
             entity.getEmail(),
             entity.getRole().name(),
             entity.getManagerId(),
+            entity.getDepartmentCode(),
+            entity.getLocation(),
             entity.isActive(),
             entity.getCreatedAt()
         );

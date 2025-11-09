@@ -13,6 +13,8 @@ public record EmployeeResponseDTO(
     String email,
     String role,
     Long managerId,
+    String departmentCode,
+    String location,
     Boolean active,
     LocalDateTime createdAt
 ) {

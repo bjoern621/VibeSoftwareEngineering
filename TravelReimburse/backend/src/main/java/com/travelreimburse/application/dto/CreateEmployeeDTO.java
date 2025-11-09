@@ -21,6 +21,10 @@ public record CreateEmployeeDTO(
     @NotNull(message = "Rolle darf nicht null sein")
     String role, // String statt Enum für einfachere API-Nutzung
     
-    Long managerId // Optional
+    Long managerId, // Optional
+    
+    String departmentCode, // Optional - z.B. "IT-001", "SALES-001"
+    
+    String location // Optional - z.B. "Munich", "Berlin"
 ) {
 }

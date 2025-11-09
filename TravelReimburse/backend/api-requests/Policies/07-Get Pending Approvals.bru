@@ -1,0 +1,56 @@
+meta {
+  name: 07-Get Pending Approvals
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:8080/api/travel-requests/pending-approvals
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an('array');
+  });
+  
+  test("All requests have SUBMITTED status", function() {
+    const requests = res.getBody();
+    requests.forEach(request => {
+      expect(request.status).to.equal('SUBMITTED');
+    });
+  });
+  
+  test("Requests have required fields", function() {
+    const requests = res.getBody();
+    if (requests.length > 0) {
+      const request = requests[0];
+      expect(request).to.have.property('id');
+      expect(request).to.have.property('employeeId');
+      expect(request).to.have.property('destination');
+      expect(request).to.have.property('purpose');
+      expect(request).to.have.property('estimatedAmount');
+      expect(request).to.have.property('submittedAt');
+      expect(request.submittedAt).to.not.be.null;
+    }
+  });
+  
+  test("No approved or rejected requests in list", function() {
+    const requests = res.getBody();
+    requests.forEach(request => {
+      expect(request.status).to.not.equal('APPROVED');
+      expect(request.status).to.not.equal('REJECTED');
+      expect(request.status).to.not.equal('DRAFT');
+    });
+  });
+}
+
+docs {
+  Ruft alle Reiseanträge ab die auf Genehmigung warten (Status: SUBMITTED).
+  Für Führungskräfte zum Genehmigen/Ablehnen.
+}

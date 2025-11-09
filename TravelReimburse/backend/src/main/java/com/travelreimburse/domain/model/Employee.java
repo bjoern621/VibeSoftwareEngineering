@@ -39,6 +39,12 @@ public class Employee {
     @Column
     private Long managerId;
     
+    @Column(length = 50)
+    private String departmentCode;
+    
+    @Column(length = 100)
+    private String location;
+    
     @Column(nullable = false)
     private Boolean active = true;
     
@@ -214,6 +220,26 @@ public class Employee {
         return firstName + " " + lastName;
     }
     
+    /**
+     * Business-Methode: Setzt die Abteilung des Mitarbeiters
+     */
+    public void assignDepartment(String departmentCode) {
+        if (departmentCode != null && departmentCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("Abteilungscode darf nicht leer sein");
+        }
+        this.departmentCode = departmentCode != null ? departmentCode.trim() : null;
+    }
+    
+    /**
+     * Business-Methode: Setzt den Standort des Mitarbeiters
+     */
+    public void assignLocation(String location) {
+        if (location != null && location.trim().isEmpty()) {
+            throw new IllegalArgumentException("Standort darf nicht leer sein");
+        }
+        this.location = location != null ? location.trim() : null;
+    }
+    
     // Getters (keine Setter - Business-Methoden verwenden!)
     
     public Long getId() {
@@ -238,6 +264,14 @@ public class Employee {
     
     public Long getManagerId() {
         return managerId;
+    }
+    
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+    
+    public String getLocation() {
+        return location;
     }
     
     public Boolean isActive() {
