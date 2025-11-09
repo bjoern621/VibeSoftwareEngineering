@@ -72,6 +72,9 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     @Embedded
     private RetentionPeriod retentionPeriod;
 
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
     @OneToMany(mappedBy = "travelRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TravelLeg> travelLegs = new ArrayList<>();
 
@@ -300,7 +303,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         return destination.requiresPreparation();
     }
 
-    // Getters
+    // ===== GETTER METHODS =====
     public Long getId() {
         return id;
     }
@@ -328,7 +331,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     public Money getEstimatedCost() {
         return estimatedCost;
     }
-    
+
     public TravelRequestStatus getStatus() {
         return status;
     }
@@ -357,6 +360,20 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         return rejectionReason;
     }
 
+    public RetentionPeriod getRetentionPeriod() {
+        return retentionPeriod;
+    }
+
+    public LocalDate getArchivedAt() {
+        return retentionPeriod != null ? retentionPeriod.getArchivedAt() : null;
+    }
+
+    public LocalDateTime getPaidAt() {
+        return paidAt;
+    }
+
+    // ===== BUSINESS METHODS =====
+
     /**
      * Business-Methode: Status ändern mit Validierung und Event Publishing
      * DDD: Rich Domain Model - Business logic belongs in the entity
@@ -375,7 +392,6 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         TravelRequestStatus oldStatus = this.status;
         this.status = newStatus;
 
-        // Register domain event (will be published on save)
         registerEvent(new TravelRequestStatusChangedEvent(
             this.id,
             oldStatus,
@@ -384,8 +400,8 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     }
 
     /**
-     * Business logic for valid status transitions.
-     * State machine implementation.
+     * Business logic for valid status transitions
+     * State machine implementation
      */
     private boolean canTransitionTo(TravelRequestStatus targetStatus) {
         if (this.status == targetStatus) {
@@ -395,33 +411,22 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         return switch (this.status) {
             case DRAFT -> targetStatus == TravelRequestStatus.SUBMITTED;
             case SUBMITTED -> targetStatus == TravelRequestStatus.APPROVED ||
-                             targetStatus == TravelRequestStatus.REJECTED;
+                            targetStatus == TravelRequestStatus.REJECTED;
             case APPROVED -> targetStatus == TravelRequestStatus.PAID;
             case PAID -> targetStatus == TravelRequestStatus.ARCHIVED;
-            case REJECTED, ARCHIVED -> false; // Terminal states
+            case REJECTED, ARCHIVED -> false;
         };
     }
 
     /**
-     * @deprecated Use updateStatus() instead for business logic and event publishing
-     */
-    @Deprecated(forRemoval = true)
-    public void setStatus(TravelRequestStatus status) {
-        this.status = status;
-    }
-
-    /**
      * Business-Methode: Archiviert den Reiseantrag
+     * Status: PAID → ARCHIVED
      *
      * Invarianten:
-     * - Status muss PAID sein
-     * - Darf nicht bereits archiviert sein
-     *
-     * @throws CannotArchiveTravelRequestException wenn Archivierung nicht möglich
+     *  - Status muss PAID sein
      */
     public void archive() {
         validateCanBeArchived();
-
         this.status = TravelRequestStatus.ARCHIVED;
         this.retentionPeriod = RetentionPeriod.standard();
     }
@@ -431,9 +436,20 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
      */
     public void archiveWithCustomRetention(int retentionYears) {
         validateCanBeArchived();
-
         this.status = TravelRequestStatus.ARCHIVED;
-        this.retentionPeriod = RetentionPeriod.custom(java.time.LocalDate.now(), retentionYears);
+        this.retentionPeriod = RetentionPeriod.custom(LocalDate.now(), retentionYears);
+    }
+
+    /**
+     * Business-Methode: Markiert Reiseantrag als bezahlt
+     * Status: APPROVED → PAID
+     */
+    public void pay() {
+        if (this.status != TravelRequestStatus.APPROVED) {
+            throw new InvalidTravelRequestStateException(this.status, "pay");
+        }
+        this.status = TravelRequestStatus.PAID;
+        this.paidAt = LocalDateTime.now();
     }
 
     /**
@@ -471,14 +487,10 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         return this.status == TravelRequestStatus.ARCHIVED;
     }
 
-    public RetentionPeriod getRetentionPeriod() {
-        return retentionPeriod;
-    }
-
     /**
-     * Gibt das Archivierungsdatum zurück (delegiert an RetentionPeriod)
+     * Business-Query: Wurde bezahlt?
      */
-    public LocalDate getArchivedAt() {
-        return retentionPeriod != null ? retentionPeriod.getArchivedAt() : null;
+    public boolean isPaid() {
+        return this.status == TravelRequestStatus.PAID;
     }
 }
