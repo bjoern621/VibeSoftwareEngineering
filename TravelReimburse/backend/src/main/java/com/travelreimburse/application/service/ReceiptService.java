@@ -3,6 +3,8 @@ package com.travelreimburse.application.service;
 import com.travelreimburse.application.dto.CreateReceiptDTO;
 import com.travelreimburse.application.dto.ReceiptDTO;
 import com.travelreimburse.application.dto.UpdateReceiptDTO;
+import com.travelreimburse.domain.exception.ReceiptNotFoundException;
+import com.travelreimburse.domain.exception.TravelRequestNotFoundException;
 import com.travelreimburse.domain.model.*;
 import com.travelreimburse.domain.repository.ReceiptRepository;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
