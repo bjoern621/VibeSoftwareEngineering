@@ -6,11 +6,9 @@ import com.travelreimburse.domain.repository.TravelRequestRepository;
 import com.travelreimburse.infrastructure.service.EmailNotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.event.TransactionPhase;
 
 /**
  * Event listener for TravelRequest domain events.
@@ -33,21 +31,17 @@ public class TravelRequestEventListener {
 
     /**
      * Handle status change events by sending email notifications.
-     * Runs asynchronously to avoid blocking the main transaction.
+     * Runs AFTER COMMIT to ensure DB state is visible.
+     * NOTE: @Async temporarily disabled for debugging
      */
-    @EventListener
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onStatusChanged(TravelRequestStatusChangedEvent event) {
-        log.info("Processing TravelRequestStatusChangedEvent: {} -> {}",
-                 event.oldStatus(), event.newStatus());
-
         try {
             TravelRequest request = repository.findById(event.travelRequestId())
                 .orElseThrow(() -> new IllegalStateException(
                     "TravelRequest not found: " + event.travelRequestId()));
 
-            // Get employee email - for now using mock, TODO: implement Employee entity
+            // Get employee email - for now using mock,
             String employeeEmail = "employee" + request.getEmployeeId() + "@company.com";
 
             emailService.sendStatusChangeNotification(
@@ -56,9 +50,8 @@ public class TravelRequestEventListener {
                 event.newStatus()
             );
 
-            log.info("Email notification sent for TravelRequest {}", event.travelRequestId());
         } catch (Exception e) {
-            log.error("Failed to send email notification for TravelRequest {}",
+            log.error("❌ Failed to send email notification for TravelRequest {}",
                      event.travelRequestId(), e);
             // Don't throw - email failure shouldn't break business logic
         }

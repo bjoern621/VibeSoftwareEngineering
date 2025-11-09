@@ -1,0 +1,34 @@
+### 01-Get Expired Archives
+# Ruft alle Reiseanträge mit abgelaufener Aufbewahrungsfrist ab
+GET http://localhost:8080/api/archiving/expired
+
+
+### 02-Get Archives By Date Range
+# Ruft alle archivierten Reiseanträge in einem Zeitraum ab
+# WICHTIG: Passe Datumsangaben an existierende Daten an!
+GET http://localhost:8080/api/archiving?startDate=2020-01-01&endDate=2025-12-31
+
+
+### 03-Archive Travel Request (Standard 10 Jahre)
+# Archiviert einen Reiseantrag mit Standard-Aufbewahrungsfrist von 10 Jahren
+# VORAUSSETZUNG: Status muss PAID sein!
+# WICHTIG: Ändere die '1' auf eine existierende ID mit Status PAID!
+POST http://localhost:8080/api/archiving/travel-requests/1
+
+
+### 04-Archive With Custom Retention Period
+# Archiviert einen Reiseantrag mit benutzerdefinierter Aufbewahrungsfrist
+# VORAUSSETZUNG: Status muss PAID sein!
+POST http://localhost:8080/api/archiving/travel-requests/2/custom
+Content-Type: application/json
+
+{
+  "retentionYears": 7
+}
+
+
+### 07-Verify Archiving Result
+# Prüft ob die Archivierung erfolgreich war
+# WICHTIG: Ersetze '1' durch die ID des archivierten Antrags
+GET http://localhost:8080/api/travel-requests/1
+

@@ -36,7 +36,7 @@ public class EmailNotificationService {
         String employeeEmail = "employee" + travelRequest.getEmployeeId() + "@company.com";
 
         logger.info("""
-                
+
                 ╔═══════════════════════════════════════════════════════════════════╗
                 ║                    MOCK E-MAIL VERSANDT                           ║
                 ╠═══════════════════════════════════════════════════════════════════╣
@@ -68,7 +68,7 @@ public class EmailNotificationService {
         String employeeEmail = "employee" + receipt.getTravelRequest().getEmployeeId() + "@company.com";
 
         logger.info("""
-                
+
                 ╔═══════════════════════════════════════════════════════════════════╗
                 ║                    MOCK E-MAIL VERSANDT                           ║
                 ╠═══════════════════════════════════════════════════════════════════╣
@@ -173,6 +173,8 @@ public class EmailNotificationService {
             case SUBMITTED -> "Eingereicht";
             case APPROVED -> "Genehmigt";
             case REJECTED -> "Abgelehnt";
+            case PAID -> "Ausgezahlt";
+            case ARCHIVED -> "Archiviert";
         };
     }
 

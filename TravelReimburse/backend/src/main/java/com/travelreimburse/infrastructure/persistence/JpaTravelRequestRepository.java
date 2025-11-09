@@ -131,4 +131,23 @@ public interface JpaTravelRequestRepository
         @Param("startDate") LocalDate startDate,
         @Param("endDate") LocalDate endDate
     );
+
+    @Query("SELECT tr FROM TravelRequest tr WHERE tr.status = 'PAID'")
+    @Override
+    List<TravelRequest> findAllReadyForArchiving();
+
+    @Query("SELECT tr FROM TravelRequest tr " +
+           "WHERE tr.status = 'ARCHIVED' " +
+           "AND tr.retentionPeriod.retentionEndDate < CURRENT_DATE")
+    @Override
+    List<TravelRequest> findAllWithExpiredRetention();
+
+    @Query("SELECT tr FROM TravelRequest tr " +
+           "WHERE tr.status = 'ARCHIVED' " +
+           "AND tr.retentionPeriod.archivedAt BETWEEN :startDate AND :endDate")
+    @Override
+    List<TravelRequest> findArchivedBetween(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
+    );
 }

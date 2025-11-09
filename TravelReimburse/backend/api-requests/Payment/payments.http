@@ -1,0 +1,55 @@
+### Variables
+@baseUrl = http://localhost:8080/api
+@travelRequestId = 66
+@paymentId = 1
+
+### 01 - Create and Submit Payment (TravelRequest APPROVED → Payment PENDING)
+# Erstellt einen Payment-Request und sendet ihn zu EasyPay (Mock)
+# VORAUSSETZUNG:
+# - TravelRequest Status MUSS = APPROVED sein
+# - Alle Receipts MÜSSEN = VALIDATED sein
+# RESULT: TravelRequest Status ändert sich zu PAID, Payment Status = PENDING
+POST {{baseUrl}}/payments/travel-requests/{{travelRequestId}}/submit
+Content-Type: application/json
+
+{}
+
+### Expected Response 201 CREATED
+# Payment wird erstellt mit Status PENDING
+# TravelRequest erhält Status PAID
+# {
+#   "id": 1,
+#   "travelRequestId": 1,
+#   "totalAmount": 450.50,
+#   "currency": "EUR",
+#   "paymentReference": "PAY-2025-001",
+#   "status": "PENDING",
+#   "createdAt": "2025-11-09T18:27:42.538453085",
+#   "submittedAt": "2025-11-09T18:27:42.538453085",
+#   "completedAt": null,
+#   "easyPayTransactionId": "TXN-MOCK-A1B2C3D4",
+#   "failureReason": null
+# }
+
+### 02 - Get Payment Status (Poll für Completion)
+# Ruft den aktuellen Status eines Payments ab
+# Nach kurzer Zeit ändert sich status von PENDING → COMPLETED (Mock)
+GET {{baseUrl}}/payments/{{paymentId}}
+
+### Expected Response 200 OK
+# Nach Mock-Verarbeitung: status wird COMPLETED
+# {
+#   "id": 1,
+#   "travelRequestId": 1,
+#   "totalAmount": 450.50,
+#   "currency": "EUR",
+#   "paymentReference": "PAY-2025-001",
+#   "status": "COMPLETED",
+#   "createdAt": "2025-11-09T18:27:42.538453085",
+#   "submittedAt": "2025-11-09T18:27:42.538453085",
+#   "completedAt": "2025-11-09T19:00:00.000000000",
+#   "easyPayTransactionId": "TXN-MOCK-A1B2C3D4",
+#   "failureReason": null
+# }
+
+# ]
