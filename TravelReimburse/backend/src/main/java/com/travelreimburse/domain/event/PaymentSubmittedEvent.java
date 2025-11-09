@@ -3,12 +3,12 @@ package com.travelreimburse.domain.event;
 import java.time.LocalDateTime;
 
 /**
- * Domain Event - wird publishet wenn Payment erfolgreich ist
+ * Domain Event - wird publishet wenn Payment zu EasyPay übermittelt wird
  */
-public record PaymentSuccessEvent(
+public record PaymentSubmittedEvent(
     Long paymentId,
     Long travelRequestId,
-    String easyPayTransactionId,
+    String paymentReference,
     LocalDateTime timestamp
 ) {}
 
