@@ -20,7 +20,17 @@ public enum TravelRequestStatus {
     APPROVED,
 
     /**
-     * Abgelehnt - Antrag wurde von Führungskraft abgelehnt
+     * Abgelehnt - Antrag wurde von Fhrungskraft abgelehnt
      */
-    REJECTED
+    REJECTED,
+
+    /**
+     * Ausgezahlt - Reisekosten wurden ausgezahlt
+     */
+    PAID,
+
+    /**
+     * Archiviert - Abgeschlossene Reise wurde archiviert
+     */
+    ARCHIVED
 }

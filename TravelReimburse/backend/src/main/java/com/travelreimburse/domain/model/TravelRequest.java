@@ -1,11 +1,13 @@
 package com.travelreimburse.domain.model;
 
 import com.travelreimburse.domain.event.travelrequest.TravelRequestStatusChangedEvent;
+import com.travelreimburse.domain.exception.CannotArchiveTravelRequestException;
 import com.travelreimburse.domain.exception.InvalidStatusTransitionException;
 import com.travelreimburse.domain.exception.InvalidTravelRequestDataException;
 import com.travelreimburse.domain.exception.InvalidTravelRequestStateException;
 import jakarta.persistence.*;
 import org.springframework.data.domain.AbstractAggregateRoot;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +30,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     
     @Embedded
     private CostCenter costCenter;
-    
+
     @Column(nullable = false, length = 500)
     private String destination;
     
@@ -67,6 +69,9 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     @Column(length = 1000)
     private String rejectionReason;
     
+    @Embedded
+    private RetentionPeriod retentionPeriod;
+
     @OneToMany(mappedBy = "travelRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TravelLeg> travelLegs = new ArrayList<>();
 
@@ -77,7 +82,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     /**
      * Erstellt einen neuen Reiseantrag im Status DRAFT
      */
-    public TravelRequest(Long employeeId, CostCenter costCenter, String destination, String purpose, 
+    public TravelRequest(Long employeeId, CostCenter costCenter, String destination, String purpose,
                          DateRange travelPeriod, Money estimatedCost) {
         if (employeeId == null) {
             throw new InvalidTravelRequestDataException("employeeId", "darf nicht null sein");
@@ -255,11 +260,11 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
 
     /**
      * Business-Methode: Prüft ob für das Reiseziel genug Vorlaufzeit für Visa-Beantragung vorhanden ist
-     * 
+     *
      * DDD: Business-Logik gehört in die Entity
-     * 
+     *
      * @param destination Reiseziel mit Visa-Anforderungen
-     * @throws com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException 
+     * @throws com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException
      *         wenn nicht genug Zeit vorhanden ist
      */
     public void validateVisaProcessingTime(TravelDestination destination) {
@@ -284,7 +289,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
 
     /**
      * Business-Methode: Gibt an ob die Reise spezielle Vorbereitung (Visa/Impfung) benötigt
-     * 
+     *
      * @param destination Reiseziel (optional)
      * @return true wenn Vorbereitung nötig, false sonst
      */
@@ -307,7 +312,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     public CostCenter getCostCenter() {
         return costCenter;
     }
-    
+
     public String getDestination() {
         return destination;
     }
@@ -391,7 +396,89 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
             case DRAFT -> targetStatus == TravelRequestStatus.SUBMITTED;
             case SUBMITTED -> targetStatus == TravelRequestStatus.APPROVED ||
                              targetStatus == TravelRequestStatus.REJECTED;
-            case APPROVED, REJECTED -> false; // Terminal states
+            case APPROVED -> targetStatus == TravelRequestStatus.PAID;
+            case PAID -> targetStatus == TravelRequestStatus.ARCHIVED;
+            case REJECTED, ARCHIVED -> false; // Terminal states
         };
+    }
+
+    /**
+     * @deprecated Use updateStatus() instead for business logic and event publishing
+     */
+    @Deprecated(forRemoval = true)
+    public void setStatus(TravelRequestStatus status) {
+        this.status = status;
+    }
+
+    /**
+     * Business-Methode: Archiviert den Reiseantrag
+     *
+     * Invarianten:
+     * - Status muss PAID sein
+     * - Darf nicht bereits archiviert sein
+     *
+     * @throws CannotArchiveTravelRequestException wenn Archivierung nicht möglich
+     */
+    public void archive() {
+        validateCanBeArchived();
+
+        this.status = TravelRequestStatus.ARCHIVED;
+        this.retentionPeriod = RetentionPeriod.standard();
+    }
+
+    /**
+     * Business-Methode: Archiviert mit benutzerdefinierter Frist
+     */
+    public void archiveWithCustomRetention(int retentionYears) {
+        validateCanBeArchived();
+
+        this.status = TravelRequestStatus.ARCHIVED;
+        this.retentionPeriod = RetentionPeriod.custom(java.time.LocalDate.now(), retentionYears);
+    }
+
+    /**
+     * Prüft, ob Archivierung erlaubt ist
+     */
+    private void validateCanBeArchived() {
+        if (this.status != TravelRequestStatus.PAID) {
+            throw new CannotArchiveTravelRequestException(
+                this.id,
+                "Nur ausgezahlte Reisen können archiviert werden (aktueller Status: " + this.status + ")"
+            );
+        }
+
+        if (this.status == TravelRequestStatus.ARCHIVED) {
+            throw new CannotArchiveTravelRequestException(
+                this.id,
+                "Reise ist bereits archiviert"
+            );
+        }
+    }
+
+    /**
+     * Prüft, ob die Aufbewahrungsfrist abgelaufen ist
+     */
+    public boolean canBeDeleted() {
+        return this.status == TravelRequestStatus.ARCHIVED
+            && this.retentionPeriod != null
+            && this.retentionPeriod.isExpired();
+    }
+
+    /**
+     * Business-Query: Ist archiviert?
+     */
+    public boolean isArchived() {
+        return this.status == TravelRequestStatus.ARCHIVED;
+    }
+
+    public RetentionPeriod getRetentionPeriod() {
+        return retentionPeriod;
+    }
+
+    /**
+     * Gibt das Archivierungsdatum zurück (delegiert an RetentionPeriod)
+     */
+    public LocalDate getArchivedAt() {
+        return retentionPeriod != null ? retentionPeriod.getArchivedAt() : null;
     }
 }

@@ -173,6 +173,8 @@ public class EmailNotificationService {
             case SUBMITTED -> "Eingereicht";
             case APPROVED -> "Genehmigt";
             case REJECTED -> "Abgelehnt";
+            case PAID -> "Ausgezahlt";
+            case ARCHIVED -> "Archiviert";
         };
     }
 

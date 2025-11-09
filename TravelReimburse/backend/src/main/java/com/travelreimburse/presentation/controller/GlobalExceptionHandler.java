@@ -11,6 +11,7 @@ import com.travelreimburse.domain.exception.InvalidCountryCodeException;
 import com.travelreimburse.domain.exception.InvalidTravelRequestDataException;
 import com.travelreimburse.domain.exception.InvalidTravelRequestStateException;
 import com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException;
+import com.travelreimburse.domain.exception.CannotArchiveTravelRequestException;
 import com.travelreimburse.infrastructure.external.exrat.ExRatClientException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,7 +68,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
-    
+
     /**
      * Behandelt InvalidFileException (400)
      */
@@ -127,7 +128,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
-    
+
     /**
      * Behandelt InvalidTravelRequestDataException (400 - Bad Request)
      * Ungültige Eingabedaten bei Erstellung/Update
@@ -141,7 +142,20 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
-    
+
+    /**
+     * Behandelt CannotArchiveTravelRequestException (400)
+     */
+    @ExceptionHandler(CannotArchiveTravelRequestException.class)
+    public ResponseEntity<ErrorResponse> handleCannotArchive(CannotArchiveTravelRequestException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     /**
      * Behandelt ExRatClientException (503 - Service Unavailable)
      */
@@ -203,7 +217,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AbsenceConflictException.class)
     public ResponseEntity<ErrorResponse> handleAbsenceConflict(AbsenceConflictException ex) {
         Map<String, String> conflictDetails = new HashMap<>();
-        
+
         // Formatiere jeden Konflikt als Detail-Eintrag
         for (int i = 0; i < ex.getConflicts().size(); i++) {
             var conflict = ex.getConflicts().get(i);
@@ -216,7 +230,7 @@ public class GlobalExceptionHandler {
             );
             conflictDetails.put(key, value);
         }
-        
+
         ErrorResponse error = new ErrorResponse(
             HttpStatus.CONFLICT.value(),
             ex.getMessage(),
@@ -225,7 +239,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
-    
+
     /**
      * Behandelt InsufficientPermissionException (403)
      */
@@ -247,7 +261,7 @@ public class GlobalExceptionHandler {
         // Log die echte Exception für Debugging
         ex.printStackTrace();
         System.err.println("UNERWARTETER FEHLER: " + ex.getClass().getName() + ": " + ex.getMessage());
-        
+
         ErrorResponse error = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             "Ein interner Fehler ist aufgetreten: " + ex.getMessage(),
