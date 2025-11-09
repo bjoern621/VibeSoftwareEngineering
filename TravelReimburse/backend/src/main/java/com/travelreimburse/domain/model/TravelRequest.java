@@ -75,6 +75,10 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "payment_request_id", unique = true)
+    private PaymentRequest paymentRequest;
+
     @OneToMany(mappedBy = "travelRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TravelLeg> travelLegs = new ArrayList<>();
 
@@ -370,6 +374,10 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
 
     public LocalDateTime getPaidAt() {
         return paidAt;
+    }
+
+    public PaymentRequest getPaymentRequest() {
+        return paymentRequest;
     }
 
     // ===== BUSINESS METHODS =====
