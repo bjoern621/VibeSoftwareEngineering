@@ -1,5 +1,6 @@
 package com.travelreimburse.application.service;
 
+import com.travelreimburse.domain.exception.TravelRequestNotFoundException;
 import com.travelreimburse.domain.exception.CannotArchiveTravelRequestException;
 import com.travelreimburse.domain.model.TravelRequest;
 import com.travelreimburse.domain.repository.TravelRequestRepository;

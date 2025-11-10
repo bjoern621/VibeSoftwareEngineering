@@ -1,8 +1,6 @@
 package com.travelreimburse.presentation.controller;
 
 import com.travelreimburse.application.service.InvalidFileException;
-import com.travelreimburse.application.service.ReceiptNotFoundException;
-import com.travelreimburse.application.service.TravelRequestNotFoundException;
 import com.travelreimburse.domain.exception.*;
 import com.travelreimburse.infrastructure.external.easypay.EasyPayException;
 import com.travelreimburse.domain.exception.AbsenceConflictException;
