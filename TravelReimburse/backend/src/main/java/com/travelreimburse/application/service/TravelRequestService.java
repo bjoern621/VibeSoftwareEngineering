@@ -14,6 +14,7 @@ import com.travelreimburse.domain.repository.TravelRequestRepository;
 import com.travelreimburse.domain.service.AbsenceValidationService;
 import com.travelreimburse.domain.service.TravelPolicyValidator;
 import com.travelreimburse.infrastructure.service.EmailNotificationService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,17 +33,20 @@ public class TravelRequestService {
     private final AbsenceValidationService absenceValidationService;
     private final TravelPolicyValidator travelPolicyValidator;
     private final EmailNotificationService emailNotificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public TravelRequestService(TravelRequestRepository travelRequestRepository,
                                 EmployeeRepository employeeRepository,
                                 AbsenceValidationService absenceValidationService,
                                 TravelPolicyValidator travelPolicyValidator,
-                                EmailNotificationService emailNotificationService) {
+                                EmailNotificationService emailNotificationService,
+                                ApplicationEventPublisher eventPublisher) {
         this.travelRequestRepository = travelRequestRepository;
         this.employeeRepository = employeeRepository;
         this.absenceValidationService = absenceValidationService;
         this.travelPolicyValidator = travelPolicyValidator;
         this.emailNotificationService = emailNotificationService;
+        this.eventPublisher = eventPublisher;
     }
     
     /**
@@ -143,7 +147,7 @@ public class TravelRequestService {
         // ✅ DDD: Verwende semantisch korrekte Business-Methode statt generisches updateStatus()
         travelRequest.submit();
 
-        // Persistieren (Spring Data publishes events automatically)
+        // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
         
         // E-Mail-Benachrichtigung versenden
@@ -152,6 +156,9 @@ public class TravelRequestService {
             TravelRequestStatus.DRAFT, 
             TravelRequestStatus.SUBMITTED
         );
+
+        // Publish domain events manually (Spring Data doesn't do this automatically for save())
+        saved.getAndPublishDomainEvents().forEach(eventPublisher::publishEvent);
 
         return toResponseDTO(saved);
     }
@@ -181,7 +188,7 @@ public class TravelRequestService {
         // ✅ DDD: Verwende semantisch korrekte Business-Methode mit approverId
         travelRequest.approve(approverId);
 
-        // Persistieren (Spring Data publishes events automatically)
+        // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
         
         // E-Mail-Benachrichtigung versenden
@@ -190,6 +197,9 @@ public class TravelRequestService {
             TravelRequestStatus.SUBMITTED, 
             TravelRequestStatus.APPROVED
         );
+
+        // Publish domain events manually
+        saved.getAndPublishDomainEvents().forEach(eventPublisher::publishEvent);
 
         return toResponseDTO(saved);
     }
@@ -209,7 +219,7 @@ public class TravelRequestService {
         // ✅ DDD: Verwende semantisch korrekte Business-Methode mit approverId und reason
         travelRequest.reject(approverId, reason);
 
-        // Persistieren (Spring Data publishes events automatically)
+        // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
 
         // E-Mail-Benachrichtigung versenden
@@ -218,6 +228,9 @@ public class TravelRequestService {
             TravelRequestStatus.SUBMITTED, 
             TravelRequestStatus.REJECTED
         );
+        
+        // Publish domain events manually
+        saved.getAndPublishDomainEvents().forEach(eventPublisher::publishEvent);
 
         return toResponseDTO(saved);
     }

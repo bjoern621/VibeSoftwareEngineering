@@ -3,6 +3,7 @@ package com.travelreimburse.domain.repository;
 import com.travelreimburse.domain.model.TravelRequest;
 import com.travelreimburse.domain.model.TravelRequestStatus;
 import java.time.LocalDate;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -110,4 +111,19 @@ public interface TravelRequestRepository {
     List<TravelRequest> findByCostCenterCodeAndDateRange(String costCenterCode,
                                                           LocalDate startDate,
                                                           LocalDate endDate);
+
+    /**
+     * Findet alle Reiseanträge, die zur Archivierung bereit sind (Status PAID)
+     */
+    List<TravelRequest> findAllReadyForArchiving();
+
+    /**
+     * Findet alle archivierten Reiseanträge, deren Aufbewahrungsfrist abgelaufen ist
+     */
+    List<TravelRequest> findAllWithExpiredRetention();
+
+    /**
+     * Findet archivierte Reiseanträge in einem Zeitraum
+     */
+    List<TravelRequest> findArchivedBetween(LocalDate startDate, LocalDate endDate);
 }

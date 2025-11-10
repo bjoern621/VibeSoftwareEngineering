@@ -6,17 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="backend (1) (com.mymensa2)" />
-        <module name="backend" />
-        <module name="backend (1) (com.mymensa)" />
         <module name="travelreimburse-backend" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="backend" options="-parameters" />
-      <module name="backend (1) (com.mymensa)" options="-parameters" />
       <module name="travelreimburse-backend" options="-parameters" />
     </option>
   </component>

@@ -1,11 +1,13 @@
 package com.travelreimburse.domain.model;
 
 import com.travelreimburse.domain.event.travelrequest.TravelRequestStatusChangedEvent;
+import com.travelreimburse.domain.exception.CannotArchiveTravelRequestException;
 import com.travelreimburse.domain.exception.InvalidStatusTransitionException;
 import com.travelreimburse.domain.exception.InvalidTravelRequestDataException;
 import com.travelreimburse.domain.exception.InvalidTravelRequestStateException;
 import jakarta.persistence.*;
 import org.springframework.data.domain.AbstractAggregateRoot;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +30,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     
     @Embedded
     private CostCenter costCenter;
-    
+
     @Column(nullable = false, length = 500)
     private String destination;
     
@@ -67,6 +69,16 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     @Column(length = 1000)
     private String rejectionReason;
     
+    @Embedded
+    private RetentionPeriod retentionPeriod;
+
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "payment_request_id", unique = true)
+    private PaymentRequest paymentRequest;
+
     @OneToMany(mappedBy = "travelRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TravelLeg> travelLegs = new ArrayList<>();
 
@@ -77,7 +89,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     /**
      * Erstellt einen neuen Reiseantrag im Status DRAFT
      */
-    public TravelRequest(Long employeeId, CostCenter costCenter, String destination, String purpose, 
+    public TravelRequest(Long employeeId, CostCenter costCenter, String destination, String purpose,
                          DateRange travelPeriod, Money estimatedCost) {
         if (employeeId == null) {
             throw new InvalidTravelRequestDataException("employeeId", "darf nicht null sein");
@@ -116,10 +128,18 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         if (status != TravelRequestStatus.DRAFT) {
             throw new InvalidTravelRequestStateException(status, "submit");
         }
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.SUBMITTED;
         this.submittedAt = LocalDateTime.now();
+
+        // Register domain event for status change
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.SUBMITTED
+        ));
     }
-    
+
     /**
      * Business-Methode: Reiseantrag genehmigen
      * Zustandsübergang: SUBMITTED -> APPROVED
@@ -133,9 +153,17 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         if (status != TravelRequestStatus.SUBMITTED) {
             throw new InvalidTravelRequestStateException(status, "approve");
         }
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.APPROVED;
         this.approverId = approverId;
         this.approvedAt = LocalDateTime.now();
+
+        // Register domain event for status change
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.APPROVED
+        ));
     }
 
     /**
@@ -155,12 +183,20 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         if (status != TravelRequestStatus.SUBMITTED) {
             throw new InvalidTravelRequestStateException(status, "reject");
         }
+        TravelRequestStatus oldStatus = this.status;
         this.status = TravelRequestStatus.REJECTED;
         this.approverId = approverId;
         this.rejectedAt = LocalDateTime.now();
         this.rejectionReason = reason;
+
+        // Register domain event for status change
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.REJECTED
+        ));
     }
-    
+
     /**
      * Business-Methode: Reiseabschnitt hinzufügen
      * Darf nur im Status DRAFT erfolgen
@@ -255,11 +291,10 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
 
     /**
      * Business-Methode: Prüft ob für das Reiseziel genug Vorlaufzeit für Visa-Beantragung vorhanden ist
-     * 
      * DDD: Business-Logik gehört in die Entity
-     * 
+     *
      * @param destination Reiseziel mit Visa-Anforderungen
-     * @throws com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException 
+     * @throws com.travelreimburse.domain.exception.InsufficientVisaProcessingTimeException
      *         wenn nicht genug Zeit vorhanden ist
      */
     public void validateVisaProcessingTime(TravelDestination destination) {
@@ -284,7 +319,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
 
     /**
      * Business-Methode: Gibt an ob die Reise spezielle Vorbereitung (Visa/Impfung) benötigt
-     * 
+     *
      * @param destination Reiseziel (optional)
      * @return true wenn Vorbereitung nötig, false sonst
      */
@@ -295,7 +330,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         return destination.requiresPreparation();
     }
 
-    // Getters
+    // ===== GETTER METHODS =====
     public Long getId() {
         return id;
     }
@@ -307,7 +342,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     public CostCenter getCostCenter() {
         return costCenter;
     }
-    
+
     public String getDestination() {
         return destination;
     }
@@ -323,7 +358,7 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     public Money getEstimatedCost() {
         return estimatedCost;
     }
-    
+
     public TravelRequestStatus getStatus() {
         return status;
     }
@@ -352,6 +387,24 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         return rejectionReason;
     }
 
+    public RetentionPeriod getRetentionPeriod() {
+        return retentionPeriod;
+    }
+
+    public LocalDate getArchivedAt() {
+        return retentionPeriod != null ? retentionPeriod.getArchivedAt() : null;
+    }
+
+    public LocalDateTime getPaidAt() {
+        return paidAt;
+    }
+
+    public PaymentRequest getPaymentRequest() {
+        return paymentRequest;
+    }
+
+    // ===== BUSINESS METHODS =====
+
     /**
      * Business-Methode: Status ändern mit Validierung und Event Publishing
      * DDD: Rich Domain Model - Business logic belongs in the entity
@@ -370,7 +423,6 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         TravelRequestStatus oldStatus = this.status;
         this.status = newStatus;
 
-        // Register domain event (will be published on save)
         registerEvent(new TravelRequestStatusChangedEvent(
             this.id,
             oldStatus,
@@ -379,8 +431,8 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
     }
 
     /**
-     * Business logic for valid status transitions.
-     * State machine implementation.
+     * Business logic for valid status transitions
+     * State machine implementation
      */
     private boolean canTransitionTo(TravelRequestStatus targetStatus) {
         if (this.status == targetStatus) {
@@ -390,8 +442,118 @@ public class TravelRequest extends AbstractAggregateRoot<TravelRequest> {
         return switch (this.status) {
             case DRAFT -> targetStatus == TravelRequestStatus.SUBMITTED;
             case SUBMITTED -> targetStatus == TravelRequestStatus.APPROVED ||
-                             targetStatus == TravelRequestStatus.REJECTED;
-            case APPROVED, REJECTED -> false; // Terminal states
+                            targetStatus == TravelRequestStatus.REJECTED;
+            case APPROVED -> targetStatus == TravelRequestStatus.PAID;
+            case PAID -> targetStatus == TravelRequestStatus.ARCHIVED;
+            case REJECTED, ARCHIVED -> false;
         };
+    }
+
+    /**
+     * Business-Methode: Archiviert den Reiseantrag
+     * Status: PAID → ARCHIVED*
+     * Invarianten:
+     *  - Status muss PAID sein
+     */
+    public void archive() {
+        validateCanBeArchived();
+        TravelRequestStatus oldStatus = this.status;
+        this.status = TravelRequestStatus.ARCHIVED;
+        this.retentionPeriod = RetentionPeriod.standard();
+
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.ARCHIVED
+        ));
+    }
+
+    /**
+     * Business-Methode: Archiviert mit benutzerdefinierter Frist
+     */
+    public void archiveWithCustomRetention(int retentionYears) {
+        validateCanBeArchived();
+        TravelRequestStatus oldStatus = this.status;
+        this.status = TravelRequestStatus.ARCHIVED;
+        this.retentionPeriod = RetentionPeriod.custom(LocalDate.now(), retentionYears);
+
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.ARCHIVED
+        ));
+    }
+
+    /**
+     * Business-Methode: Markiert Reiseantrag als bezahlt
+     * Status: APPROVED → PAID
+     */
+    public void pay() {
+        if (this.status != TravelRequestStatus.APPROVED) {
+            throw new InvalidTravelRequestStateException(this.status, "pay");
+        }
+        TravelRequestStatus oldStatus = this.status;
+        this.status = TravelRequestStatus.PAID;
+        this.paidAt = LocalDateTime.now();
+
+        registerEvent(new TravelRequestStatusChangedEvent(
+            this.id,
+            oldStatus,
+            TravelRequestStatus.PAID
+        ));
+    }
+
+    /**
+     * Prüft, ob Archivierung erlaubt ist
+     */
+    private void validateCanBeArchived() {
+        if (this.status != TravelRequestStatus.PAID) {
+            throw new CannotArchiveTravelRequestException(
+                this.id,
+                "Nur ausgezahlte Reisen können archiviert werden (aktueller Status: " + this.status + ")"
+            );
+        }
+
+        if (this.status == TravelRequestStatus.ARCHIVED) {
+            throw new CannotArchiveTravelRequestException(
+                this.id,
+                "Reise ist bereits archiviert"
+            );
+        }
+    }
+
+    /**
+     * Prüft, ob die Aufbewahrungsfrist abgelaufen ist
+     */
+    public boolean canBeDeleted() {
+        return this.status == TravelRequestStatus.ARCHIVED
+            && this.retentionPeriod != null
+            && this.retentionPeriod.isExpired();
+    }
+
+    /**
+     * Business-Query: Ist archiviert?
+     */
+    public boolean isArchived() {
+        return this.status == TravelRequestStatus.ARCHIVED;
+    }
+
+    /**
+     * Business-Query: Wurde bezahlt?
+     */
+    public boolean isPaid() {
+        return this.status == TravelRequestStatus.PAID;
+    }
+
+    /**
+     * Publishes all pending domain events.
+     * Call this after persisting to trigger event listeners.
+     *
+     * @return Collection of domain events to publish
+     */
+    public java.util.Collection<Object> getAndPublishDomainEvents() {
+        java.util.Collection<Object> events = new java.util.ArrayList<>(domainEvents());
+        clearDomainEvents();
+        return events;
     }
 }
