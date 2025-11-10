@@ -1,0 +1,40 @@
+meta {
+  name: 02-Get Active Policies
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8080/api/policies/active
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an('array');
+  });
+  
+  test("All policies are active", function() {
+    const policies = res.getBody();
+    policies.forEach(policy => {
+      expect(policy.active).to.equal(true);
+    });
+  });
+  
+  test("Policies contain category limits", function() {
+    const policies = res.getBody();
+    if (policies.length > 0) {
+      expect(policies[0]).to.have.property('categoryLimits');
+      expect(policies[0].categoryLimits).to.be.an('object');
+    }
+  });
+}
+
+docs {
+  Ruft nur aktive Reiserichtlinien ab.
+}

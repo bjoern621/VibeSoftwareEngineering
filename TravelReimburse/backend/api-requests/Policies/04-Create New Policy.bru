@@ -1,0 +1,77 @@
+meta {
+  name: 04-Create New Policy
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/api/policies
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Marketing Department Policy",
+    "description": "Spezielle Richtlinie für Marketing mit höheren Event-Limits",
+    "departmentCode": "MKT-001",
+    "location": null,
+    "autoApprovalEnabled": true,
+    "categoryLimits": {
+      "ACCOMMODATION": "160.00",
+      "MEALS": "65.00",
+      "TRANSPORTATION": "550.00",
+      "FUEL": "0.32",
+      "PARKING_TOLLS": "35.00",
+      "OTHER": "120.00"
+    }
+  }
+}
+
+tests {
+  test("Status code is 201 (Created)", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response contains generated ID", function() {
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody().id).to.be.a('number');
+  });
+  
+  test("Policy name matches request", function() {
+    expect(res.getBody().name).to.equal('Marketing Department Policy');
+  });
+  
+  test("Department code is set correctly", function() {
+    expect(res.getBody().departmentCode).to.equal('MKT-001');
+  });
+  
+  test("Auto-approval is enabled", function() {
+    expect(res.getBody().autoApprovalEnabled).to.equal(true);
+  });
+  
+  test("Policy is active by default", function() {
+    expect(res.getBody().active).to.equal(true);
+  });
+  
+  test("Category limits are stored correctly", function() {
+    const limits = res.getBody().categoryLimits;
+    expect(limits.ACCOMMODATION).to.equal('160.00');
+    expect(limits.MEALS).to.equal('65.00');
+    expect(limits.TRANSPORTATION).to.equal('550.00');
+  });
+  
+  test("CreatedAt timestamp exists", function() {
+    expect(res.getBody()).to.have.property('createdAt');
+    expect(res.getBody().createdAt).to.not.be.null;
+  });
+  
+  // Save ID for later use
+  bru.setVar("createdPolicyId", res.getBody().id);
+}
+
+docs {
+  Erstellt eine neue Reiserichtlinie mit Limits für verschiedene Kategorien.
+  
+  Auto-Approval: true = Anträge werden automatisch genehmigt wenn Limits eingehalten werden
+}

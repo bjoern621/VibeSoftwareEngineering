@@ -16,7 +16,9 @@ body:json {
     "lastName": "Müller",
     "email": "sarah.mueller@company.com",
     "role": "EMPLOYEE",
-    "managerId": 100
+    "managerId": 100,
+    "departmentCode": "IT-001",
+    "location": "Munich"
   }
 }
 
@@ -43,6 +45,16 @@ tests {
   test("Should have createdAt timestamp", function() {
     const data = res.getBody();
     expect(data.createdAt).to.not.be.null;
+  });
+  
+  test("Should have departmentCode IT-001", function() {
+    const data = res.getBody();
+    expect(data.departmentCode).to.equal('IT-001');
+  });
+  
+  test("Should have location Munich", function() {
+    const data = res.getBody();
+    expect(data.location).to.equal('Munich');
   });
   
   // Speichere ID für nachfolgende Tests

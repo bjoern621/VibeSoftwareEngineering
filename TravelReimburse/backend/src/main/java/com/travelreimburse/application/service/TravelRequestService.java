@@ -12,6 +12,8 @@ import com.travelreimburse.domain.model.*;
 import com.travelreimburse.domain.repository.EmployeeRepository;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
 import com.travelreimburse.domain.service.AbsenceValidationService;
+import com.travelreimburse.domain.service.TravelPolicyValidator;
+import com.travelreimburse.infrastructure.service.EmailNotificationService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,15 +31,21 @@ public class TravelRequestService {
     private final TravelRequestRepository travelRequestRepository;
     private final EmployeeRepository employeeRepository;
     private final AbsenceValidationService absenceValidationService;
+    private final TravelPolicyValidator travelPolicyValidator;
+    private final EmailNotificationService emailNotificationService;
     private final ApplicationEventPublisher eventPublisher;
 
     public TravelRequestService(TravelRequestRepository travelRequestRepository,
                                 EmployeeRepository employeeRepository,
                                 AbsenceValidationService absenceValidationService,
+                                TravelPolicyValidator travelPolicyValidator,
+                                EmailNotificationService emailNotificationService,
                                 ApplicationEventPublisher eventPublisher) {
         this.travelRequestRepository = travelRequestRepository;
         this.employeeRepository = employeeRepository;
         this.absenceValidationService = absenceValidationService;
+        this.travelPolicyValidator = travelPolicyValidator;
+        this.emailNotificationService = emailNotificationService;
         this.eventPublisher = eventPublisher;
     }
     
@@ -118,12 +126,36 @@ public class TravelRequestService {
         if (!conflicts.isEmpty()) {
             throw new AbsenceConflictException(conflicts);
         }
+        
+        // Policy-Validierung: Hole Employee und prüfe gegen TravelPolicy
+        Employee employee = employeeRepository.findById(travelRequest.getEmployeeId())
+            .orElseThrow(() -> new EmployeeNotFoundException(travelRequest.getEmployeeId()));
+        
+        TravelPolicyValidator.ValidationResult policyValidation = travelPolicyValidator.validate(
+            travelRequest,
+            employee.getDepartmentCode(),
+            employee.getLocation()
+        );
+        
+        // Log Policy-Validierung (für Debugging/Auditing)
+        if (policyValidation.isAutoApproved()) {
+            System.out.println("TravelRequest " + travelRequest.getId() + " qualifies for auto-approval: " + policyValidation.getMessage());
+        } else if (!policyValidation.isValid()) {
+            System.out.println("TravelRequest " + travelRequest.getId() + " has policy violations: " + policyValidation.getViolations());
+        }
 
         // ✅ DDD: Verwende semantisch korrekte Business-Methode statt generisches updateStatus()
         travelRequest.submit();
 
         // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
+        
+        // E-Mail-Benachrichtigung versenden
+        emailNotificationService.sendStatusChangeNotification(
+            saved, 
+            TravelRequestStatus.DRAFT, 
+            TravelRequestStatus.SUBMITTED
+        );
 
         // Publish domain events manually (Spring Data doesn't do this automatically for save())
         saved.getAndPublishDomainEvents().forEach(eventPublisher::publishEvent);
@@ -158,6 +190,13 @@ public class TravelRequestService {
 
         // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
+        
+        // E-Mail-Benachrichtigung versenden
+        emailNotificationService.sendStatusChangeNotification(
+            saved, 
+            TravelRequestStatus.SUBMITTED, 
+            TravelRequestStatus.APPROVED
+        );
 
         // Publish domain events manually
         saved.getAndPublishDomainEvents().forEach(eventPublisher::publishEvent);
@@ -183,6 +222,13 @@ public class TravelRequestService {
         // Persistieren
         TravelRequest saved = travelRequestRepository.save(travelRequest);
 
+        // E-Mail-Benachrichtigung versenden
+        emailNotificationService.sendStatusChangeNotification(
+            saved, 
+            TravelRequestStatus.SUBMITTED, 
+            TravelRequestStatus.REJECTED
+        );
+        
         // Publish domain events manually
         saved.getAndPublishDomainEvents().forEach(eventPublisher::publishEvent);
 
@@ -397,8 +443,8 @@ public class TravelRequestService {
             );
         }
         
-        // 2. Employee validieren (für den der Antrag erstellt wird)
-        Employee employee = employeeRepository.findById(dto.employeeId())
+        // 2. Employee validieren (für den der Antrag erstellt wird) und verwenden für Policy-Validierung
+        employeeRepository.findById(dto.employeeId())
             .orElseThrow(() -> new EmployeeNotFoundException(dto.employeeId()));
         
         // 3. Reiseantrag erstellen (verwende die normale Methode)

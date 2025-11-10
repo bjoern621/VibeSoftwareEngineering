@@ -158,64 +158,64 @@ INSERT INTO travel_destinations (
 -- Diese werden in Bruno-Tests verwendet (employeeId: 1, 2, 3)
 
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at
 ) VALUES (
-    1, 'Max', 'Mustermann', 'max.mustermann@company.com', 'EMPLOYEE', 100, true, CURRENT_TIMESTAMP
+    1, 'Max', 'Mustermann', 'max.mustermann@company.com', 'EMPLOYEE', 100, 'IT-001', 'Munich', true, CURRENT_TIMESTAMP
 );
 
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at
 ) VALUES (
-    2, 'Anna', 'Schmidt', 'anna.schmidt@company.com', 'EMPLOYEE', 100, true, CURRENT_TIMESTAMP
+    2, 'Anna', 'Schmidt', 'anna.schmidt@company.com', 'EMPLOYEE', 100, 'SALES-001', 'Berlin', true, CURRENT_TIMESTAMP
 );
 
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at
 ) VALUES (
-    3, 'Thomas', 'Weber', 'thomas.weber@company.com', 'EMPLOYEE', 100, true, CURRENT_TIMESTAMP
+    3, 'Thomas', 'Weber', 'thomas.weber@company.com', 'EMPLOYEE', 100, 'IT-001', 'Munich', true, CURRENT_TIMESTAMP
 );
 
 -- MANAGER - ID 100
 -- Wird in Bruno-Tests verwendet (approverId: 100)
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at
 ) VALUES (
-    100, 'Maria', 'Führung', 'maria.fuehrung@company.com', 'MANAGER', null, true, CURRENT_TIMESTAMP
+    100, 'Maria', 'Führung', 'maria.fuehrung@company.com', 'MANAGER', null, 'IT-001', 'Munich', true, CURRENT_TIMESTAMP
 );
 
 -- HR (Personalabteilung) - ID 200
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at
 ) VALUES (
-    200, 'Peter', 'Personal', 'peter.personal@company.com', 'HR', null, true, CURRENT_TIMESTAMP
+    200, 'Peter', 'Personal', 'peter.personal@company.com', 'HR', null, null, 'Berlin', true, CURRENT_TIMESTAMP
 );
 
 -- ASSISTANT (Assistent für Delegationen) - ID 300
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at
 ) VALUES (
-    300, 'Lisa', 'Assistent', 'lisa.assistent@company.com', 'ASSISTANT', 100, true, CURRENT_TIMESTAMP
+    300, 'Lisa', 'Assistent', 'lisa.assistent@company.com', 'ASSISTANT', 100, 'IT-001', 'Munich', true, CURRENT_TIMESTAMP
 );
 
 -- FINANCE (Finanzabteilung) - ID 400
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at
 ) VALUES (
-    400, 'Stefan', 'Finanzen', 'stefan.finanzen@company.com', 'FINANCE', null, true, CURRENT_TIMESTAMP
+    400, 'Stefan', 'Finanzen', 'stefan.finanzen@company.com', 'FINANCE', null, null, 'Berlin', true, CURRENT_TIMESTAMP
 );
 
 -- Weiterer Manager für Tests - ID 101
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at
 ) VALUES (
-    101, 'Julia', 'Abteilungsleiter', 'julia.abteilungsleiter@company.com', 'MANAGER', null, true, CURRENT_TIMESTAMP
+    101, 'Julia', 'Abteilungsleiter', 'julia.abteilungsleiter@company.com', 'MANAGER', null, 'SALES-001', 'Berlin', true, CURRENT_TIMESTAMP
 );
 
 -- Deaktivierter Employee für Tests - ID 999
 INSERT INTO employees (
-    id, first_name, last_name, email, role, manager_id, active, created_at, deactivated_at
+    id, first_name, last_name, email, role, manager_id, department_code, location, active, created_at, deactivated_at
 ) VALUES (
-    999, 'Inactive', 'User', 'inactive.user@company.com', 'EMPLOYEE', 100, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    999, 'Inactive', 'User', 'inactive.user@company.com', 'EMPLOYEE', 100, null, null, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 );
 
 -- Setze die Auto-Increment Sequenz auf den nächsten freien Wert (1000)
@@ -376,3 +376,116 @@ INSERT INTO travel_requests (
     900.00, 'EUR',
     'APPROVED', '2025-09-18 11:00:00', '2025-09-19 08:00:00', 100, '2025-09-20 10:00:00'
 );
+
+-- ============================================================================
+-- TRAVEL POLICIES (Reiserichtlinien)
+-- ============================================================================
+
+-- Policy 1: Standard-Policy mit Auto-Approval (für alle Abteilungen und Standorte)
+INSERT INTO travel_policies (
+    name, description, 
+    department_code, location,
+    auto_approval_enabled, active,
+    created_at
+) VALUES (
+    'Standard Reiserichtlinie',
+    'Allgemeine Reiserichtlinie für alle Mitarbeiter mit automatischer Genehmigung bei Einhaltung der Limits',
+    null, null,
+    true, true,
+    CURRENT_TIMESTAMP
+);
+
+-- Limits für Standard-Policy (ID = 1)
+INSERT INTO policy_category_limits (policy_id, expense_category, max_amount) VALUES
+    (1, 'ACCOMMODATION', '150.00'),  -- Max 150 EUR pro Nacht für Hotel
+    (1, 'MEALS', '50.00'),           -- Max 50 EUR pro Tag für Verpflegung
+    (1, 'TRANSPORTATION', '500.00'), -- Max 500 EUR für Flug/Bahn
+    (1, 'FUEL', '0.30'),             -- Max 0.30 EUR pro Kilometer
+    (1, 'PARKING_TOLLS', '30.00'),   -- Max 30 EUR pro Tag
+    (1, 'OTHER', '100.00');          -- Max 100 EUR sonstige Kosten
+
+-- Policy 2: IT Department - Höhere Limits, keine Auto-Approval (wegen Konferenzen)
+INSERT INTO travel_policies (
+    name, description,
+    department_code, location,
+    auto_approval_enabled, active,
+    created_at
+) VALUES (
+    'IT Department Policy',
+    'Erhöhte Limits für IT-Abteilung (Konferenzen, Schulungen), manuelle Genehmigung erforderlich',
+    'IT-001', null,
+    false, true,
+    CURRENT_TIMESTAMP
+);
+
+-- Limits für IT-Policy (ID = 2)
+INSERT INTO policy_category_limits (policy_id, expense_category, max_amount) VALUES
+    (2, 'ACCOMMODATION', '200.00'),  -- Höheres Hotel-Limit
+    (2, 'MEALS', '75.00'),           -- Höheres Verpflegungs-Limit
+    (2, 'TRANSPORTATION', '800.00'), -- Höheres Transport-Limit
+    (2, 'FUEL', '0.35'),
+    (2, 'PARKING_TOLLS', '50.00'),
+    (2, 'OTHER', '200.00');          -- Höher für Konferenz-Tickets etc.
+
+-- Policy 3: Sales Department - Auto-Approval für Kundenbesuche
+INSERT INTO travel_policies (
+    name, description,
+    department_code, location,
+    auto_approval_enabled, active,
+    created_at
+) VALUES (
+    'Sales Department Policy',
+    'Sales-Mitarbeiter dürfen Kundenbesuche automatisch genehmigen lassen',
+    'SALES-001', null,
+    true, true,
+    CURRENT_TIMESTAMP
+);
+
+-- Limits für Sales-Policy (ID = 3)
+INSERT INTO policy_category_limits (policy_id, expense_category, max_amount) VALUES
+    (3, 'ACCOMMODATION', '180.00'),
+    (3, 'MEALS', '60.00'),
+    (3, 'TRANSPORTATION', '600.00'),
+    (3, 'FUEL', '0.32'),
+    (3, 'PARKING_TOLLS', '40.00'),
+    (3, 'OTHER', '150.00');
+
+-- Policy 4: Munich Standort - Spezielle Regelung (Beispiel für Location-Filter)
+INSERT INTO travel_policies (
+    name, description,
+    department_code, location,
+    auto_approval_enabled, active,
+    created_at
+) VALUES (
+    'Munich Location Policy',
+    'Spezielle Richtlinie für Mitarbeiter am Standort München (niedrigere Limits)',
+    null, 'Munich',
+    true, true,
+    CURRENT_TIMESTAMP
+);
+
+-- Limits für Munich-Policy (ID = 4)
+INSERT INTO policy_category_limits (policy_id, expense_category, max_amount) VALUES
+    (4, 'ACCOMMODATION', '120.00'),  -- Niedrigere Limits
+    (4, 'MEALS', '40.00'),
+    (4, 'TRANSPORTATION', '400.00'),
+    (4, 'FUEL', '0.28'),
+    (4, 'PARKING_TOLLS', '25.00'),
+    (4, 'OTHER', '80.00');
+
+-- Policy 5: Executive Policy - Keine Limits, manuelle Genehmigung
+INSERT INTO travel_policies (
+    name, description,
+    department_code, location,
+    auto_approval_enabled, active,
+    created_at
+) VALUES (
+    'Executive Policy',
+    'Für Geschäftsführung - keine Limits, aber manuelle Genehmigung durch Board',
+    'EXEC-001', null,
+    false, true,
+    CURRENT_TIMESTAMP
+);
+
+-- Keine Limits für Executive Policy (würde unbegrenzt sein)
+

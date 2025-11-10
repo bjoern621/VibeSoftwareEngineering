@@ -14,6 +14,8 @@ public record UpdateEmployeeDTO(
     String email,
     
     String role,
-    Long managerId
+    Long managerId,
+    String departmentCode,
+    String location
 ) {
 }

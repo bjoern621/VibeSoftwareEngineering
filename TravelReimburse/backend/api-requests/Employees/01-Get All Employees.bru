@@ -54,6 +54,24 @@ tests {
       expect(emp).to.have.property('createdAt');
     });
   });
+  
+  test("Employees with department should have departmentCode", function() {
+    const data = res.getBody();
+    const withDept = data.filter(emp => emp.departmentCode !== null);
+    expect(withDept.length).to.be.greaterThan(0);
+    withDept.forEach(emp => {
+      expect(emp.departmentCode).to.be.a('string');
+    });
+  });
+  
+  test("Employees with location should have location field", function() {
+    const data = res.getBody();
+    const withLocation = data.filter(emp => emp.location !== null);
+    expect(withLocation.length).to.be.greaterThan(0);
+    withLocation.forEach(emp => {
+      expect(emp.location).to.be.a('string');
+    });
+  });
 }
 
 docs {
