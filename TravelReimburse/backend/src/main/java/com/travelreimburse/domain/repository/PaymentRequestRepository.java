@@ -43,5 +43,23 @@ public interface PaymentRequestRepository {
      */
     List<PaymentRequest> findByStatus(PaymentStatus status);
 
+    /**
+     * Findet alle archivierbaren PaymentRequests
+     */
+    List<PaymentRequest> findAllReadyForArchiving();
+
+    /**
+     * Findet PaymentRequests mit abgelaufener Frist
+     */
+    List<PaymentRequest> findAllWithExpiredRetention();
+
+    /**
+     * Findet archivierte Payments in Zeitraum
+     */
+    List<PaymentRequest> findArchivedBetween(
+        java.time.LocalDateTime start,
+        java.time.LocalDateTime end
+    );
+
 }
 

@@ -3,6 +3,7 @@ package com.travelreimburse.application.service;
 import com.travelreimburse.domain.exception.TravelRequestNotFoundException;
 import com.travelreimburse.domain.exception.CannotArchiveTravelRequestException;
 import com.travelreimburse.domain.model.TravelRequest;
+import com.travelreimburse.domain.repository.PaymentRequestRepository;
 import com.travelreimburse.domain.repository.TravelRequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,24 +19,34 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ArchivingService {
     
-    private final TravelRequestRepository repository;
-    
-    public ArchivingService(TravelRequestRepository repository) {
-        this.repository = repository;
+    private final TravelRequestRepository travelRequestRepository;
+    private final PaymentRequestRepository paymentRequestRepository;
+
+    public ArchivingService(
+        TravelRequestRepository travelRequestRepository,
+        PaymentRequestRepository paymentRequestRepository
+    ) {
+        this.travelRequestRepository = travelRequestRepository;
+        this.paymentRequestRepository = paymentRequestRepository;
     }
     
     /**
      * Use Case: Einzelne Reise archivieren
+     * Koordiniert Archivierung von TravelRequest UND zugehörigem PaymentRequest
      */
     @Transactional
     public TravelRequest archiveTravelRequest(Long requestId) {
-        TravelRequest request = repository.findById(requestId)
+        TravelRequest request = travelRequestRepository.findById(requestId)
             .orElseThrow(() -> new TravelRequestNotFoundException(requestId));
 
-        // Business-Logik in Entity!
+        // 1. Archiviere TravelRequest Aggregate
         request.archive();
+        TravelRequest savedRequest = travelRequestRepository.save(request);
 
-        return repository.save(request);
+        // 2. Archiviere zugehöriges PaymentRequest Aggregate (falls vorhanden)
+        archiveRelatedPayment(requestId, 10);
+
+        return savedRequest;
     }
 
     /**
@@ -43,12 +54,16 @@ public class ArchivingService {
      */
     @Transactional
     public TravelRequest archiveWithCustomRetention(Long requestId, int retentionYears) {
-        TravelRequest request = repository.findById(requestId)
+        TravelRequest request = travelRequestRepository.findById(requestId)
             .orElseThrow(() -> new TravelRequestNotFoundException(requestId));
 
         request.archiveWithCustomRetention(retentionYears);
+        TravelRequest savedRequest = travelRequestRepository.save(request);
 
-        return repository.save(request);
+        // Archiviere Payment mit gleicher Frist
+        archiveRelatedPayment(requestId, retentionYears);
+
+        return savedRequest;
     }
 
     /**
@@ -56,13 +71,17 @@ public class ArchivingService {
      */
     @Transactional
     public int archiveAllReadyRequests() {
-        List<TravelRequest> readyForArchiving = repository.findAllReadyForArchiving();
-        
+        List<TravelRequest> readyForArchiving = travelRequestRepository.findAllReadyForArchiving();
+
         int archivedCount = 0;
         for (TravelRequest request : readyForArchiving) {
             try {
                 request.archive();
-                repository.save(request);
+                travelRequestRepository.save(request);
+
+                // Archiviere zugehöriges Payment
+                archiveRelatedPayment(request.getId(), 10);
+
                 archivedCount++;
             } catch (CannotArchiveTravelRequestException e) {
                 // Log und weiter (skip)
@@ -76,14 +95,14 @@ public class ArchivingService {
      * Query: Finde Reisen mit abgelaufener Frist
      */
     public List<TravelRequest> findExpiredRetentionRequests() {
-        return repository.findAllWithExpiredRetention();
+        return travelRequestRepository.findAllWithExpiredRetention();
     }
     
     /**
      * Query: Archivierte Reisen in Zeitraum
      */
     public List<TravelRequest> findArchivedInPeriod(LocalDate start, LocalDate end) {
-        return repository.findArchivedBetween(start, end);
+        return travelRequestRepository.findArchivedBetween(start, end);
     }
 
     /**
@@ -94,7 +113,7 @@ public class ArchivingService {
      */
     @Transactional
     public void archiveTravelRequestIfEligible(Long travelRequestId) {
-        TravelRequest request = repository.findById(travelRequestId)
+        TravelRequest request = travelRequestRepository.findById(travelRequestId)
             .orElseThrow(() -> new TravelRequestNotFoundException(travelRequestId));
 
         // Eligibility Check
@@ -107,7 +126,24 @@ public class ArchivingService {
 
         // Archiviere mit Standard-Frist (10 Jahre)
         request.archive();
-        repository.save(request);
+        travelRequestRepository.save(request);
+
+        // Archiviere zugehöriges Payment
+        archiveRelatedPayment(travelRequestId, 10);
+    }
+
+    /**
+     * Private Helper: Archiviert PaymentRequest für TravelRequest
+     * Koordiniert zwei separate Aggregates (Domain Service Pattern!)
+     */
+    private void archiveRelatedPayment(Long travelRequestId, int retentionYears) {
+        paymentRequestRepository.findByTravelRequestId(travelRequestId)
+            .ifPresent(payment -> {
+                if (payment.canBeArchived()) {
+                    payment.archive(retentionYears);
+                    paymentRequestRepository.save(payment);
+                }
+            });
     }
 
     /**

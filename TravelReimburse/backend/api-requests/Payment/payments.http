@@ -53,3 +53,24 @@ GET {{baseUrl}}/payments/{{paymentId}}
 # }
 
 # ]
+
+### 03 - Find Payment by Reference
+# Sucht Payment anhand der eindeutigen Referenznummer
+# Nützlich wenn man nur die paymentReference kennt
+GET {{baseUrl}}/payments/by-reference/PAY-2025-001
+
+### Expected Response 200 OK
+# {
+#   "id": 1,
+#   "travelRequestId": 1,
+#   "totalAmount": 450.50,
+#   "currency": "EUR",
+#   "paymentReference": "PAY-2025-001",
+#   "status": "SUCCESS",
+#   "createdAt": "2025-11-09T18:27:42.538453085",
+#   "submittedAt": "2025-11-09T18:27:42.538453085",
+#   "completedAt": "2025-11-09T19:00:00.000000000",
+#   "easyPayTransactionId": "TXN-MOCK-A1B2C3D4",
+#   "failureReason": null
+# }
+
