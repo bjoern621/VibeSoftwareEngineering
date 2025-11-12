@@ -1,6 +1,6 @@
 ### Variables
 @baseUrl = http://localhost:8080/api
-@travelRequestId = 66
+@travelRequestId = 1
 @paymentId = 1
 
 ### 01 - Create and Submit Payment (TravelRequest APPROVED → Payment PENDING)

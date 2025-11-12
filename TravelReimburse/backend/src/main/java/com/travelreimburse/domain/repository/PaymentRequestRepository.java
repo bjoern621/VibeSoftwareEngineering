@@ -38,5 +38,10 @@ public interface PaymentRequestRepository {
      */
     List<PaymentRequest> findAllWithStatus(PaymentStatus status);
 
+    /**
+     * Findet alle PaymentRequests mit einem bestimmten Status (alternative method name)
+     */
+    List<PaymentRequest> findByStatus(PaymentStatus status);
+
 }
 

@@ -1,6 +1,5 @@
 package com.travelreimburse.infrastructure.event;
 
-import com.travelreimburse.application.service.ArchivingService;
 import com.travelreimburse.domain.event.payment.PaymentFailedEvent;
 import com.travelreimburse.domain.event.payment.PaymentSuccessEvent;
 import com.travelreimburse.domain.model.TravelRequest;
@@ -17,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Reagiert auf Payment-Success und Payment-Failed Events und aktualisiert den TravelRequest Status.
  * Nach erfolgreicher Zahlung:
  *  1. TravelRequest.status = PAID
- *  2. ArchivingService archiviert automatisch
+ *
+ * ⚠️ Archivierung ist NICHT mehr automatisch - wird separat gehandhabt!
  */
 @Component
 public class PaymentEventHandler {
@@ -25,53 +25,48 @@ public class PaymentEventHandler {
     private static final Logger logger = LoggerFactory.getLogger(PaymentEventHandler.class);
 
     private final TravelRequestRepository travelRequestRepository;
-    private final ArchivingService archivingService;
 
-    public PaymentEventHandler(
-            TravelRequestRepository travelRequestRepository,
-            ArchivingService archivingService) {
+    public PaymentEventHandler(TravelRequestRepository travelRequestRepository) {
         this.travelRequestRepository = travelRequestRepository;
-        this.archivingService = archivingService;
     }
 
     /**
      * Listener für PaymentSuccessEvent
-     * Setzt TravelRequest Status zu PAID und archiviert automatisch
+     * Setzt TravelRequest Status zu PAID (wenn noch nicht PAID)
      */
     @EventListener
     @Transactional
     public void handlePaymentSuccess(PaymentSuccessEvent event) {
-        logger.info("PaymentSuccessEvent empfangen für TravelRequest: {}", event.travelRequestId());
+        logger.info("📢 PaymentSuccessEvent empfangen für TravelRequest: {}", event.travelRequestId());
 
-        var travelRequest = travelRequestRepository.findById(event.travelRequestId());
-        if (travelRequest.isPresent()) {
-            TravelRequest request = travelRequest.get();
+        var travelRequestOpt = travelRequestRepository.findById(event.travelRequestId());
+        if (travelRequestOpt.isEmpty()) {
+            logger.error("❌ TravelRequest nicht gefunden: {}", event.travelRequestId());
+            return;
+        }
 
-            // Validiere Status
-            if (request.getStatus() == TravelRequestStatus.APPROVED) {
-                // Setze Status zu PAID
-                request.pay();
+        TravelRequest travelRequest = travelRequestOpt.get();
+        TravelRequestStatus currentStatus = travelRequest.getStatus();
 
-                // Speichere
-                travelRequestRepository.save(request);
+        // ✅ Idempotenz-Check: Wenn bereits PAID, überspringe
+        if (currentStatus == TravelRequestStatus.PAID) {
+            logger.info("ℹ️ TravelRequest {} ist bereits PAID - Event wird ignoriert", event.travelRequestId());
+            return;
+        }
 
-                logger.info("TravelRequest {} wurde zu PAID gesetzt", event.travelRequestId());
+        // ✅ Validiere dass Status APPROVED ist
+        if (currentStatus == TravelRequestStatus.APPROVED) {
+            travelRequest.pay();
+            travelRequestRepository.save(travelRequest);
 
-                // Archiviere automatisch nach erfolgreicher Zahlung
-                try {
-                    archivingService.archiveAfterPaymentSuccess(event.travelRequestId());
-                    logger.info("TravelRequest {} wurde automatisch archiviert", event.travelRequestId());
-                } catch (Exception e) {
-                    logger.error("Fehler beim automatischen Archivieren von TravelRequest {}: {}",
-                        event.travelRequestId(), e.getMessage(), e);
-                    // Archivierung ist nicht kritisch - Payment war erfolgreich
-                }
-            } else {
-                logger.warn("TravelRequest {} hat Status {}, kann nicht zu PAID gesetzt werden",
-                    event.travelRequestId(), request.getStatus());
-            }
+            logger.info("✅ TravelRequest {} Status: {} → PAID", event.travelRequestId(), currentStatus);
+
+            // ⚠️ KEINE automatische Archivierung!
+            // Archivierung erfolgt separat via manuellen Aufruf
+
         } else {
-            logger.error("TravelRequest nicht gefunden: {}", event.travelRequestId());
+            logger.warn("⚠️ TravelRequest {} hat Status {}, erwartet APPROVED - Event wird ignoriert",
+                event.travelRequestId(), currentStatus);
         }
     }
 
