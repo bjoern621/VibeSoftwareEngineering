@@ -1,5 +1,6 @@
 package com.travelreimburse.infrastructure.event;
 
+import com.travelreimburse.application.service.ArchivingService;
 import com.travelreimburse.domain.event.payment.PaymentFailedEvent;
 import com.travelreimburse.domain.event.payment.PaymentSuccessEvent;
 import com.travelreimburse.domain.model.TravelRequest;
@@ -16,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Reagiert auf Payment-Success und Payment-Failed Events und aktualisiert den TravelRequest Status.
  * Nach erfolgreicher Zahlung:
  *  1. TravelRequest.status = PAID
- *
- * ⚠️ Archivierung ist NICHT mehr automatisch - wird separat gehandhabt!
+ *  2. Automatische Archivierung von TravelRequest + PaymentRequest
  */
 @Component
 public class PaymentEventHandler {
@@ -25,9 +25,14 @@ public class PaymentEventHandler {
     private static final Logger logger = LoggerFactory.getLogger(PaymentEventHandler.class);
 
     private final TravelRequestRepository travelRequestRepository;
+    private final ArchivingService archivingService;
 
-    public PaymentEventHandler(TravelRequestRepository travelRequestRepository) {
+    public PaymentEventHandler(
+        TravelRequestRepository travelRequestRepository,
+        ArchivingService archivingService
+    ) {
         this.travelRequestRepository = travelRequestRepository;
+        this.archivingService = archivingService;
     }
 
     /**
@@ -61,8 +66,15 @@ public class PaymentEventHandler {
 
             logger.info("✅ TravelRequest {} Status: {} → PAID", event.travelRequestId(), currentStatus);
 
-            // ⚠️ KEINE automatische Archivierung!
-            // Archivierung erfolgt separat via manuellen Aufruf
+            // ✅ AUTO-ARCHIVIERUNG nach Payment Success
+            try {
+                archivingService.archiveTravelRequest(event.travelRequestId());
+                logger.info("✅ TravelRequest {} und PaymentRequest automatisch archiviert", event.travelRequestId());
+            } catch (Exception e) {
+                logger.error("❌ Archivierung fehlgeschlagen für TravelRequest {}: {}",
+                    event.travelRequestId(), e.getMessage());
+                // Payment bleibt PAID, auch wenn Archivierung fehlschlägt
+            }
 
         } else {
             logger.warn("⚠️ TravelRequest {} hat Status {}, erwartet APPROVED - Event wird ignoriert",

@@ -26,9 +26,15 @@ Content-Type: application/json
   "retentionYears": 7
 }
 
+### 05-Archive All Ready Requests (Batch Job)
+# Archiviert alle Reiseanträge die bereit zur Archivierung sind (Status = PAID)
+# Gibt zurück: Anzahl der archivierten Anträge
+POST http://localhost:8080/api/archiving/batch
 
-### 07-Verify Archiving Result
+
+### 06-Verify Archiving Result
 # Prüft ob die Archivierung erfolgreich war
 # WICHTIG: Ersetze '1' durch die ID des archivierten Antrags
 GET http://localhost:8080/api/travel-requests/1
+
 

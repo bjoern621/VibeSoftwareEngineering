@@ -1,6 +1,7 @@
 package com.travelreimburse.domain.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -41,6 +42,15 @@ public class PaymentRequest {
 
     @Column(length = 1000)
     private String failureReason;
+
+    @Column(nullable = false)
+    private boolean archived = false;
+
+    @Column
+    private LocalDateTime archivedAt;
+
+    @Column
+    private LocalDate retentionUntil;
 
     protected PaymentRequest() {
         // JPA
@@ -170,6 +180,54 @@ public class PaymentRequest {
         return this.status == PaymentStatus.FAILED;
     }
 
+    /**
+     * Business-Methode: Archiviert den PaymentRequest
+     * Invarianten:
+     *  - Status muss SUCCESS oder FAILED sein (Payment abgeschlossen)
+     *  - Darf nicht bereits archiviert sein
+     *  - retentionYears muss >= 1 sein
+     */
+    public void archive(int retentionYears) {
+        if (!isCompleted()) {
+            throw new IllegalStateException(
+                String.format("Nur abgeschlossene Payments können archiviert werden (aktuell: %s)", this.status)
+            );
+        }
+        if (this.archived) {
+            throw new IllegalStateException("Payment ist bereits archiviert");
+        }
+        if (retentionYears < 1) {
+            throw new IllegalArgumentException("Aufbewahrungsfrist muss mindestens 1 Jahr betragen");
+        }
+
+        this.archived = true;
+        this.archivedAt = LocalDateTime.now();
+        this.retentionUntil = LocalDate.now().plusYears(retentionYears);
+    }
+
+    /**
+     * Business-Query: Ist Payment abgeschlossen?
+     */
+    public boolean isCompleted() {
+        return this.status == PaymentStatus.SUCCESS || this.status == PaymentStatus.FAILED;
+    }
+
+    /**
+     * Business-Query: Kann archiviert werden?
+     */
+    public boolean canBeArchived() {
+        return isCompleted() && !this.archived;
+    }
+
+    /**
+     * Business-Query: Ist Aufbewahrungsfrist abgelaufen?
+     */
+    public boolean isRetentionExpired() {
+        return this.archived
+            && this.retentionUntil != null
+            && LocalDate.now().isAfter(this.retentionUntil);
+    }
+
     // ====== GETTER (nur lesender Zugriff) ======
 
     public Long getId() {
@@ -210,6 +268,18 @@ public class PaymentRequest {
 
     public String getFailureReason() {
         return failureReason;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public LocalDateTime getArchivedAt() {
+        return archivedAt;
+    }
+
+    public LocalDate getRetentionUntil() {
+        return retentionUntil;
     }
 }
 

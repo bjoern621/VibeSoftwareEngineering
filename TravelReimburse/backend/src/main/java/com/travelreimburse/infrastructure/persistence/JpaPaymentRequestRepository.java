@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +37,24 @@ public interface JpaPaymentRequestRepository
      * Spring Data JPA method - findet alle Payments mit einem Status
      */
     List<PaymentRequest> findByStatus(PaymentStatus status);
+
+    @Override
+    @Query("SELECT p FROM PaymentRequest p WHERE p.archived = false " +
+           "AND (p.status = 'SUCCESS' OR p.status = 'FAILED')")
+    List<PaymentRequest> findAllReadyForArchiving();
+
+    @Override
+    @Query("SELECT p FROM PaymentRequest p WHERE p.archived = true " +
+           "AND p.retentionUntil < CURRENT_DATE")
+    List<PaymentRequest> findAllWithExpiredRetention();
+
+    @Override
+    @Query("SELECT p FROM PaymentRequest p WHERE p.archived = true " +
+           "AND p.archivedAt BETWEEN :start AND :end")
+    List<PaymentRequest> findArchivedBetween(
+        @Param("start") LocalDateTime start,
+        @Param("end") LocalDateTime end
+    );
 
 }
 
