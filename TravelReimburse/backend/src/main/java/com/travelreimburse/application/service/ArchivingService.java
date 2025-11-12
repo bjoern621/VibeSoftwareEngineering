@@ -87,35 +87,38 @@ public class ArchivingService {
     }
 
     /**
-     * Use Case: Archiviere Reise nach erfolgreicher Zahlung
-     * Wird vom PaymentEventHandler aufgerufen, wenn PaymentSuccessEvent publishet wird.
-     * Flow: Payment erfolgreich → TravelRequest.status = PAID → Archivierung
+     * Use Case: Archiviere Reise wenn berechtigt
+     * Kann manuell aufgerufen werden oder von einem Scheduler.
+     * Flow: TravelRequest.status = PAID → Eligibility Check → Archivierung
      * Invariante: TravelRequest muss Status PAID haben
      */
     @Transactional
-    public void archiveAfterPaymentSuccess(Long travelRequestId) {
+    public void archiveTravelRequestIfEligible(Long travelRequestId) {
         TravelRequest request = repository.findById(travelRequestId)
             .orElseThrow(() -> new TravelRequestNotFoundException(travelRequestId));
 
-        // Prüfe dass Payment erfolgreich war (Status = PAID)
-        if (!request.isPaid()) {
-            throw new IllegalArgumentException(
-                String.format("TravelRequest %d muss Status PAID haben, aktuell: %s",
-                    travelRequestId, request.getStatus())
+        // Eligibility Check
+        if (!isEligibleForArchiving(request)) {
+            throw new CannotArchiveTravelRequestException(
+                travelRequestId,
+                String.format("Nicht berechtigt für Archivierung (Status: %s)", request.getStatus())
             );
         }
 
-        try {
-            // Archiviere mit Standard-Frist (10 Jahre)
-            request.archive();
-            repository.save(request);
-        } catch (CannotArchiveTravelRequestException e) {
-            // Log Fehler aber werfe Exception nicht - Payment ist bereits erfolg!
-            throw new IllegalStateException(
-                String.format("Archivierung fehlgeschlagen für TravelRequest %d: %s",
-                    travelRequestId, e.getMessage())
-            );
-        }
+        // Archiviere mit Standard-Frist (10 Jahre)
+        request.archive();
+        repository.save(request);
+    }
+
+    /**
+     * Business Query: Prüft ob TravelRequest archiviert werden kann
+     */
+    private boolean isEligibleForArchiving(TravelRequest request) {
+        // Muss bezahlt sein
+        return request.isPaid();
+        // Später könnte man erweitern:
+        // && hasAllReceiptsSubmitted(request)
+        // && meetsRetentionRequirements(request)
     }
 }
 

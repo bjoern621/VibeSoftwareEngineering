@@ -25,14 +25,14 @@ public class PaymentController {
 
     /**
      * POST /api/payments/travel-requests/{travelRequestId}/submit
-     * Erstellt einen Payment und sendet ihn zu EasyPay
+     * Erstellt einen Payment und sendet ihn zu EasyPay (async processing)
      */
     @PostMapping("/travel-requests/{travelRequestId}/submit")
     @Operation(summary = "Payment erstellen und zu EasyPay senden")
     public ResponseEntity<PaymentRequestDTO> createAndSubmitPayment(
             @PathVariable Long travelRequestId) {
         PaymentRequestDTO payment = paymentService.createAndSubmitPayment(travelRequestId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(payment);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(payment); // 202 ACCEPTED for async processing
     }
 
     /**

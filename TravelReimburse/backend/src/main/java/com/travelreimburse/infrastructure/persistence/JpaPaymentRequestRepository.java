@@ -32,6 +32,10 @@ public interface JpaPaymentRequestRepository
     @Query("SELECT pr FROM PaymentRequest pr WHERE pr.status = :status")
     List<PaymentRequest> findAllWithStatus(@Param("status") PaymentStatus status);
 
+    /**
+     * Spring Data JPA method - findet alle Payments mit einem Status
+     */
+    List<PaymentRequest> findByStatus(PaymentStatus status);
 
 }
 
