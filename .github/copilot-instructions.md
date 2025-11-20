@@ -1,1003 +1,473 @@
-# TRAVELREIMBURSE – KI-Coding-Assistent Anweisungen
+# RENTACAR – KI-Coding Assistant Instructions
 
-## 🎯 Projektübersicht
+## 🎯 Project Overview
 
-**TRAVELREIMBURSE** ist ein Reisekostenabrechnungssystem zur Verwaltung von Dienstreisen. Das System unterstützt Beantragung, Genehmigung, Belegverwaltung und automatische Abrechnung nach Reiserichtlinien.
+**RENTACAR** is a backend-only information system for a mid-sized car rental company with multiple branches. The system manages vehicles, customers, bookings, and rental processes (check-out / check-in, damage reports, pricing).
 
-**Wichtig**: Backend-only Projekt! Kein Frontend erforderlich.
+> Important: **Backend-only project!** No web frontend; focus on clean DDD, REST API and high test coverage.
 
-### Externe Systeme
+### Core Functional Requirements (Short Overview)
 
-- **HRIS**: HR-System für Abwesenheiten/Urlaubszeiten
-- **EasyPay**: Finanzsystem für Auszahlung
-- **ExRat**: Währungskurse-Service
+- **Vehicle Management**: Vehicle types, attributes, status (available, rented, maintenance, out of service).
+- **Customer Management**: Registration, profile data, booking history.
+- **Booking Management**: Search for available vehicles, create/modify/cancel bookings, price calculation.
+- **Rental Process**: Check-out, check-in, mileage tracking, damage reports, extra fees.
 
-### Nutzerrollen
+### Non-Functional Requirements (Extract)
 
-- **EMPLOYEE**: Reisen beantragen, Belege hochladen
-- **MANAGER**: Anträge genehmigen/ablehnen
-- **HR**: Auswertungen, Reiserichtlinien verwalten
-- **ASSISTANT**: Im Namen anderer handeln (Delegation)
-- **FINANCE**: Finale Freigabe zur Auszahlung
-
----
-
-## 🏗️ Architektur: Domain-Driven Design (Layered Architecture)
-
-Das Projekt folgt **striktem DDD** mit Layered Architecture:
-
-```
-src/main/java/com/travelreimburse/
-├── domain/                # Domain Layer (Kern-Logik)
-│   ├── model/            # Entities, Value Objects, Enums
-│   ├── repository/       # Repository-Interfaces
-│   └── service/          # Domain Services
-├── application/          # Application Layer (Use Cases)
-│   ├── service/          # Application Services
-│   └── dto/              # DTOs für Datenübertragung
-├── infrastructure/       # Infrastructure Layer (Technik)
-│   ├── persistence/      # JPA-Repository-Implementierungen
-│   ├── external/         # Externe APIs (HRIS, EasyPay, ExRat)
-│   └── email/            # E-Mail-Service
-└── presentation/         # Presentation Layer (REST API)
-    ├── controller/       # REST-Controller
-    └── dto/              # Request/Response DTOs
-```
-
-### Schichten-Verantwortlichkeiten
-
-**Domain Layer** (Kern):
-- Entities: `TravelRequest`, `Expense`, `Receipt`, `Employee`, `TravelPolicy`
-- Value Objects: `Money`, `DateRange`, `Address`
-- Repository-Interfaces (abstrakt)
-- Domain Services für komplexe Geschäftslogik
-
-**Application Layer**:
-- Orchestrierung von Use Cases
-- Services: `TravelRequestService`, `ExpenseService`, `ApprovalService`
-
-**Infrastructure Layer**:
-- JPA-Repository-Implementierungen
-- REST-Clients für externe Systeme
-- Technische Services (E-Mail, File Storage)
-
-**Presentation Layer**:
-- REST-Controller mit DTOs
-- Exception Handling (`@ControllerAdvice`)
-
-**Goldene Regel**: Domain-Entities **niemals** direkt in der Presentation Layer verwenden! Immer DTOs.
+- **Performance**: Vehicle availability search ≤ 2 seconds; support ≥ 100 concurrent users.
+- **Security**: GDPR-compliant storage, RBAC (customer, employee, admin), audit logging.
+- **Maintainability**: Strict DDD, modular architecture, ≥ 80% unit test coverage.
 
 ---
 
-## 📦 Wichtige Domain-Patterns
+## 🧠 MCP Servers: Context7 & Sequential Thinking
 
-### 1. Aggregate Pattern
+We use **MCP servers** consistently during development:
 
-**TravelRequest** ist das Hauptaggregat (Aggregate Root):
+### 1. Context7 – Documentation & Examples
 
-```java
-@Entity
-public class TravelRequest {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+**Purpose**: Pull up-to-date, version-specific framework/library docs and code examples directly into the prompt.
 
-    @Embedded
-    private DateRange travelPeriod;
+**Use Context7 when:**
 
-    @Embedded
-    private Money estimatedCost;
+- You need exact usage of Spring Boot / JPA / Validation / Security APIs.
+- You are unsure about annotations, config options or best practices.
+- You design persistence mappings (e.g. `@ManyToOne`, `@Embeddable`) or transactions.
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Expense> expenses = new ArrayList<>();
+**Instruction to Copilot/ChatGPT (example):**
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Receipt> receipts = new ArrayList<>();
+> “Use the MCP server **Context7** to look up the current Spring Boot 3 / Spring Data JPA documentation for X and integrate the recommended pattern into the generated code.”
 
-    @Enumerated(EnumType.STRING)
-    private TravelRequestStatus status;
+### 2. Sequential Thinking – Stepwise Implementation Planning
 
-    // Business-Methoden für Zustandsänderungen
-    public void submit() {
-        if (status != TravelRequestStatus.DRAFT) {
-            throw new IllegalStateException("Nur Entwürfe können eingereicht werden");
-        }
-        this.status = TravelRequestStatus.SUBMITTED;
-    }
+**Purpose**: Create and follow a step-by-step plan for complex tasks and refactorings.
 
-    public void approve(Employee approver) {
-        validateCanBeApproved();
-        this.status = TravelRequestStatus.APPROVED;
-        this.approver = approver;
-        this.approvedAt = LocalDateTime.now();
-    }
-}
+**Use Sequential Thinking when:**
+
+- Designing a new aggregate (e.g. `Booking` or `RentalAgreement`).
+- Implementing a complete feature end-to-end (Domain → Application → REST).
+- Refactoring an existing flow based on quality-assurance feedback.
+
+**Instruction to Copilot/ChatGPT (example):**
+
+> “Use the MCP server **Sequential Thinking** to first generate a detailed step-by-step implementation plan for this feature. Then implement the steps one by one, updating the plan as you go.”
+
+### 3. Mandatory MCP Usage Rules
+
+- For **every non-trivial feature**, start with a **Sequential Thinking** plan.
+- For **framework-specific questions**, always consult **Context7** before “guessing” APIs.
+- When you ask the AI for code, explicitly remind it to:
+  - Respect our DDD rules (see below).
+  - Use MCP (Context7 / Sequential Thinking) where helpful.
+
+---
+
+## 🏗️ Architecture: DDD Layered Architecture
+
+We follow a DDD-style layered architecture for the RENTACAR backend.
+
+```text
+src/main/java/com/rentacar/
+├── domain/                # Domain Layer (core business logic)
+│   ├── model/             # Entities, Value Objects, Enums
+│   ├── repository/        # Repository interfaces (Ports)
+│   └── service/           # Domain Services
+├── application/           # Application Layer (Use Cases)
+│   ├── service/           # Application Services
+│   └── dto/               # Application DTOs (if needed)
+├── infrastructure/        # Infrastructure Layer (Adapters)
+│   ├── persistence/       # JPA repositories, DB mappings
+│   ├── external/          # External systems (e.g. payments, identity)
+│   └── messaging/         # Async messaging if needed
+└── presentation/          # Presentation Layer (REST API)
+    ├── controller/        # REST Controllers
+    └── dto/               # Request/Response DTOs
 ```
 
-### 2. Value Objects Pattern
+**Golden Rules:**
 
-Unveränderbare Werteobjekte ohne Identität:
+- Domain entities **never** exposed directly via REST – always map to DTOs.
+- Dependencies always **inward** toward domain:
+  - `presentation → application → domain`
+  - `infrastructure` implements ports for domain (repositories, external services).
+- No Spring annotations in `domain` package (pure Java).
 
-```java
-@Embeddable
-public class Money {
-    private BigDecimal amount;
+---
 
-    @Enumerated(EnumType.STRING)
-    private Currency currency;
+## 🚗 RENTACAR Domain Model
 
-    public Money(BigDecimal amount, Currency currency) {
-        if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Betrag darf nicht negativ sein");
-        }
-        this.amount = amount;
-        this.currency = currency;
-    }
+### Aggregates & Entities (initial suggestion)
 
-    public Money add(Money other) {
-        if (!this.currency.equals(other.currency)) {
-            throw new IllegalArgumentException("Währungen müssen übereinstimmen");
-        }
-        return new Money(this.amount.add(other.amount), this.currency);
-    }
+- **Vehicle** (Aggregate Root)  
+  Fields:  
+  `id`, `licensePlate`, `brand`, `model`, `year`, `mileage`, `vehicleType`, `status`, `branch`.
 
-    // Immutable: keine Setter!
-}
-```
+  Status: `AVAILABLE`, `RENTED`, `IN_MAINTENANCE`, `OUT_OF_SERVICE`.
 
-```java
-@Embeddable
-public class DateRange {
-    private LocalDate startDate;
-    private LocalDate endDate;
+  Business methods:
 
-    public DateRange(LocalDate startDate, LocalDate endDate) {
-        if (endDate.isBefore(startDate)) {
-            throw new IllegalArgumentException("Enddatum muss nach Startdatum liegen");
-        }
-        this.startDate = startDate;
-        this.endDate = endDate;
-    }
+  - `markAsRented()`
+  - `markAsAvailable()`
+  - `markAsInMaintenance()`
+  - `retire()`
 
-    public long getDays() {
-        return ChronoUnit.DAYS.between(startDate, endDate) + 1;
-    }
-}
-```
+- **Customer** (Aggregate Root)  
+  Fields:  
+  `id`, `name`, `address`, `driverLicenseNumber`, `contactDetails`.
 
-### 3. Repository Pattern
+  Methods:
 
-**Domain Layer** (Interface):
-```java
-public interface TravelRequestRepository {
-    TravelRequest save(TravelRequest request);
-    Optional<TravelRequest> findById(Long id);
-    List<TravelRequest> findByEmployeeId(Long employeeId);
-    List<TravelRequest> findPendingApprovalsByManagerId(Long managerId);
-}
-```
+  - `updateContactDetails(...)`
+  - `verifyDriverLicense(...)`
 
-**Infrastructure Layer** (Implementierung):
-```java
-@Repository
-public interface JpaTravelRequestRepository 
-    extends TravelRequestRepository, JpaRepository<TravelRequest, Long> {
-    // Spring Data JPA generiert Implementierung
-}
-```
+- **Branch** (Aggregate Root or Value Object reference)  
+  Fields:  
+  `id`, `name`, `address`, `openingHours`.
 
-### 4. Domain Service Pattern
+- **Booking** (Aggregate Root)  
+  Fields:  
+  `id`, `customer`, `vehicle`, `pickupBranch`, `returnBranch`,  
+  `pickupDateTime`, `returnDateTime`, `status`, `totalPrice`, `options` (extras).
 
-Für Logik, die nicht zu einer Entity gehört:
+  Status: `REQUESTED`, `CONFIRMED`, `CANCELLED`, `EXPIRED`.
 
-```java
-@Service
-public class TravelPolicyValidator {
+  Business rules: availability checks, cancellation up to 24h before pickup.
 
-    public ValidationResult validate(TravelRequest request, TravelPolicy policy) {
-        List<String> violations = new ArrayList<>();
+  Methods:
 
-        // Prüfe Höchstbeträge pro Kategorie
-        for (Expense expense : request.getExpenses()) {
-            Money maxAmount = policy.getMaxAmountForCategory(expense.getCategory());
-            if (expense.getAmount().isGreaterThan(maxAmount)) {
-                violations.add("Ausgabe überschreitet Höchstbetrag");
-            }
-        }
+  - `confirm()`
+  - `cancel()`
+  - `expire()`
+  - `calculatePrice(PricingPolicy)`
 
-        return new ValidationResult(violations.isEmpty(), violations);
-    }
-}
-```
+- **RentalAgreement** (Aggregate Root for actual rental)  
+  Fields:  
+  `id`, `booking`, `checkoutOdometer`, `checkinOdometer`,  
+  `checkoutTime`, `checkinTime`, `status`, `finalPrice`, `damageReports`.
 
-### 5. Status-Maschine
+  Status: `OPEN`, `CLOSED`.
 
-```java
-public enum TravelRequestStatus {
-    DRAFT,                      // Entwurf
-    SUBMITTED,                  // Eingereicht
-    APPROVED,                   // Genehmigt
-    REJECTED,                   // Abgelehnt
-    IN_PROGRESS,                // Läuft aktuell
-    COMPLETED,                  // Abgeschlossen
-    REIMBURSEMENT_PENDING,      // Abrechnung wartet
-    REIMBURSEMENT_APPROVED,     // Abrechnung genehmigt
-    PAID,                       // Ausgezahlt
-    ARCHIVED                    // Archiviert
-}
-```
+  Methods:
 
-Validierung der Zustandsübergänge in Entity-Methoden!
+  - `checkOut(...)`
+  - `checkIn(...)`
+  - `registerDamage(...)`
+  - `calculateFinalPrice(...)`
+
+- **DamageReport**  
+  Fields:  
+  `id`, `rentalAgreement`, `description`, `severity`, `estimatedCost`, `photos`.
+
+  Methods:
+
+  - `estimateCost(...)`.
+
+### Value Objects
+
+- `Money` (amount + currency).
+- `DateRange` for booking periods.
+- `LicensePlate`, `Address`, `ContactDetails`.
+- Optional: `Mileage` / `Kilometers` VO to validate non-negative values.
 
 ---
 
 ## 🔧 Tech Stack
 
 - **Framework**: Spring Boot 3.x
-- **Java**: 25
-- **Datenbank**: H2 (Dev), PostgreSQL (Prod)
-- **Persistierung**: Spring Data JPA
-- **Security**: Spring Security mit JWT
-- **Build-Tool**: Maven
+- **Language**: Java 21+ (or course-specific version)
+- **Persistence**: Spring Data JPA (H2 dev, PostgreSQL or similar for prod)
+- **Security**: Spring Security with JWT and roles (`CUSTOMER`, `EMPLOYEE`, `ADMIN`)
+- **Build**: Maven or Gradle
 - **Testing**: JUnit 5, Mockito, MockMvc
+- **Documentation**: OpenAPI / Swagger
 
 ---
 
-## 📋 Wichtige Typ-Konventionen
+## 📦 DDD Patterns (Adapted to RENTACAR)
 
-- **IDs**: `Long` (nicht Integer)
-- **Geldbeträge**: `BigDecimal` (niemals Float/Double!)
-- **Währungen**: `Currency` Enum
-- **Datum**: `LocalDate`
-- **Zeitstempel**: `LocalDateTime`
+### 1. Aggregates
 
-**Kritisch**: Bei Geldbeträgen **immer** `BigDecimal` verwenden wegen Rundungsfehlern!
+Example (simplified) `Booking`:
 
----
+```java
+@Entity
+public class Booking {
 
-## 🌐 REST API Conventions
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @ManyToOne(optional = false)
+    private Customer customer;
+
+    @ManyToOne(optional = false)
+    private Vehicle vehicle;
+
+    @Embedded
+    private DateRange rentalPeriod;
+
+    @Enumerated(EnumType.STRING)
+    private BookingStatus status;
+
+    @Embedded
+    private Money totalPrice;
+
+    protected Booking() {
+        // for JPA
+    }
+
+    public Booking(Customer customer,
+                   Vehicle vehicle,
+                   DateRange rentalPeriod,
+                   Money totalPrice) {
+        // validate invariants here
+        this.customer = Objects.requireNonNull(customer);
+        this.vehicle = Objects.requireNonNull(vehicle);
+        this.rentalPeriod = Objects.requireNonNull(rentalPeriod);
+        this.totalPrice = Objects.requireNonNull(totalPrice);
+        this.status = BookingStatus.REQUESTED;
+    }
+
+    public void confirm() {
+        if (status != BookingStatus.REQUESTED) {
+            throw new BookingStatusTransitionException(id, status, BookingStatus.CONFIRMED);
+        }
+        this.status = BookingStatus.CONFIRMED;
+    }
+
+    public void cancel(LocalDateTime now) {
+        validateCancellationWindow(now);
+        if (!status.isCancellable()) {
+            throw new BookingStatusTransitionException(id, status, BookingStatus.CANCELLED);
+        }
+        this.status = BookingStatus.CANCELLED;
+    }
+
+    // Private invariants & validation methods...
+}
 ```
-GET    /api/travel-requests              # Liste aller Anträge
-GET    /api/travel-requests/{id}         # Einzelner Antrag
-POST   /api/travel-requests              # Neuer Antrag
-PUT    /api/travel-requests/{id}         # Aktualisieren
-DELETE /api/travel-requests/{id}         # Löschen
 
-POST   /api/travel-requests/{id}/submit  # Einreichen
-POST   /api/travel-requests/{id}/approve # Genehmigen
-POST   /api/travel-requests/{id}/reject  # Ablehnen
+> Rule: **No public setters** for critical state; use expressive business methods instead.
 
-POST   /api/travel-requests/{id}/expenses    # Ausgabe hinzufügen
-POST   /api/travel-requests/{id}/receipts    # Beleg hochladen (Multipart)
+### 2. Repository Pattern
+
+Domain layer:
+
+```java
+public interface BookingRepository {
+    Booking save(Booking booking);
+    Optional<Booking> findById(Long id);
+    List<Booking> findByCustomerId(Long customerId);
+    List<Booking> findActiveBookingsForVehicle(Long vehicleId, DateRange period);
+}
 ```
+
+Infrastructure layer:
+
+```java
+@Repository
+public interface JpaBookingRepository
+        extends BookingRepository, JpaRepository<Booking, Long> {
+
+    // Spring Data JPA derives the implementation
+}
+```
+
+Same idea for `VehicleRepository`, `CustomerRepository`, `RentalAgreementRepository`, `DamageReportRepository`.
+
+### 3. Domain Services
+
+For logic that spans multiple aggregates (e.g., checking availability + pricing):
+
+```java
+@Service
+public class BookingDomainService {
+
+    public Booking createBooking(
+        Customer customer,
+        Vehicle vehicle,
+        DateRange rentalPeriod,
+        PricingPolicy pricingPolicy
+    ) {
+        validateVehicleAvailability(vehicle, rentalPeriod);
+        Money price = pricingPolicy.calculatePrice(vehicle, rentalPeriod);
+        return new Booking(customer, vehicle, rentalPeriod, price);
+    }
+
+    private void validateVehicleAvailability(Vehicle vehicle, DateRange rentalPeriod) {
+        // domain rule checks...
+    }
+}
+```
+
+Application layer orchestrates calls to domain services + repositories.
 
 ---
 
-## 🔒 Security & Rollen
+## 🌐 REST API Conventions (Example)
 
-JWT-basierte Authentifizierung mit Method-Level Security:
+- `GET /api/vehicles`
+- `GET /api/vehicles/{id}`
+- `POST /api/vehicles`
+- `PUT /api/vehicles/{id}`
+- `PATCH /api/vehicles/{id}/status`
+
+- `GET /api/customers/{id}/bookings`
+- `POST /api/bookings/search-availability`
+- `POST /api/bookings`
+- `POST /api/bookings/{id}/confirm`
+- `POST /api/bookings/{id}/cancel`
+
+- `POST /api/rentals/{bookingId}/check-out`
+- `POST /api/rentals/{id}/check-in`
+- `POST /api/rentals/{id}/damage-reports`
+
+Conventions:
+
+- Use DTOs for requests/responses.
+- Validate DTOs with Bean Validation (`@Valid`, `@NotNull`, `@Future`, etc.).
+- Map DTO ↔ Entity using dedicated mapper classes.
+
+---
+
+## 🔒 Security & Roles
+
+Roles (minimum):
+
+- `ROLE_CUSTOMER`
+- `ROLE_EMPLOYEE`
+- `ROLE_ADMIN`
+
+Examples:
+
+- `CUSTOMER` can:
+  - register, manage own profile.
+  - search vehicles, create/cancel own bookings.
+- `EMPLOYEE` can:
+  - manage vehicles, perform check-in/check-out, create damage reports.
+- `ADMIN` can:
+  - manage branches, adjust pricing policies, view audit logs.
+
+Use method-level security where appropriate, e.g.:
 
 ```java
 @PreAuthorize("hasRole('EMPLOYEE')")
-public TravelRequest createTravelRequest(CreateTravelRequestDTO dto, Long employeeId) {
-    // Nur eigener Employee
-    validateEmployeeMatchesCurrentUser(employeeId);
-    // ...
-}
-
-@PreAuthorize("hasRole('MANAGER')")
-public TravelRequest approveTravelRequest(Long requestId, Long managerId) {
-    // Nur zuständiger Manager
-    // ...
-}
-
-@PreAuthorize("hasRole('HR')")
-public List<TravelRequest> getAllForReporting() {
-    // Nur HR
-    // ...
-}
-```
-
-**Delegation**: Assistenten können im Namen anderer handeln (eigene Entity `Delegation`).
-
----
-
-## 🔌 Externe Integrationen
-
-### HRIS-Client (HR-System)
-```java
-@Service
-public class HrisClient {
-    public Optional<AbsenceInfo> checkAbsence(Long employeeId, DateRange period) {
-        // REST-Call zu HRIS-API
-        // Prüft ob Mitarbeiter im Urlaub ist
-    }
-}
-```
-
-### EasyPay-Client (Auszahlung)
-```java
-@Service
-public class EasyPayClient {
-    public PaymentResult submitPayment(TravelRequest request, Money totalAmount) {
-        // REST-Call zu EasyPay-API
-        // Veranlasst Auszahlung
-    }
-}
-```
-
-### ExRat-Client (Währungskurse)
-```java
-@Service
-public class ExRatClient {
-    @Cacheable(value = "exchangeRates")
-    public ExchangeRate getExchangeRate(Currency from, Currency to, LocalDate date) {
-        // REST-Call zu ExRat-API
-        // Holt aktuellen Wechselkurs
-    }
-}
-```
-
-**Wichtig**: Caching für Währungskurse nutzen!
-
----
-
-## 📝 Exception Handling
-
-Custom Exceptions im Domain Layer:
-
-```java
-public class TravelRequestNotFoundException extends RuntimeException {
-    public TravelRequestNotFoundException(Long id) {
-        super("Reiseantrag mit ID " + id + " nicht gefunden");
-    }
-}
-
-public class TravelPolicyViolationException extends RuntimeException {
-    private final List<String> violations;
-    // ...
-}
-
-public class InsufficientPermissionException extends RuntimeException {
-    // ...
-}
-```
-
-Global Exception Handler:
-
-```java
-@ControllerAdvice
-public class GlobalExceptionHandler {
-
-    @ExceptionHandler(TravelRequestNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(TravelRequestNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(new ErrorResponse("NOT_FOUND", ex.getMessage()));
-    }
-
-    @ExceptionHandler(TravelPolicyViolationException.class)
-    public ResponseEntity<ErrorResponse> handlePolicyViolation(TravelPolicyViolationException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ErrorResponse("POLICY_VIOLATION", ex.getMessage(), ex.getViolations()));
-    }
-}
-```
-
----
-
-## 📁 Datei-Upload (Belege)
-
-Multipart-Upload für PDF/Bilder:
-
-```java
-@PostMapping(value = "/api/receipts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-public ResponseEntity<ReceiptDTO> uploadReceipt(
-    @RequestParam("file") MultipartFile file,
-    @RequestParam("travelRequestId") Long travelRequestId,
-    @RequestParam("description") String description
-) {
-    // Validierung: Max 10MB, nur PDF/JPG/PNG
-    validateFile(file);
-
-    Receipt receipt = receiptService.uploadReceipt(file, travelRequestId, description);
-    return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toDTO(receipt));
-}
-```
-
----
-
-## ✅ Validation
-
-Bean Validation in DTOs:
-
-```java
-public record CreateTravelRequestDTO(
-    @NotBlank(message = "Ziel darf nicht leer sein")
-    String destination,
-
-    @NotBlank(message = "Zweck erforderlich")
-    String purpose,
-
-    @NotNull @FutureOrPresent
-    LocalDate startDate,
-
-    @NotNull
-    LocalDate endDate,
-
-    @NotNull @DecimalMin("0.01")
-    BigDecimal estimatedAmount,
-
-    @NotNull
-    Currency currency
-) {
-    // Custom Validation im Constructor
-    public CreateTravelRequestDTO {
-        if (endDate.isBefore(startDate)) {
-            throw new IllegalArgumentException("Enddatum muss nach Startdatum liegen");
-        }
-    }
-}
-```
-
-Controller:
-```java
-@PostMapping
-public ResponseEntity<TravelRequestDTO> create(
-    @Valid @RequestBody CreateTravelRequestDTO dto  // @Valid triggert Validation
-) {
+public RentalAgreement performCheckOut(Long bookingId, CheckOutCommand command) {
     // ...
 }
 ```
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing Strategy
 
-### Unit Tests (Domain Services)
-```java
-@Test
-void shouldValidateTravelPolicyViolation() {
-    // Given
-    TravelRequest request = createRequestWithHighExpenses();
-    TravelPolicy policy = createStrictPolicy();
+- **Unit tests** for:
+  - Domain entities (state transitions, invariants).
+  - Domain services (pricing, availability logic).
+- **Integration tests** for:
+  - REST controllers (MockMvc or WebTestClient).
+  - Persistence mappings (H2 in-memory DB).
 
-    // When
-    ValidationResult result = validator.validate(request, policy);
-
-    // Then
-    assertThat(result.isValid()).isFalse();
-    assertThat(result.getViolations()).hasSize(2);
-}
-```
-
-### Integration Tests (Controller)
-```java
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-class TravelRequestControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Test
-    @WithMockUser(roles = "EMPLOYEE")
-    void shouldCreateTravelRequest() throws Exception {
-        mockMvc.perform(post("/api/travel-requests")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("DRAFT"));
-    }
-}
-```
+Target: **≥ 80%** unit test coverage, focusing on domain logic.
 
 ---
 
-## 🗂️ DTO-Mapping
+## 🌍 Language & Conventions
 
-**Mapper-Pattern** für Entity ↔ DTO:
-
-```java
-@Component
-public class TravelRequestMapper {
-
-    public TravelRequestDTO toDTO(TravelRequest entity) {
-        return new TravelRequestDTO(
-            entity.getId(),
-            entity.getEmployee().getId(),
-            entity.getDestination(),
-            entity.getPurpose(),
-            entity.getTravelPeriod().getStartDate(),
-            entity.getTravelPeriod().getEndDate(),
-            entity.getStatus().name()
-        );
-    }
-
-    public TravelRequest toEntity(CreateTravelRequestDTO dto, Employee employee) {
-        return TravelRequest.builder()
-            .employee(employee)
-            .destination(dto.destination())
-            .purpose(dto.purpose())
-            .travelPeriod(new DateRange(dto.startDate(), dto.endDate()))
-            .estimatedCost(new Money(dto.estimatedAmount(), dto.currency()))
-            .status(TravelRequestStatus.DRAFT)
-            .build();
-    }
-}
-```
+- **Code**: English (classes, methods, variables)
+- **Comments**: German
+- **Error messages**: German
+- **Commit messages**: German
+- **Documentation**: German (unless explicitly required otherwise)
 
 ---
 
-## 💾 Transaktions-Management
+## ✅ DDD Validation & Quality Checklist (Must Do!)
 
-```java
-@Service
-@Transactional(readOnly = true)  // Default für Lese-Operationen
-public class TravelRequestService {
+Before committing, check:
 
-    @Transactional  // Schreibende Operation
-    public TravelRequest submitTravelRequest(Long requestId) {
-        TravelRequest request = findById(requestId);
-        request.submit();
+### Entities
 
-        TravelRequest saved = repository.save(request);
-        emailService.sendSubmittedNotification(saved);
+- [ ] Entity has **business methods** (not just getters/setters).
+- [ ] No public setters for critical fields.
+- [ ] Invariants are validated **inside** the entity (constructor or methods).
+- [ ] Domain-specific exceptions (e.g. `BookingStatusTransitionException`), not generic ones.
+- [ ] Aggregate root protects its children (no external mutation of collections).
 
-        return saved;
-    }
+### Value Objects
 
-    // readOnly = true für Performance
-    public List<TravelRequest> findAllByEmployee(Long employeeId) {
-        return repository.findByEmployeeId(employeeId);
-    }
-}
-```
+- [ ] All fields `final`, no public setters.
+- [ ] Validation happens in constructor/factory.
+- [ ] No identity/ID fields.
+- [ ] `equals()` / `hashCode()` correctly implemented (or Lombok `@Value`).
 
----
+### Services
 
-## 🎨 Clean Code Principles
+- [ ] Application services orchestrate use cases, do not contain core business rules.
+- [ ] Core business logic lives in entities or domain services.
+- [ ] Domain services are stateless and focused.
+- [ ] `@Transactional` on application/domain services where needed.
 
-1. **Kleine Methoden**: Max 20 Zeilen
-2. **Single Responsibility**: Eine Methode = eine Aufgabe
-3. **Sprechende Namen**: `validateTravelPolicy()` statt `check()`
-4. **Keine Magic Numbers**: Konstanten verwenden
-5. **Early Return**: Guard Clauses am Anfang
-6. **Immutability**: Value Objects unveränderlich
+### Repositories
 
-**Beispiel - Gut**:
-```java
-public void approveTravelRequest(TravelRequest request) {
-    validateRequestNotNull(request);
-    validateStatusIsSubmitted(request);
-    validateManagerIsResponsible(request);
-
-    performApproval(request);
-    sendApprovalNotification(request);
-}
-```
-
-**Beispiel - Schlecht**:
-```java
-public void approve(TravelRequest r) {
-    if (r != null) {
-        if (r.getStatus() == TravelRequestStatus.SUBMITTED) {
-            // 50 Zeilen verschachtelter Code...
-        }
-    }
-}
-```
+- [ ] Repository interfaces in `domain.repository`.
+- [ ] Spring Data / JPA implementations in `infrastructure.persistence`.
+- [ ] Repositories return entities, not DTOs.
+- [ ] No business logic in queries.
 
 ---
 
-## 📚 Dokumentation
+## 🤖 Copilot Prompt Template (with MCP)
 
-### OpenAPI/Swagger
+Use this template whenever you ask the AI to generate code for RENTACAR:
 
-Swagger UI verfügbar unter: `http://localhost:8080/swagger-ui.html`
-
-```java
-@RestController
-@Tag(name = "Reiseanträge", description = "Verwaltung von Reiseanträgen")
-public class TravelRequestController {
-
-    @Operation(summary = "Reiseantrag erstellen")
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Erfolgreich erstellt"),
-        @ApiResponse(responseCode = "400", description = "Ungültige Daten")
-    })
-    @PostMapping
-    public ResponseEntity<TravelRequestDTO> create(@Valid @RequestBody CreateTravelRequestDTO dto) {
-        // ...
-    }
-}
-```
-
----
-
-## 🔄 Schrittweises Vorgehen
-
-**Best Practice für neue Features**:
-
-1. **Domain-Model** definieren (Entities, Value Objects)
-2. **Repository-Interface** im Domain Layer erstellen
-3. **Domain Service** für Business-Logik implementieren
-4. **Application Service** als Use-Case implementieren
-5. **REST-Controller** mit DTOs erstellen
-6. **Tests** schreiben (Unit → Integration)
-7. **Dokumentation** aktualisieren
-
----
-
-## 🌍 Sprache & Konventionen
-
-- **Code**: Englisch (Klassen, Methoden, Variablen)
-- **Kommentare**: Deutsch
-- **Fehlermeldungen**: Deutsch
-- **Commit-Messages**: Deutsch
-- **Dokumentation**: Deutsch
+> I am working on a **DDD (Domain-Driven Design)** backend project called **RENTACAR**  
+> (car rental system with vehicles, customers, bookings, rentals and damage reports).
+>
+> Please:
+>
+> 1. Use the **Context7 MCP server** to look up up-to-date Spring Boot 3 / JPA / Validation / Security documentation as needed.
+> 2. Use the **Sequential Thinking MCP server** to first create a step-by-step plan for the implementation, then implement it step by step.
+>
+> Generate the following code:
+> [YOUR REQUEST, e.g. “Create the Booking aggregate with methods confirm() and cancel() and a BookingRepository interface.”]
+>
+> **CRITICAL DDD RULES (do NOT violate):**
+>
+> - **ENTITIES** have business methods, no public setters for critical fields.  
+>   Example: `booking.confirm()` instead of `booking.setStatus(CONFIRMED)`.
+> - **INVARIANTS** are validated inside the entity (constructor or methods),  
+>   not in services or controllers.
+> - **VALUE OBJECTS** are immutable (final fields, no setters).  
+>   Validation happens in constructor or factory.
+> - **SERVICES** orchestrate and call entity/domain-service methods,  
+>   they should not implement complex business rules themselves.
+> - **EXCEPTIONS** are domain-specific  
+>   (e.g. `InvalidRentalPeriodException`, `BookingStatusTransitionException`),  
+>   not generic (`IllegalArgumentException`).
+> - **REPOSITORIES** are abstract interfaces in the domain layer and implemented  
+>   in the infrastructure layer. They return **entities**, not DTOs.
+> - **AGGREGATE ROOTS** protect their children. Child entities are only modified via the root.
+>
+> After generating the code, please:
+>
+> - Briefly validate against DDD best practices and the checklist above.
+> - Suggest small improvements if you see any anemic domain model tendencies.
 
 ---
 
-## ⚙️ Konfiguration
-
-### application.properties (Development)
-```properties
-# H2 Database
-spring.datasource.url=jdbc:h2:mem:travelreimburse
-spring.jpa.hibernate.ddl-auto=create-drop
-spring.h2.console.enabled=true
-
-# External APIs
-hris.api.url=http://localhost:9001/api
-easypay.api.url=http://localhost:9002/api
-exrat.api.url=http://localhost:9003/api
-
-# File Upload
-file.upload-dir=./uploads/receipts
-spring.servlet.multipart.max-file-size=10MB
-
-# JWT
-jwt.secret=${JWT_SECRET}
-jwt.expiration=86400000
-```
-
----
-
-## 📦 Wichtige Dependencies
-
-```xml
-<dependencies>
-    <!-- Spring Boot Starter -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-validation</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-mail</artifactId>
-    </dependency>
-
-    <!-- Database -->
-    <dependency>
-        <groupId>com.h2database</groupId>
-        <artifactId>h2</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-
-    <!-- JWT -->
-    <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-api</artifactId>
-        <version>0.11.5</version>
-    </dependency>
-
-    <!-- OpenAPI/Swagger -->
-    <dependency>
-        <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-        <version>2.3.0</version>
-    </dependency>
-
-    <!-- Lombok (Optional) -->
-    <dependency>
-        <groupId>org.projectlombok</groupId>
-        <artifactId>lombok</artifactId>
-        <optional>true</optional>
-    </dependency>
-
-    <!-- Testing -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
-
----
-
-## 🚀 Quick Start
-
-```bash
-# Repository klonen
-git clone <repository-url>
-cd TravelReimburse
-
-# Backend starten
-cd backend
-./mvnw clean install
-./mvnw spring-boot:run
-
-# API läuft auf http://localhost:8080
-# Swagger UI: http://localhost:8080/swagger-ui.html
-# H2 Console: http://localhost:8080/h2-console
-```
-
----
-
-## 🎓 Wichtige Konzepte für KI-Coding
-
-### Kontext-Management
-- **Teile große Aufgaben** in kleine Schritte auf
-- **Ein Feature nach dem anderen** implementieren
-- **Immer zuerst Domain-Model** dann Infrastructure
-
-### Prompting-Strategie
-1. "Erstelle Entity TravelRequest mit Feldern X, Y, Z"
-2. "Erstelle Repository-Interface für TravelRequest"
-3. "Implementiere Domain Service für Policy-Validierung"
-4. "Erstelle Application Service für Use Case 'Reise beantragen'"
-5. "Erstelle REST-Controller für TravelRequest"
-
-
-### Qualitätssicherung
-- Nach jedem Schritt: **Code Review** durch KI
-- Frage explizit: "Entspricht das DDD Best Practices?"
-- Teste Schritt für Schritt
-
-
----
-
-# SECTION 8: DDD VALIDATION & QUALITY ASSURANCE
-
-## KRITISCH: Nach JEDER Klasse und Methode durchführen!
-
-Diese Checklisten MÜSSEN vor dem Commit erfüllt sein:
-
-### 8.1 Entity Validation (MUSS durchgeführt werden)
-
-Wenn du eine Entity erstellst oder änderst:
-
-- [ ] Hat die Entity geschäftliche Methoden? (nicht nur Getter/Setter)
-- [ ] Sind kritische Felder `protected` statt `public`?
-- [ ] Validiert die Entity ihre Invarianten im Konstruktor?
-- [ ] Gibt es sprechende Business-Methoden wie `submit()`, `approve()` statt `setStatus()`?
-- [ ] Wirft die Entity spezifische DDD-Exceptions (nicht `IllegalArgumentException`)?
-- [ ] Wenn es ein Aggregate Root ist: Schützt es seine Child-Entities?
-
-**Bei Verstoß**: Refaktoriere sofort!
-
-### 8.2 Value Object Validation
-
-- [ ] Alle Felder sind `final`?
-- [ ] Es gibt KEINE public Setter?
-- [ ] Validierung läuft im Konstruktor?
-- [ ] Überschreibt die Klasse `equals()` und `hashCode()`?
-- [ ] Hat die Klasse KEINE ID/Identität?
-
-**Bei Verstoß**: Umschreiben!
-
-### 8.3 Service Validation
-
-- [ ] Der Service ruft Entity-Methoden auf (delegiert)?
-- [ ] Es gibt KEINE Geschäftslogik im Service selbst?
-- [ ] Es gibt KEINE Validierung im Service (raus zur Entity)?
-- [ ] Der Service managt Transaktionen mit `@Transactional`?
-- [ ] Der Service ruft korrekt Repositories auf?
-
-**Bei Verstoß**: Logik zur Entity verschieben!
-
-### 8.4 Repository Validation
-
-- [ ] Repository-Interface ist im `domain/repository` Package?
-- [ ] Implementierung ist im `infrastructure/persistence` Package?
-- [ ] Es gibt KEINE Business-Logik in Queries?
-- [ ] Es werden Entities zurückgegeben (nicht DTOs)?
-
----
-
-## SECTION 9: DDD Kontext aus "Domain-Driven Design Quickly"
-
-Das Projekt folgt den Prinzipien aus **"Domain-Driven Design Quickly"** (InfoQ Buch, Open Source):
-
-### Wichtigste Konzepte:
-
-1. **Ubiquitous Language**: Team (Entwickler + Fachexperten) spricht eine gemeinsame Sprache
-   - Begriffe aus der Business-Welt werden direkt in Code abgebildet
-   - Klasse heißt `TravelRequest`, nicht `TR` oder `Request`
-   - Methode heißt `submit()`, nicht `changeStatus()`
-
-2. **Building Domain Knowledge**: Wir verstehen die Business-Domain tief
-   - Reisekosten-Abrechnung ist kein "CRUD-System"
-   - Es gibt komplexe Geschäftsregeln (Genehmigungen, Richtlinien, Wechselkurse)
-   - Diese Regeln gehören ins Domain Model!
-
-3. **Model-Driven Design**: Code ist direkter Ausdruck des Domain Models
-   - Die Architektur spiegelt die Business-Realität
-   - Entwickler arbeiten mit denselben Konzepten wie Business-Analysten
-
-4. **Layered Architecture**: Klare Separation of Concerns
-   - Domain Layer ist das Herz (Business-Logik)
-   - Application Layer orchestriert Use Cases
-   - Infrastructure Layer ist Plumbing (DB, APIs)
-   - Presentation Layer ist nur UI-Mapping
-
-5. **Taktische Patterns**: Konkrete Implementierungsmuster
-   - **Entities**: Geschäftsobjekte mit Identität und Business-Methoden
-   - **Value Objects**: Unverändbare Werte ohne Identität
-   - **Services**: Orchestrierung, nicht Business-Logik
-   - **Repositories**: Persistierung abstrakt machen
-   - **Aggregates**: Konsistenzgrenzen definieren
-
-### Warum DDD für dieses Projekt?
-
-- ✅ Business-Logik ist komplex → DDD hilft zu strukturieren
-- ✅ Anforderungen ändern sich → Rich Models sind wartbar
-- ✅ Team mit verschiedenen Rollen → Ubiquitous Language hilft
-- ✅ Code soll lange leben → DDD macht Maintenance leichter
-
----
-
-## SECTION 10: Copilot Prompt für KI-Assisted Coding
-
-**IMMER diesen Prompt verwenden, wenn du der KI Code-Generierung gibst:**
-
-### Template: DDD-Konformer Code
-
-Ich arbeite an einem DDD (Domain-Driven Design) Projekt nach den Prinzipien
-aus "Domain-Driven Design".
-
-Generiere den folgenden Code:
-[Deine Code-Anforderung]
-
-KRITISCHE DDD-REGELN (NICHT brechen!):
-
-    ENTITIES: Haben Business-Methoden, KEINE public Setter für geschäftskritische Felder
-    Beispiel: public void submit() statt public void setStatus()
-
-    INVARIANTEN: Werden in der Entity selbst validiert
-    NICHT im Service oder Controller!
-
-    VALUE OBJECTS: Sind immutable (final fields)
-    Keine Setter! Validierung im Konstruktor!
-
-    SERVICES: Sind Orchestratoren
-    Rufen Entity-Methoden auf, implementieren NICHT selbst Geschäftslogik
-
-    EXCEPTIONS: Sind spezifisch für die Domain
-    Nicht: IllegalArgumentException, ValidationException
-    Sondern: InvalidTravelPeriodException, TravelRequestAlreadySubmittedException
-
-    REPOSITORIES: Interface abstrakt, Implementierung konkret
-    Repository gibt Entities zurück, NICHT DTOs
-
-    AGGREGATE ROOTS: Schützen ihre Children
-    Child-Entities nur über Root ändern (cascading)
-
-Nach Code-Generierung:
-
-    Durchlaufe Checklisten (Section 8.1-8.4)
-
-    Prüfe auf Anemic Models
-
-    Validiere Layer-Struktur
-
-text
-
----
-
-## SECTION 11: Häufige Fehler & Fixes
-
-### ❌ Fehler 1: Public Setter in Entity
-
-// FALSCH:
-request.setStatus(APPROVED); // Bypasst Business-Regeln!
-
-text
-undefined
-
-// RICHTIG:
-request.approve(managerId); // Validiert, loggt, updated state
-
-text
-
-### ❌ Fehler 2: Business-Logik im Service
-
-// FALSCH:
-@Service public class TravelRequestService {
-public void submit(Long id) {
-if (request.getStatus() != DRAFT) {
-throw new Exception("..."); // ← FALSCH!
-}
-request.setStatus(SUBMITTED);
-}
-}
-
-text
-undefined
-
-// RICHTIG:
-@Service public class TravelRequestService {
-public void submit(Long id) {
-request.submit(); // ← Business-Logik in Entity!
-repository.save(request);
-}
-}
-
-text
-
-### ❌ Fehler 3: Anämisches Domain Model
-
-// FALSCH - Anemic Model:
-public class Employee {
-private String firstName;
-public void setFirstName(String fn) { this.firstName = fn; }
-public String getFirstName() { return firstName; }
-// ← KEINE Business-Methoden!
-}
-
-text
-undefined
-
-// RICHTIG - Rich Model:
-public class Employee {
-private EmployeeName name;
-public void changeName(EmployeeName newName) {
-if (!isActive()) throw new InactiveEmployeeException();
-this.name = newName;
-registerEvent(new EmployeeNameChangedEvent(...));
-}
-}
-
-text
-
----
-
-## SECTION 12: Code Review Checkliste
-
-Nutze diese Checkliste vor Commit:
-
-[ ] Gibt es public Setter? → Remove oder Refactor zu Business-Methode
-[ ] Ist Validierung im Service? → Move zu Entity
-[ ] Ist die Entity "anämisch"? → Add Business-Methoden
-[ ] Gibt es generische Exceptions? → Replace mit Domain-spezifisch
-[ ] Ist das Entity ein Aggregate Root? → Schützt es seine Children?
-[ ] Sind Value Objects immutable? → Alle final? Keine Setter?
-[ ] Ist das Repository-Interface abstrakt? → Interface im Domain Layer
-[ ] Validiert die Entity ihre Invarianten? → Ja? Gut!
-[ ] Gibt es Zustandsübergänge ohne Validation? → Add Validation
-[ ] Sind DTOs nur für Controller? → Ja? Gut!
+## 🔄 Recommended Workflow per Feature
+
+1. **Clarify the use case** (e.g. “Customer creates a booking”).
+2. **Ask Sequential Thinking** (via MCP) to generate a step-by-step plan.
+3. **Design/adjust the domain model** (entities, VOs, repositories).
+4. **Generate code** layer by layer:
+   - Domain model
+   - Domain services
+   - Application services
+   - REST controllers + DTOs
+5. **Use Context7** (via MCP) to verify framework usage, libraries and edge cases.
+6. **Write tests** (domain first, then REST).
+7. **Run tests, refactor, re-run**.
+8. **Commit only when the DDD checklist is fulfilled.**
