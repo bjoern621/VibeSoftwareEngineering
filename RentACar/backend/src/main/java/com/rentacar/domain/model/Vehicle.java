@@ -8,8 +8,8 @@ import java.util.Objects;
  * Vehicle (Fahrzeug) Aggregate Root.
  * 
  * Repräsentiert ein Mietfahrzeug mit allen relevanten Eigenschaften.
- * Gemäß DDD-Prinzipien: Business-Methoden statt öffentliche Setters,
- * Invarianten werden in der Entity validiert.
+ * Business-Logik wird durch expressive Methoden anstelle von Settern implementiert.
+ * Alle Invarianten werden in der Entity validiert.
  */
 @Entity
 @Table(name = "vehicles")
@@ -190,6 +190,20 @@ public class Vehicle {
             );
         }
         this.mileage = newMileage;
+    }
+    
+    /**
+     * Aktualisiert Marke und Modell des Fahrzeugs.
+     * 
+     * @param newBrand die neue Marke
+     * @param newModel das neue Modell
+     * @throws IllegalArgumentException wenn Marke oder Modell ungültig sind
+     */
+    public void updateBrandAndModel(String newBrand, String newModel) {
+        validateBrand(newBrand);
+        validateModel(newModel);
+        this.brand = newBrand;
+        this.model = newModel;
     }
     
     // Validierungsmethoden

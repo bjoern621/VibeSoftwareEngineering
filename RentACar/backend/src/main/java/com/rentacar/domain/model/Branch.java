@@ -7,7 +7,7 @@ import java.util.Objects;
  * Branch (Filiale) Aggregate Root.
  * 
  * Repräsentiert eine Vermietungsfiliale mit Standort und Kontaktdaten.
- * Gemäß DDD-Prinzipien: Business-Methoden statt öffentliche Setters.
+ * Business-Logik wird durch expressive Methoden anstelle von Settern implementiert.
  */
 @Entity
 @Table(name = "branches")
