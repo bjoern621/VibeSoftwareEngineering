@@ -1,5 +1,6 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidLicensePlateException;
 import jakarta.persistence.Embeddable;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -30,7 +31,7 @@ public class LicensePlate {
      * Erstellt ein neues Kennzeichen mit Validierung.
      * 
      * @param value das Kennzeichen als String
-     * @throws IllegalArgumentException wenn das Kennzeichen ungültig ist
+     * @throws InvalidLicensePlateException wenn das Kennzeichen ungültig ist
      */
     private LicensePlate(String value) {
         validate(value);
@@ -42,7 +43,7 @@ public class LicensePlate {
      * 
      * @param value das Kennzeichen als String
      * @return neues LicensePlate Value Object
-     * @throws IllegalArgumentException wenn das Kennzeichen ungültig ist
+     * @throws InvalidLicensePlateException wenn das Kennzeichen ungültig ist
      */
     public static LicensePlate of(String value) {
         return new LicensePlate(value);
@@ -52,19 +53,16 @@ public class LicensePlate {
      * Validiert das Kennzeichen-Format.
      * 
      * @param value das zu validierende Kennzeichen
-     * @throws IllegalArgumentException wenn das Kennzeichen ungültig ist
+     * @throws InvalidLicensePlateException wenn das Kennzeichen ungültig ist
      */
     private void validate(String value) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("Kennzeichen darf nicht null oder leer sein");
+            throw new InvalidLicensePlateException("Kennzeichen darf nicht null oder leer sein", value);
         }
         
         String normalized = value.toUpperCase().trim();
         if (!LICENSE_PLATE_PATTERN.matcher(normalized).matches()) {
-            throw new IllegalArgumentException(
-                "Ungültiges Kennzeichen-Format: " + value + 
-                ". Erwartetes Format: XX-YY 1234"
-            );
+            throw new InvalidLicensePlateException(value);
         }
     }
     

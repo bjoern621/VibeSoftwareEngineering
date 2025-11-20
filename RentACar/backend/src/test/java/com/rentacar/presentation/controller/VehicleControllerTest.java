@@ -5,6 +5,7 @@ import com.rentacar.application.service.VehicleApplicationService;
 import com.rentacar.domain.exception.BranchNotFoundException;
 import com.rentacar.domain.exception.DuplicateLicensePlateException;
 import com.rentacar.domain.exception.VehicleNotFoundException;
+import com.rentacar.domain.exception.VehicleStatusTransitionException;
 import com.rentacar.domain.model.VehicleStatus;
 import com.rentacar.domain.model.VehicleType;
 import com.rentacar.presentation.dto.CreateVehicleRequestDTO;
@@ -229,16 +230,16 @@ class VehicleControllerTest {
     
     @Test
 
-    @DisplayName("PATCH /api/fahrzeuge/{id}/ausser-betrieb - Fahrzeug vermietet führt zu 400")
+    @DisplayName("PATCH /api/fahrzeuge/{id}/ausser-betrieb - Fahrzeug vermietet führt zu 409")
     void markAsOutOfService_VehicleRented() throws Exception {
         // Arrange
-        doThrow(new IllegalStateException("Fahrzeug ist vermietet"))
+        doThrow(new VehicleStatusTransitionException("Fahrzeug ist vermietet", VehicleStatus.RENTED))
             .when(vehicleApplicationService).markVehicleAsOutOfService(1L);
         
         // Act & Assert
         mockMvc.perform(patch("/api/fahrzeuge/1/ausser-betrieb")
 )
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isConflict())
             .andExpect(jsonPath("$.message", containsString("vermietet")));
         
         verify(vehicleApplicationService).markVehicleAsOutOfService(1L);

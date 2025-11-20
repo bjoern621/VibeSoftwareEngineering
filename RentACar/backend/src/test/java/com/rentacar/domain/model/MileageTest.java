@@ -1,5 +1,6 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidMileageException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,16 +41,16 @@ class MileageTest {
     @Test
     void shouldRejectNullKilometers() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidMileageException.class, 
             () -> Mileage.of(null));
     }
     
     @Test
     void shouldRejectNegativeKilometers() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidMileageException.class, 
             () -> Mileage.of(-100));
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidMileageException.class, 
             () -> Mileage.of(-1));
     }
     
@@ -72,7 +73,7 @@ class MileageTest {
         Mileage mileage = Mileage.of(50000);
         
         // When & Then
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidMileageException.class, 
             () -> mileage.add(-100));
     }
     
