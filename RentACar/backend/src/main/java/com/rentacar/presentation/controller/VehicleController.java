@@ -67,6 +67,45 @@ public class VehicleController {
     }
     
     /**
+     * PATCH /api/fahrzeuge/{id}/vermieten - Markiert ein Fahrzeug als vermietet.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/vermieten")
+    public ResponseEntity<Void> markAsRented(@PathVariable Long id) {
+        vehicleApplicationService.markVehicleAsRented(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * PATCH /api/fahrzeuge/{id}/zurueckgeben - Gibt ein Fahrzeug zurück.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @param returnMileage der Kilometerstand bei Rückgabe
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/zurueckgeben")
+    public ResponseEntity<Void> returnVehicle(
+            @PathVariable Long id,
+            @RequestParam Integer returnMileage) {
+        vehicleApplicationService.returnVehicle(id, returnMileage);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * PATCH /api/fahrzeuge/{id}/wartung - Markiert ein Fahrzeug als in Wartung.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/wartung")
+    public ResponseEntity<Void> markAsInMaintenance(@PathVariable Long id) {
+        vehicleApplicationService.markVehicleAsInMaintenance(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
      * GET /api/fahrzeuge - Gibt alle Fahrzeuge zurück.
      * 
      * @return Liste aller Fahrzeuge mit Status 200 OK
