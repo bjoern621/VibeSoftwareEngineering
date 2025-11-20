@@ -273,6 +273,142 @@ class VehicleApplicationServiceTest {
         verify(vehicleRepository).findById(99L);
     }
     
+    @Test
+    @DisplayName("markVehicleAsRented - Markiert Fahrzeug als vermietet")
+    void markVehicleAsRented_Success() {
+        // Arrange
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(testVehicle);
+        
+        // Act
+        vehicleApplicationService.markVehicleAsRented(1L);
+        
+        // Assert
+        assertThat(testVehicle.getStatus()).isEqualTo(VehicleStatus.RENTED);
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository).save(testVehicle);
+    }
+    
+    @Test
+    @DisplayName("markVehicleAsRented - Wirft Exception wenn Fahrzeug nicht verfügbar")
+    void markVehicleAsRented_ThrowsExceptionWhenNotAvailable() {
+        // Arrange
+        testVehicle.markAsRented(); // Fahrzeug ist jetzt RENTED
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        
+        // Act & Assert
+        assertThatThrownBy(() -> vehicleApplicationService.markVehicleAsRented(1L))
+            .isInstanceOf(VehicleStatusTransitionException.class);
+        
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("markVehicleAsRented - Wirft VehicleNotFoundException wenn nicht gefunden")
+    void markVehicleAsRented_ThrowsExceptionWhenNotFound() {
+        // Arrange
+        when(vehicleRepository.findById(99L)).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThatThrownBy(() -> vehicleApplicationService.markVehicleAsRented(99L))
+            .isInstanceOf(VehicleNotFoundException.class);
+        
+        verify(vehicleRepository).findById(99L);
+        verify(vehicleRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("returnVehicle - Gibt Fahrzeug zurück und markiert als verfügbar")
+    void returnVehicle_Success() {
+        // Arrange
+        testVehicle.markAsRented(); // Fahrzeug muss vermietet sein
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(testVehicle);
+        
+        // Act
+        vehicleApplicationService.returnVehicle(1L, 55000);
+        
+        // Assert
+        assertThat(testVehicle.getStatus()).isEqualTo(VehicleStatus.AVAILABLE);
+        assertThat(testVehicle.getMileage().getKilometers()).isEqualTo(55000);
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository).save(testVehicle);
+    }
+    
+    @Test
+    @DisplayName("returnVehicle - Wirft Exception wenn Fahrzeug nicht vermietet")
+    void returnVehicle_ThrowsExceptionWhenNotRented() {
+        // Arrange
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        
+        // Act & Assert
+        assertThatThrownBy(() -> vehicleApplicationService.returnVehicle(1L, 55000))
+            .isInstanceOf(VehicleStatusTransitionException.class);
+        
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("returnVehicle - Wirft VehicleNotFoundException wenn nicht gefunden")
+    void returnVehicle_ThrowsExceptionWhenNotFound() {
+        // Arrange
+        when(vehicleRepository.findById(99L)).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThatThrownBy(() -> vehicleApplicationService.returnVehicle(99L, 55000))
+            .isInstanceOf(VehicleNotFoundException.class);
+        
+        verify(vehicleRepository).findById(99L);
+        verify(vehicleRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("markVehicleAsInMaintenance - Markiert Fahrzeug als in Wartung")
+    void markVehicleAsInMaintenance_Success() {
+        // Arrange
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(testVehicle);
+        
+        // Act
+        vehicleApplicationService.markVehicleAsInMaintenance(1L);
+        
+        // Assert
+        assertThat(testVehicle.getStatus()).isEqualTo(VehicleStatus.IN_MAINTENANCE);
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository).save(testVehicle);
+    }
+    
+    @Test
+    @DisplayName("markVehicleAsInMaintenance - Wirft Exception wenn Fahrzeug vermietet")
+    void markVehicleAsInMaintenance_ThrowsExceptionWhenRented() {
+        // Arrange
+        testVehicle.markAsRented(); // Fahrzeug ist jetzt RENTED
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        
+        // Act & Assert
+        assertThatThrownBy(() -> vehicleApplicationService.markVehicleAsInMaintenance(1L))
+            .isInstanceOf(VehicleStatusTransitionException.class);
+        
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("markVehicleAsInMaintenance - Wirft VehicleNotFoundException wenn nicht gefunden")
+    void markVehicleAsInMaintenance_ThrowsExceptionWhenNotFound() {
+        // Arrange
+        when(vehicleRepository.findById(99L)).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThatThrownBy(() -> vehicleApplicationService.markVehicleAsInMaintenance(99L))
+            .isInstanceOf(VehicleNotFoundException.class);
+        
+        verify(vehicleRepository).findById(99L);
+        verify(vehicleRepository, never()).save(any());
+    }
+    
     /**
      * Hilfsmethode zum Setzen der ID via Reflection für Tests.
      */

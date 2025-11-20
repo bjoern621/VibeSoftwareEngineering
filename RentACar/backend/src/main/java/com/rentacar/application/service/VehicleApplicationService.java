@@ -122,6 +122,52 @@ public class VehicleApplicationService {
     }
     
     /**
+     * Markiert ein Fahrzeug als vermietet.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @throws VehicleNotFoundException wenn das Fahrzeug nicht existiert
+     */
+    public void markVehicleAsRented(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+            .orElseThrow(() -> new VehicleNotFoundException(id));
+        
+        vehicle.markAsRented();
+        
+        vehicleRepository.save(vehicle);
+    }
+    
+    /**
+     * Gibt ein Fahrzeug zurück und markiert es als verfügbar.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @param returnMileage der Kilometerstand bei Rückgabe
+     * @throws VehicleNotFoundException wenn das Fahrzeug nicht existiert
+     */
+    public void returnVehicle(Long id, Integer returnMileage) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+            .orElseThrow(() -> new VehicleNotFoundException(id));
+        
+        vehicle.markAsAvailable(Mileage.of(returnMileage));
+        
+        vehicleRepository.save(vehicle);
+    }
+    
+    /**
+     * Markiert ein Fahrzeug als in Wartung.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @throws VehicleNotFoundException wenn das Fahrzeug nicht existiert
+     */
+    public void markVehicleAsInMaintenance(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+            .orElseThrow(() -> new VehicleNotFoundException(id));
+        
+        vehicle.markAsInMaintenance();
+        
+        vehicleRepository.save(vehicle);
+    }
+    
+    /**
      * Gibt alle Fahrzeuge zurück.
      * 
      * @return Liste aller Fahrzeuge als Response DTOs
