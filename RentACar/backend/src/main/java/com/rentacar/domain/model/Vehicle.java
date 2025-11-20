@@ -1,5 +1,8 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidMileageException;
+import com.rentacar.domain.exception.InvalidVehicleDataException;
+import com.rentacar.domain.exception.VehicleStatusTransitionException;
 import jakarta.persistence.*;
 import java.time.Year;
 import java.util.Objects;
@@ -64,7 +67,7 @@ public class Vehicle {
      * @param mileage der Kilometerstand
      * @param vehicleType der Fahrzeugtyp
      * @param branch die zugeordnete Filiale
-     * @throws IllegalArgumentException wenn Invarianten verletzt werden
+     * @throws InvalidVehicleDataException wenn Invarianten verletzt werden
      */
     public Vehicle(
         LicensePlate licensePlate,
@@ -96,12 +99,13 @@ public class Vehicle {
     /**
      * Markiert das Fahrzeug als vermietet.
      * 
-     * @throws IllegalStateException wenn das Fahrzeug nicht verfügbar ist
+     * @throws VehicleStatusTransitionException wenn das Fahrzeug nicht verfügbar ist
      */
     public void markAsRented() {
         if (!status.isAvailableForRental()) {
-            throw new IllegalStateException(
-                "Fahrzeug " + licensePlate + " kann nicht vermietet werden. Aktueller Status: " + status
+            throw new VehicleStatusTransitionException(
+                "Fahrzeug " + licensePlate + " kann nicht vermietet werden. Aktueller Status: " + status,
+                status
             );
         }
         this.status = VehicleStatus.RENTED;
@@ -111,18 +115,19 @@ public class Vehicle {
      * Markiert das Fahrzeug als verfügbar nach Rückgabe.
      * 
      * @param returnMileage der Kilometerstand bei Rückgabe
-     * @throws IllegalStateException wenn das Fahrzeug nicht vermietet ist
-     * @throws IllegalArgumentException wenn der neue Kilometerstand kleiner ist
+     * @throws VehicleStatusTransitionException wenn das Fahrzeug nicht vermietet ist
+     * @throws InvalidMileageException wenn der neue Kilometerstand kleiner ist
      */
     public void markAsAvailable(Mileage returnMileage) {
         if (!status.canBeReturned()) {
-            throw new IllegalStateException(
-                "Fahrzeug " + licensePlate + " ist nicht vermietet. Aktueller Status: " + status
+            throw new VehicleStatusTransitionException(
+                "Fahrzeug " + licensePlate + " ist nicht vermietet. Aktueller Status: " + status,
+                status
             );
         }
         validateMileage(returnMileage);
         if (returnMileage.isLessThan(this.mileage)) {
-            throw new IllegalArgumentException(
+            throw new InvalidMileageException(
                 "Rückgabe-Kilometerstand (" + returnMileage + 
                 ") kann nicht kleiner sein als aktueller Stand (" + this.mileage + ")"
             );
@@ -136,9 +141,10 @@ public class Vehicle {
      */
     public void markAsInMaintenance() {
         if (status == VehicleStatus.RENTED) {
-            throw new IllegalStateException(
+            throw new VehicleStatusTransitionException(
                 "Fahrzeug " + licensePlate + " kann nicht in Wartung geschickt werden, " +
-                "da es aktuell vermietet ist"
+                "da es aktuell vermietet ist",
+                status
             );
         }
         this.status = VehicleStatus.IN_MAINTENANCE;
@@ -149,9 +155,10 @@ public class Vehicle {
      */
     public void retire() {
         if (status == VehicleStatus.RENTED) {
-            throw new IllegalStateException(
+            throw new VehicleStatusTransitionException(
                 "Fahrzeug " + licensePlate + " kann nicht ausgemustert werden, " +
-                "da es aktuell vermietet ist"
+                "da es aktuell vermietet ist",
+                status
             );
         }
         this.status = VehicleStatus.OUT_OF_SERVICE;
@@ -161,14 +168,15 @@ public class Vehicle {
      * Versetzt das Fahrzeug an eine andere Filiale.
      * 
      * @param newBranch die neue Filiale
-     * @throws IllegalArgumentException wenn die Filiale ungültig ist
-     * @throws IllegalStateException wenn das Fahrzeug vermietet ist
+     * @throws InvalidVehicleDataException wenn die Filiale ungültig ist
+     * @throws VehicleStatusTransitionException wenn das Fahrzeug vermietet ist
      */
     public void relocateToBranch(Branch newBranch) {
         if (status == VehicleStatus.RENTED) {
-            throw new IllegalStateException(
+            throw new VehicleStatusTransitionException(
                 "Fahrzeug " + licensePlate + " kann nicht versetzt werden, " +
-                "da es aktuell vermietet ist"
+                "da es aktuell vermietet ist",
+                status
             );
         }
         validateBranch(newBranch);
@@ -179,12 +187,12 @@ public class Vehicle {
      * Aktualisiert den Kilometerstand (z.B. nach Wartung).
      * 
      * @param newMileage der neue Kilometerstand
-     * @throws IllegalArgumentException wenn der neue Kilometerstand kleiner ist
+     * @throws InvalidMileageException wenn der neue Kilometerstand kleiner ist
      */
     public void updateMileage(Mileage newMileage) {
         validateMileage(newMileage);
         if (newMileage.isLessThan(this.mileage)) {
-            throw new IllegalArgumentException(
+            throw new InvalidMileageException(
                 "Neuer Kilometerstand (" + newMileage + 
                 ") kann nicht kleiner sein als aktueller Stand (" + this.mileage + ")"
             );
@@ -197,7 +205,7 @@ public class Vehicle {
      * 
      * @param newBrand die neue Marke
      * @param newModel das neue Modell
-     * @throws IllegalArgumentException wenn Marke oder Modell ungültig sind
+     * @throws InvalidVehicleDataException wenn Marke oder Modell ungültig sind
      */
     public void updateBrandAndModel(String newBrand, String newModel) {
         validateBrand(newBrand);
@@ -210,49 +218,51 @@ public class Vehicle {
     
     private void validateLicensePlate(LicensePlate licensePlate) {
         if (licensePlate == null) {
-            throw new IllegalArgumentException("Kennzeichen darf nicht null sein");
+            throw new InvalidVehicleDataException("Kennzeichen darf nicht null sein", "licensePlate", null);
         }
     }
     
     private void validateBrand(String brand) {
         if (brand == null || brand.isBlank()) {
-            throw new IllegalArgumentException("Marke darf nicht null oder leer sein");
+            throw new InvalidVehicleDataException("Marke darf nicht null oder leer sein", "brand", brand);
         }
     }
     
     private void validateModel(String model) {
         if (model == null || model.isBlank()) {
-            throw new IllegalArgumentException("Modell darf nicht null oder leer sein");
+            throw new InvalidVehicleDataException("Modell darf nicht null oder leer sein", "model", model);
         }
     }
     
     private void validateYear(Integer year) {
         if (year == null) {
-            throw new IllegalArgumentException("Baujahr darf nicht null sein");
+            throw new InvalidVehicleDataException("Baujahr darf nicht null sein", "year", null);
         }
         int currentYear = Year.now().getValue();
         if (year < 1900 || year > currentYear + 1) {
-            throw new IllegalArgumentException(
-                "Baujahr muss zwischen 1900 und " + (currentYear + 1) + " liegen: " + year
+            throw new InvalidVehicleDataException(
+                "Baujahr muss zwischen 1900 und " + (currentYear + 1) + " liegen: " + year,
+                "year",
+                year
             );
         }
     }
     
     private void validateMileage(Mileage mileage) {
         if (mileage == null) {
-            throw new IllegalArgumentException("Kilometerstand darf nicht null sein");
+            throw new InvalidVehicleDataException("Kilometerstand darf nicht null sein", "mileage", null);
         }
     }
     
     private void validateVehicleType(VehicleType vehicleType) {
         if (vehicleType == null) {
-            throw new IllegalArgumentException("Fahrzeugtyp darf nicht null sein");
+            throw new InvalidVehicleDataException("Fahrzeugtyp darf nicht null sein", "vehicleType", null);
         }
     }
     
     private void validateBranch(Branch branch) {
         if (branch == null) {
-            throw new IllegalArgumentException("Filiale darf nicht null sein");
+            throw new InvalidVehicleDataException("Filiale darf nicht null sein", "branch", null);
         }
     }
     

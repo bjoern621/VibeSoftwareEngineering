@@ -1,5 +1,6 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidLicensePlateException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -46,29 +47,29 @@ class LicensePlateTest {
     @Test
     void shouldRejectNullLicensePlate() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidLicensePlateException.class, 
             () -> LicensePlate.of(null));
     }
     
     @Test
     void shouldRejectEmptyLicensePlate() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidLicensePlateException.class, 
             () -> LicensePlate.of(""));
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidLicensePlateException.class, 
             () -> LicensePlate.of("   "));
     }
     
     @Test
     void shouldRejectInvalidFormats() {
         // Invalid formats
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidLicensePlateException.class, 
             () -> LicensePlate.of("123456")); // nur Zahlen
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidLicensePlateException.class, 
             () -> LicensePlate.of("ABCDEF")); // nur Buchstaben
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidLicensePlateException.class, 
             () -> LicensePlate.of("B AB 1234")); // fehlender Bindestrich
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidLicensePlateException.class, 
             () -> LicensePlate.of("B-AB-1234")); // zu viele Bindestriche
     }
     

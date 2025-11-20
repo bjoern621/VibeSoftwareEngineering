@@ -2,7 +2,11 @@ package com.rentacar.presentation.exception;
 
 import com.rentacar.domain.exception.BranchNotFoundException;
 import com.rentacar.domain.exception.DuplicateLicensePlateException;
+import com.rentacar.domain.exception.InvalidLicensePlateException;
+import com.rentacar.domain.exception.InvalidMileageException;
+import com.rentacar.domain.exception.InvalidVehicleDataException;
 import com.rentacar.domain.exception.VehicleNotFoundException;
+import com.rentacar.domain.exception.VehicleStatusTransitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -75,34 +79,68 @@ public class GlobalExceptionHandler {
     }
     
     /**
-     * Behandelt IllegalArgumentException (z.B. Validierungsfehler aus Domain).
+     * Behandelt InvalidLicensePlateException.
      * 
      * @param ex die Exception
      * @return HTTP 400 Bad Request mit Fehlermeldung
      */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+    @ExceptionHandler(InvalidLicensePlateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidLicensePlateException(InvalidLicensePlateException ex) {
         ErrorResponse error = new ErrorResponse(
             LocalDateTime.now(),
             HttpStatus.BAD_REQUEST.value(),
-            "Ungültige Eingabe",
+            "Ungültiges Kennzeichen",
             ex.getMessage()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
     /**
-     * Behandelt IllegalStateException (z.B. ungültige Statusübergänge).
+     * Behandelt InvalidMileageException.
      * 
      * @param ex die Exception
      * @return HTTP 400 Bad Request mit Fehlermeldung
      */
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
+    @ExceptionHandler(InvalidMileageException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidMileageException(InvalidMileageException ex) {
         ErrorResponse error = new ErrorResponse(
             LocalDateTime.now(),
             HttpStatus.BAD_REQUEST.value(),
-            "Ungültiger Zustand",
+            "Ungültiger Kilometerstand",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    /**
+     * Behandelt VehicleStatusTransitionException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 409 Conflict mit Fehlermeldung
+     */
+    @ExceptionHandler(VehicleStatusTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleVehicleStatusTransitionException(VehicleStatusTransitionException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.CONFLICT.value(),
+            "Ungültige Statusübergang",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    
+    /**
+     * Behandelt InvalidVehicleDataException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request mit Fehlermeldung
+     */
+    @ExceptionHandler(InvalidVehicleDataException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidVehicleDataException(InvalidVehicleDataException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Ungültige Fahrzeugdaten",
             ex.getMessage()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);

@@ -3,6 +3,7 @@ package com.rentacar.application.service;
 import com.rentacar.domain.exception.BranchNotFoundException;
 import com.rentacar.domain.exception.DuplicateLicensePlateException;
 import com.rentacar.domain.exception.VehicleNotFoundException;
+import com.rentacar.domain.exception.VehicleStatusTransitionException;
 import com.rentacar.domain.model.*;
 import com.rentacar.domain.repository.BranchRepository;
 import com.rentacar.domain.repository.VehicleRepository;
@@ -206,7 +207,7 @@ class VehicleApplicationServiceTest {
         
         // Act & Assert
         assertThatThrownBy(() -> vehicleApplicationService.markVehicleAsOutOfService(1L))
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(VehicleStatusTransitionException.class)
             .hasMessageContaining("vermietet");
         
         verify(vehicleRepository).findById(1L);

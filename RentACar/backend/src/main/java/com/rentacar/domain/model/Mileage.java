@@ -1,5 +1,6 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidMileageException;
 import jakarta.persistence.Embeddable;
 import java.util.Objects;
 
@@ -24,7 +25,7 @@ public class Mileage {
      * Erstellt einen neuen Kilometerstand mit Validierung.
      * 
      * @param kilometers der Kilometerstand
-     * @throws IllegalArgumentException wenn der Kilometerstand negativ ist
+     * @throws InvalidMileageException wenn der Kilometerstand negativ ist
      */
     private Mileage(Integer kilometers) {
         validate(kilometers);
@@ -36,7 +37,7 @@ public class Mileage {
      * 
      * @param kilometers der Kilometerstand
      * @return neues Mileage Value Object
-     * @throws IllegalArgumentException wenn der Kilometerstand negativ ist
+     * @throws InvalidMileageException wenn der Kilometerstand negativ ist
      */
     public static Mileage of(Integer kilometers) {
         return new Mileage(kilometers);
@@ -55,15 +56,16 @@ public class Mileage {
      * Validiert den Kilometerstand.
      * 
      * @param kilometers der zu validierende Kilometerstand
-     * @throws IllegalArgumentException wenn der Kilometerstand ungültig ist
+     * @throws InvalidMileageException wenn der Kilometerstand ungültig ist
      */
     private void validate(Integer kilometers) {
         if (kilometers == null) {
-            throw new IllegalArgumentException("Kilometerstand darf nicht null sein");
+            throw new InvalidMileageException("Kilometerstand darf nicht null sein");
         }
         if (kilometers < 0) {
-            throw new IllegalArgumentException(
-                "Kilometerstand darf nicht negativ sein: " + kilometers
+            throw new InvalidMileageException(
+                "Kilometerstand darf nicht negativ sein: " + kilometers,
+                kilometers
             );
         }
     }
@@ -73,12 +75,13 @@ public class Mileage {
      * 
      * @param additionalKilometers die hinzuzufügenden Kilometer
      * @return neues Mileage Value Object mit erhöhtem Kilometerstand
-     * @throws IllegalArgumentException wenn die zusätzlichen Kilometer negativ sind
+     * @throws InvalidMileageException wenn die zusätzlichen Kilometer negativ sind
      */
     public Mileage add(Integer additionalKilometers) {
         if (additionalKilometers < 0) {
-            throw new IllegalArgumentException(
-                "Zusätzliche Kilometer dürfen nicht negativ sein: " + additionalKilometers
+            throw new InvalidMileageException(
+                "Zusätzliche Kilometer dürfen nicht negativ sein: " + additionalKilometers,
+                additionalKilometers
             );
         }
         return new Mileage(this.kilometers + additionalKilometers);

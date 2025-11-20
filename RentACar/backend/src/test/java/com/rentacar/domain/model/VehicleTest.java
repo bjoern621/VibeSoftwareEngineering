@@ -1,5 +1,8 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidMileageException;
+import com.rentacar.domain.exception.InvalidVehicleDataException;
+import com.rentacar.domain.exception.VehicleStatusTransitionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,59 +52,59 @@ class VehicleTest {
     
     @Test
     void shouldRejectNullLicensePlate() {
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(null, "BMW", "3er", 2020, testMileage, VehicleType.SEDAN, testBranch)
         );
     }
     
     @Test
     void shouldRejectNullBrand() {
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(testLicensePlate, null, "3er", 2020, testMileage, VehicleType.SEDAN, testBranch)
         );
     }
     
     @Test
     void shouldRejectEmptyBrand() {
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(testLicensePlate, "  ", "3er", 2020, testMileage, VehicleType.SEDAN, testBranch)
         );
     }
     
     @Test
     void shouldRejectNullModel() {
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(testLicensePlate, "BMW", null, 2020, testMileage, VehicleType.SEDAN, testBranch)
         );
     }
     
     @Test
     void shouldRejectInvalidYear() {
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(testLicensePlate, "BMW", "3er", 1899, testMileage, VehicleType.SEDAN, testBranch)
         );
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(testLicensePlate, "BMW", "3er", 2030, testMileage, VehicleType.SEDAN, testBranch)
         );
     }
     
     @Test
     void shouldRejectNullMileage() {
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(testLicensePlate, "BMW", "3er", 2020, null, VehicleType.SEDAN, testBranch)
         );
     }
     
     @Test
     void shouldRejectNullVehicleType() {
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(testLicensePlate, "BMW", "3er", 2020, testMileage, null, testBranch)
         );
     }
     
     @Test
     void shouldRejectNullBranch() {
-        assertThrows(IllegalArgumentException.class, () -> 
+        assertThrows(InvalidVehicleDataException.class, () -> 
             new Vehicle(testLicensePlate, "BMW", "3er", 2020, testMileage, VehicleType.SEDAN, null)
         );
     }
@@ -129,7 +132,7 @@ class VehicleTest {
         vehicle.markAsRented();
         
         // When & Then
-        assertThrows(IllegalStateException.class, vehicle::markAsRented);
+        assertThrows(VehicleStatusTransitionException.class, vehicle::markAsRented);
     }
     
     @Test
@@ -159,7 +162,7 @@ class VehicleTest {
         Mileage lowerMileage = Mileage.of(49000);
         
         // When & Then
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidMileageException.class, 
             () -> vehicle.markAsAvailable(lowerMileage)
         );
     }
@@ -187,7 +190,7 @@ class VehicleTest {
         vehicle.markAsRented();
         
         // When & Then
-        assertThrows(IllegalStateException.class, vehicle::markAsInMaintenance);
+        assertThrows(VehicleStatusTransitionException.class, vehicle::markAsInMaintenance);
     }
     
     @Test
@@ -213,7 +216,7 @@ class VehicleTest {
         vehicle.markAsRented();
         
         // When & Then
-        assertThrows(IllegalStateException.class, vehicle::retire);
+        assertThrows(VehicleStatusTransitionException.class, vehicle::retire);
     }
     
     @Test
@@ -241,7 +244,7 @@ class VehicleTest {
         Branch newBranch = new Branch("Filiale Nord", "Nordstraße 10, 20095 Hamburg", "Mo-Sa 9-19 Uhr");
         
         // When & Then
-        assertThrows(IllegalStateException.class, 
+        assertThrows(VehicleStatusTransitionException.class, 
             () -> vehicle.relocateToBranch(newBranch)
         );
     }
@@ -270,7 +273,7 @@ class VehicleTest {
         Mileage lowerMileage = Mileage.of(45000);
         
         // When & Then
-        assertThrows(IllegalArgumentException.class, 
+        assertThrows(InvalidMileageException.class, 
             () -> vehicle.updateMileage(lowerMileage)
         );
     }
