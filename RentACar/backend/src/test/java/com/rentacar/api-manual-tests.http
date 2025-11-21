@@ -1,0 +1,245 @@
+###############################################################################
+# RENTACAR - Manuelle API Tests
+# 
+# Voraussetzungen:
+# 1. Spring Boot Server läuft: ./mvnw spring-boot:run
+# 2. VS Code Extension "REST Client" installiert (humao.rest-client)
+#
+# Verwendung:
+# - Klick auf "Send Request" über jedem Request
+# - Oder Cursor in Request setzen und Cmd+Option+R (Mac) / Ctrl+Alt+R (Win)
+###############################################################################
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+# Wird nach Login automatisch gesetzt - erst Login ausführen!
+@authToken = {{login.response.body.token}}
+
+###############################################################################
+# 1. KUNDE REGISTRIEREN
+###############################################################################
+
+### 1.1 Erfolgreiche Registrierung
+# @name registration
+POST {{baseUrl}}/api/kunden/registrierung
+Content-Type: {{contentType}}
+
+{
+  "email": "max.mustermann@example.com",
+  "password": "SicheresPasswort123!",
+  "firstName": "Max",
+  "lastName": "Mustermann",
+  "phoneNumber": "+49 30 12345678",
+  "street": "Musterstraße 123",
+  "postalCode": "10115",
+  "city": "Berlin",
+  "driverLicenseNumber": "B1234567891"
+}
+
+### 1.2 Registrierung mit ungültiger E-Mail (erwartet: 400 Bad Request)
+POST {{baseUrl}}/api/kunden/registrierung
+Content-Type: {{contentType}}
+
+{
+  "email": "keine-gueltige-email",
+  "password": "SicheresPasswort123!",
+  "firstName": "Max",
+  "lastName": "Mustermann",
+  "phoneNumber": "+49 30 12345678",
+  "street": "Musterstraße 123",
+  "postalCode": "10115",
+  "city": "Berlin",
+  "driverLicenseNumber": "B123456789"
+}
+
+### 1.3 Registrierung mit zu kurzem Passwort (erwartet: 400 Bad Request)
+POST {{baseUrl}}/api/kunden/registrierung
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "password": "123",
+  "firstName": "Max",
+  "lastName": "Mustermann",
+  "phoneNumber": "+49 30 12345678",
+  "street": "Musterstraße 123",
+  "postalCode": "10115",
+  "city": "Berlin",
+  "driverLicenseNumber": "B123456789"
+}
+
+### 1.4 Registrierung mit bereits existierender E-Mail (erwartet: 409 Conflict)
+POST {{baseUrl}}/api/kunden/registrierung
+Content-Type: {{contentType}}
+
+{
+  "email": "max.mustermann@example.com",
+  "password": "AnderesPasswort456!",
+  "firstName": "Maria",
+  "lastName": "Musterfrau",
+  "phoneNumber": "+49 30 98765432",
+  "street": "Beispielweg 456",
+  "postalCode": "10115",
+  "city": "Berlin",
+  "driverLicenseNumber": "B987654321"
+}
+
+###############################################################################
+# 2. KUNDE LOGIN
+###############################################################################
+
+### 2.1 Erfolgreicher Login
+# @name login
+POST {{baseUrl}}/api/kunden/login
+Content-Type: {{contentType}}
+
+{
+  "email": "max.mustermann@example.com",
+  "password": "SicheresPasswort123!"
+}
+
+### 2.2 Login mit falscher E-Mail (erwartet: 401 Unauthorized)
+POST {{baseUrl}}/api/kunden/login
+Content-Type: {{contentType}}
+
+{
+  "email": "nicht.existent@example.com",
+  "password": "IrgendeinPasswort123!"
+}
+
+### 2.3 Login mit falschem Passwort (erwartet: 401 Unauthorized)
+POST {{baseUrl}}/api/kunden/login
+Content-Type: {{contentType}}
+
+{
+  "email": "max.mustermann@example.com",
+  "password": "FalschesPasswort!"
+}
+
+###############################################################################
+# 3. KUNDENPROFIL ABRUFEN (BENÖTIGT JWT-TOKEN)
+###############################################################################
+
+### 3.1 Profil abrufen (nach Login)
+# WICHTIG: Erst Login (2.1) ausführen, damit @authToken gesetzt wird!
+GET {{baseUrl}}/api/kunden/profil
+Authorization: Bearer {{authToken}}
+
+### 3.2 Profil abrufen ohne Token (erwartet: 401 Unauthorized)
+GET {{baseUrl}}/api/kunden/profil
+
+### 3.3 Profil abrufen mit ungültigem Token (erwartet: 401 Unauthorized)
+GET {{baseUrl}}/api/kunden/profil
+Authorization: Bearer ungueltig.jwt.token
+
+###############################################################################
+# 4. KUNDENPROFIL AKTUALISIEREN (BENÖTIGT JWT-TOKEN)
+###############################################################################
+
+### 4.1 Profil aktualisieren (nach Login)
+# WICHTIG: Erst Login (2.1) ausführen, damit @authToken gesetzt wird!
+PUT {{baseUrl}}/api/kunden/profil
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "phoneNumber": "+49 30 99999999",
+  "street": "Neue Straße 789",
+  "postalCode": "10178",
+  "city": "Berlin"
+}
+
+### 4.2 Profil aktualisieren mit ungültiger PLZ (erwartet: 400 Bad Request)
+PUT {{baseUrl}}/api/kunden/profil
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "phoneNumber": "+49 30 99999999",
+  "street": "Neue Straße 789",
+  "postalCode": "ABCDE",
+  "city": "Berlin"
+}
+
+###############################################################################
+# 5. E-MAIL-VERIFIKATION
+###############################################################################
+
+### 5.1 E-Mail verifizieren mit gültigem Token
+# HINWEIS: Token wird bei Registrierung in der Konsole ausgegeben (MockEmailService)
+# Ersetze "HIER_TOKEN_EINFUEGEN" mit dem echten Token aus der Konsole
+POST {{baseUrl}}/api/kunden/verify-email?token=HIER_TOKEN_EINFUEGEN
+
+### 5.2 E-Mail verifizieren mit ungültigem Token (erwartet: 404 Not Found)
+POST {{baseUrl}}/api/kunden/verify-email?token=ungueltig-12345-token
+
+###############################################################################
+# 6. FAHRZEUGTYPEN ABRUFEN (ÖFFENTLICH)
+###############################################################################
+
+### 6.1 Alle Fahrzeugtypen auflisten
+GET {{baseUrl}}/api/vehicle-types
+
+### 6.2 Spezifischen Fahrzeugtyp abrufen
+GET {{baseUrl}}/api/vehicle-types/COMPACT_CAR
+
+### 6.3 Nicht existierenden Fahrzeugtyp abrufen (erwartet: 404 Not Found)
+GET {{baseUrl}}/api/vehicle-types/NICHT_EXISTENT
+
+###############################################################################
+# 7. FAHRZEUGE ABRUFEN (ÖFFENTLICH - aber später ggf. geschützt)
+###############################################################################
+
+### 7.1 Alle Fahrzeuge auflisten
+GET {{baseUrl}}/api/fahrzeuge
+
+### 7.2 Spezifisches Fahrzeug abrufen
+GET {{baseUrl}}/api/fahrzeuge/1
+
+### 7.3 Nicht existierendes Fahrzeug abrufen (erwartet: 404 Not Found)
+GET {{baseUrl}}/api/fahrzeuge/99999
+
+###############################################################################
+# HINWEISE ZUR VERWENDUNG
+###############################################################################
+
+# 1. REIHENFOLGE FÜR VOLLSTÄNDIGEN TEST:
+#    a) 1.1 - Registrierung
+#    b) Kopiere Token aus Response → für manuelle Tests
+#    c) 2.1 - Login (Token wird automatisch in @authToken gespeichert)
+#    d) 3.1 - Profil abrufen
+#    e) 4.1 - Profil aktualisieren
+#    f) 3.1 - Profil erneut abrufen (um Änderungen zu sehen)
+
+# 2. E-MAIL-VERIFIKATION:
+#    - Nach Registrierung wird in der Konsole der Verifikationslink angezeigt
+#    - Kopiere den Token aus diesem Link
+#    - Füge ihn in Request 5.1 ein
+
+# 3. VERSCHLÜSSELTE DATEN (DSGVO):
+#    - firstName, lastName, email, phoneNumber, address, driverLicenseNumber
+#    - Diese werden verschlüsselt in der DB gespeichert (Jasypt)
+#    - In API-Responses siehst du die entschlüsselten Werte
+
+# 4. JWT-TOKEN:
+#    - Gültig für 24 Stunden (konfigurierbar in application.properties)
+#    - Nach Ablauf: Erneuter Login erforderlich
+#    - Token wird im Header "Authorization: Bearer <token>" mitgeschickt
+
+# 5. CURL ALTERNATIVE:
+#    Falls du lieber curl verwenden möchtest:
+#    
+#    # Registrierung:
+#    curl -X POST http://localhost:8080/api/kunden/registrierung \
+#      -H "Content-Type: application/json" \
+#      -d '{"email":"test@example.com","password":"Pass123!","firstName":"Max","lastName":"Mustermann","phoneNumber":"+49301234567","street":"Str. 1","postalCode":"10115","city":"Berlin","driverLicenseNumber":"B123456789"}'
+#    
+#    # Login:
+#    curl -X POST http://localhost:8080/api/kunden/login \
+#      -H "Content-Type: application/json" \
+#      -d '{"email":"test@example.com","password":"Pass123!"}'
+#    
+#    # Profil abrufen (TOKEN aus Login-Response einsetzen):
+#    curl -X GET http://localhost:8080/api/kunden/profil \
+#      -H "Authorization: Bearer HIER_JWT_TOKEN_EINFUEGEN"

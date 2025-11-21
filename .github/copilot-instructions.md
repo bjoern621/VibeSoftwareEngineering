@@ -184,6 +184,93 @@ src/main/java/com/rentacar/
 
 ---
 
+## 🔐 Security Implementation
+
+### 1. DSGVO-konforme Verschlüsselung (Jasypt)
+
+Sensitive customer data is encrypted at rest using **Jasypt Spring Boot Starter**:
+
+- **Library**: `jasypt-spring-boot-starter` (Version 3.0.5)
+- **Algorithm**: AES-256 with HMAC-SHA512
+- **Implementation**: `EncryptedStringConverter` for JPA `@Convert` annotation
+- **Encrypted Fields**: 
+  - `firstName`, `lastName`, `email`, `phoneNumber`
+  - `address` (all fields: street, postalCode, city)
+  - `driverLicenseNumber`
+- **Configuration**: `application.properties` with environment variable support
+
+**Example Usage:**
+```java
+@Column(nullable = false, length = 100)
+@Convert(converter = EncryptedStringConverter.class)
+private String firstName;
+```
+
+**Important:** Set `JASYPT_ENCRYPTOR_PASSWORD` environment variable in production!
+
+### 2. Authentication & Authorization (JWT + Spring Security)
+
+- **Authentication Method**: JWT (JSON Web Token) - stateless
+- **Token Validity**: 24 hours (configurable via `jwt.expiration`)
+- **Password Hashing**: BCrypt via `BCryptPasswordEncoder`
+- **Security Components**:
+  - `JwtUtil`: Token generation and validation
+  - `JwtAuthenticationFilter`: Intercepts requests, validates JWT tokens
+  - `CustomerUserDetailsService`: Loads user details for authentication
+  - `SecurityConfig`: Configures security filter chain
+
+**Public Endpoints** (no authentication required):
+- `POST /api/kunden/registrierung` - Customer registration
+- `POST /api/kunden/login` - Customer login
+- `POST /api/kunden/verify-email` - Email verification
+- `/h2-console/**` - H2 Console (development only)
+
+**Protected Endpoints** (JWT required):
+- `GET /api/kunden/profil` - Get customer profile
+- `PUT /api/kunden/profil` - Update customer profile
+- All other endpoints require authentication
+
+**Roles:**
+- `ROLE_CUSTOMER`: Regular customers
+- `ROLE_EMPLOYEE`: Company employees
+- `ROLE_ADMIN`: System administrators
+
+### 3. Email Verification
+
+- **Implementation**: Token-based email verification (24h validity)
+- **Flow**:
+  1. Customer registers → `verificationToken` generated (UUID)
+  2. Verification email sent with token link
+  3. Customer clicks link → token validated → email verified
+  4. Account unlocked for full access
+- **Email Service**: `MockEmailService` (logs emails to console for development)
+  - Can be replaced with SMTP implementation for production
+- **Token Storage**: Database field `verificationToken` with `tokenExpiryDate`
+
+**Email Service Interface** (Port):
+```java
+public interface EmailService {
+    void sendVerificationEmail(String recipientEmail, String recipientName, String verificationToken);
+    void sendWelcomeEmail(String recipientEmail, String recipientName);
+    void sendPasswordChangedEmail(String recipientEmail, String recipientName);
+}
+```
+
+### 4. Configuration Properties
+
+Add to `application.properties`:
+```properties
+# JWT Configuration
+jwt.secret=your-secret-key-min-256-bits-change-in-production
+jwt.expiration=86400000  # 24 hours in milliseconds
+
+# Jasypt Encryption (DSGVO)
+jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD:rentacar-dev-secret}
+jasypt.encryptor.algorithm=PBEWithHMACSHA512AndAES_256
+```
+
+---
+
 ## 📦 DDD Patterns (Adapted to RENTACAR)
 
 ### 1. Aggregates
