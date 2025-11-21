@@ -1,12 +1,6 @@
 package com.rentacar.presentation.exception;
 
-import com.rentacar.domain.exception.BranchNotFoundException;
-import com.rentacar.domain.exception.DuplicateLicensePlateException;
-import com.rentacar.domain.exception.InvalidLicensePlateException;
-import com.rentacar.domain.exception.InvalidMileageException;
-import com.rentacar.domain.exception.InvalidVehicleDataException;
-import com.rentacar.domain.exception.VehicleNotFoundException;
-import com.rentacar.domain.exception.VehicleStatusTransitionException;
+import com.rentacar.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -170,6 +164,125 @@ public class GlobalExceptionHandler {
         );
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * Behandelt CustomerNotFoundException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 404 Not Found mit Fehlermeldung
+     */
+    @ExceptionHandler(CustomerNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCustomerNotFoundException(CustomerNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.NOT_FOUND.value(),
+            "Kunde nicht gefunden",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Behandelt DuplicateEmailException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request mit Fehlermeldung
+     */
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateEmailException(DuplicateEmailException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "E-Mail bereits registriert",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Behandelt DuplicateDriverLicenseException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request mit Fehlermeldung
+     */
+    @ExceptionHandler(DuplicateDriverLicenseException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateDriverLicenseException(DuplicateDriverLicenseException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Führerscheinnummer bereits registriert",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Behandelt InvalidVerificationTokenException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request mit Fehlermeldung
+     */
+    @ExceptionHandler(InvalidVerificationTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidVerificationTokenException(InvalidVerificationTokenException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Ungültiger Verifikations-Token",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Behandelt ExpiredVerificationTokenException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request mit Fehlermeldung
+     */
+    @ExceptionHandler(ExpiredVerificationTokenException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredVerificationTokenException(ExpiredVerificationTokenException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Verifikations-Token abgelaufen",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Behandelt InvalidEmailException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request mit Fehlermeldung
+     */
+    @ExceptionHandler(InvalidEmailException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidEmailException(InvalidEmailException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Ungültige E-Mail-Adresse",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Behandelt InvalidDriverLicenseException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request mit Fehlermeldung
+     */
+    @ExceptionHandler(InvalidDriverLicenseException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidDriverLicenseException(InvalidDriverLicenseException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Ungültige Führerscheinnummer",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
     /**

@@ -56,4 +56,12 @@ public interface CustomerRepository {
      * @return true, wenn Führerscheinnummer existiert
      */
     boolean existsByDriverLicenseNumber(String licenseNumber);
+
+    /**
+     * Sucht einen Kunden anhand seines Verifikations-Tokens.
+     *
+     * @param token Verifikations-Token
+     * @return Optional mit Kunde, falls gefunden
+     */
+    Optional<Customer> findByVerificationToken(String token);
 }

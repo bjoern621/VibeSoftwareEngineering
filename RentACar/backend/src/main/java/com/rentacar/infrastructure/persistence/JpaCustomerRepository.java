@@ -31,4 +31,8 @@ public interface JpaCustomerRepository extends CustomerRepository, JpaRepository
     @Override
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Customer c WHERE c.driverLicenseNumber.number = :licenseNumber")
     boolean existsByDriverLicenseNumber(@Param("licenseNumber") String licenseNumber);
+
+    @Override
+    @Query("SELECT c FROM Customer c WHERE c.verificationToken = :token")
+    Optional<Customer> findByVerificationToken(@Param("token") String token);
 }

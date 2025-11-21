@@ -1,11 +1,13 @@
 package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.VehicleTypeApplicationService;
+import com.rentacar.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.*;
@@ -20,8 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Hinweis: Da VehicleType ein Enum ist (keine DB-Abhängigkeit),
  * verwenden wir den echten Service statt eines Mocks.
  */
-@WebMvcTest(VehicleTypeController.class)
-@Import(VehicleTypeApplicationService.class)
+@WebMvcTest(controllers = VehicleTypeController.class)
+@ContextConfiguration(classes = {VehicleTypeController.class, VehicleTypeApplicationService.class, TestSecurityConfig.class})
 class VehicleTypeControllerTest {
     
     @Autowired

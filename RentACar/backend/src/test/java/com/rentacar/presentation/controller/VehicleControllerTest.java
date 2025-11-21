@@ -11,14 +11,16 @@ import com.rentacar.domain.model.VehicleType;
 import com.rentacar.presentation.dto.CreateVehicleRequestDTO;
 import com.rentacar.presentation.dto.UpdateVehicleRequestDTO;
 import com.rentacar.presentation.dto.VehicleResponseDTO;
+import com.rentacar.TestSecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -37,7 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Testet die REST API Endpoints mit MockMvc.
  * Verwendet @WebMvcTest für schlanke Controller-Tests.
  */
-@WebMvcTest(value = VehicleController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@WebMvcTest(controllers = VehicleController.class)
+@ContextConfiguration(classes = {VehicleController.class, com.rentacar.presentation.exception.GlobalExceptionHandler.class, TestSecurityConfig.class})
 @DisplayName("VehicleController Integration Tests")
 class VehicleControllerTest {
     
