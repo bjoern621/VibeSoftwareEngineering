@@ -102,7 +102,8 @@ public class PricingService {
         Objects.requireNonNull(additionalServices, "Liste der Zusatzleistungen darf nicht null sein");
         
         if (numberOfDays < 1) {
-            throw new IllegalArgumentException("Anzahl der Tage muss mindestens 1 sein");
+            throw new com.rentacar.domain.exception.InvalidPricingDataException(
+                "numberOfDays", "Anzahl der Tage muss mindestens 1 sein");
         }
         
         return additionalServices.stream()

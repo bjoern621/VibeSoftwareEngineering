@@ -211,7 +211,7 @@ class PricingServiceTest {
         
         // Act & Assert
         assertThrows(
-            IllegalArgumentException.class,
+            com.rentacar.domain.exception.InvalidPricingDataException.class,
             () -> pricingService.calculateAdditionalServicesPrice(services, 0)
         );
     }

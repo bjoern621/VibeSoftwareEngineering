@@ -49,8 +49,8 @@ class DriverLicenseNumberTest {
     @Test
     void shouldRejectNullNumber() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDriverLicenseException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDriverLicenseException.class,
             () -> new DriverLicenseNumber(null)
         );
         assertTrue(exception.getMessage().contains("Führerscheinnummer"));
@@ -60,8 +60,8 @@ class DriverLicenseNumberTest {
     @Test
     void shouldRejectEmptyNumber() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDriverLicenseException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDriverLicenseException.class,
             () -> new DriverLicenseNumber("   ")
         );
         assertTrue(exception.getMessage().contains("Führerscheinnummer"));
@@ -74,8 +74,8 @@ class DriverLicenseNumberTest {
         String shortNumber = "B12345678";
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDriverLicenseException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDriverLicenseException.class,
             () -> new DriverLicenseNumber(shortNumber)
         );
         assertTrue(exception.getMessage().contains("11 Zeichen"));
@@ -87,8 +87,8 @@ class DriverLicenseNumberTest {
         String longNumber = "B123456789XY";
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDriverLicenseException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDriverLicenseException.class,
             () -> new DriverLicenseNumber(longNumber)
         );
         assertTrue(exception.getMessage().contains("11 Zeichen"));
@@ -100,8 +100,8 @@ class DriverLicenseNumberTest {
         String invalidNumber = "B12345678!@";
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDriverLicenseException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDriverLicenseException.class,
             () -> new DriverLicenseNumber(invalidNumber)
         );
         assertTrue(exception.getMessage().contains("Buchstaben und Ziffern"));
@@ -114,7 +114,7 @@ class DriverLicenseNumberTest {
 
         // When & Then
         assertThrows(
-            IllegalArgumentException.class,
+            com.rentacar.domain.exception.InvalidDriverLicenseException.class,
             () -> new DriverLicenseNumber(numberWithSpaces)
         );
     }

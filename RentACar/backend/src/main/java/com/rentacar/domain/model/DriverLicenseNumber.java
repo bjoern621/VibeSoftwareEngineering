@@ -33,7 +33,8 @@ public class DriverLicenseNumber {
 
     private void validateNumber(String number) {
         if (number == null || number.isBlank()) {
-            throw new IllegalArgumentException("Führerscheinnummer darf nicht leer sein");
+            throw new com.rentacar.domain.exception.InvalidDriverLicenseException(
+                "Führerscheinnummer darf nicht leer sein");
         }
 
         String normalized = number.toUpperCase().replaceAll("\\s", "");
@@ -41,15 +42,13 @@ public class DriverLicenseNumber {
         // Deutsches Führerscheinformat: 11 Zeichen (Buchstaben und Ziffern)
         // Format: z.B. B123456789XY
         if (normalized.length() != 11) {
-            throw new IllegalArgumentException(
-                "Führerscheinnummer muss genau 11 Zeichen lang sein (aktuell: " + normalized.length() + ")"
-            );
+            throw new com.rentacar.domain.exception.InvalidDriverLicenseException(
+                "Führerscheinnummer muss genau 11 Zeichen lang sein (aktuell: " + normalized.length() + ")");
         }
 
         if (!normalized.matches("[A-Z0-9]{11}")) {
-            throw new IllegalArgumentException(
-                "Führerscheinnummer darf nur Buchstaben und Ziffern enthalten"
-            );
+            throw new com.rentacar.domain.exception.InvalidDriverLicenseException(
+                "Führerscheinnummer darf nur Buchstaben und Ziffern enthalten");
         }
     }
 

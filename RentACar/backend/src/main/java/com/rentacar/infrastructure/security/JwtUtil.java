@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -121,5 +122,21 @@ public class JwtUtil {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String email = extractEmail(token);
         return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    /**
+     * Extrahiert die Customer-ID aus der aktuellen Authentication.
+     * 
+     * @param authentication Die aktuelle Spring Security Authentication
+     * @return Customer-ID aus dem JWT-Token
+     * @throws IllegalStateException wenn keine gültige Authentifizierung vorhanden
+     */
+    public Long extractCustomerId(Authentication authentication) {
+        if (authentication == null || authentication.getCredentials() == null) {
+            throw new IllegalStateException("Keine gültige Authentifizierung vorhanden");
+        }
+        
+        String token = authentication.getCredentials().toString();
+        return extractCustomerId(token);
     }
 }

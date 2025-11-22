@@ -95,8 +95,8 @@ class CustomerTest {
     @Test
     void shouldRejectNullFirstName() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 null, "Mustermann",
                 createValidAddress(),
@@ -111,8 +111,8 @@ class CustomerTest {
     @Test
     void shouldRejectEmptyFirstName() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "  ", "Mustermann",
                 createValidAddress(),
@@ -127,8 +127,8 @@ class CustomerTest {
     @Test
     void shouldRejectTooShortFirstName() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "M", "Mustermann",
                 createValidAddress(),
@@ -143,8 +143,8 @@ class CustomerTest {
     @Test
     void shouldRejectNullLastName() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "Max", null,
                 createValidAddress(),
@@ -253,8 +253,8 @@ class CustomerTest {
     @Test
     void shouldRejectTooShortPhoneNumber() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "Max", "Mustermann",
                 createValidAddress(),
@@ -272,8 +272,8 @@ class CustomerTest {
         String longPhone = "1".repeat(21);
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "Max", "Mustermann",
                 createValidAddress(),

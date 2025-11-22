@@ -1,14 +1,21 @@
 package com.rentacar.application.service;
 
+import com.rentacar.domain.exception.BookingNotFoundException;
+import com.rentacar.domain.exception.CustomerNotFoundException;
 import com.rentacar.domain.model.AdditionalServiceType;
+import com.rentacar.domain.model.Booking;
+import com.rentacar.domain.model.BookingStatus;
 import com.rentacar.domain.model.DateRange;
 import com.rentacar.domain.model.PricingCalculation;
 import com.rentacar.domain.model.VehicleType;
+import com.rentacar.domain.repository.BookingRepository;
+import com.rentacar.domain.repository.CustomerRepository;
 import com.rentacar.domain.service.PricingService;
 import com.rentacar.presentation.dto.PriceCalculationRequestDTO;
 import com.rentacar.presentation.dto.PriceCalculationResponseDTO;
 import com.rentacar.presentation.dto.PriceCalculationResponseDTO.AdditionalServiceItemDTO;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,15 +24,21 @@ import java.util.stream.Collectors;
 /**
  * Application Service für Buchungsfunktionalität.
  * 
- * Orchestriert Use Cases rund um Buchungen, inklusive Preisberechnung.
+ * Orchestriert Use Cases rund um Buchungen, inklusive Preisberechnung und Buchungshistorie.
  */
 @Service
+@Transactional
 public class BookingApplicationService {
     
     private final PricingService pricingService;
+    private final BookingRepository bookingRepository;
+    private final CustomerRepository customerRepository;
     
-    public BookingApplicationService() {
+    public BookingApplicationService(BookingRepository bookingRepository,
+                                     CustomerRepository customerRepository) {
         this.pricingService = new PricingService();
+        this.bookingRepository = bookingRepository;
+        this.customerRepository = customerRepository;
     }
     
     /**
@@ -144,5 +157,64 @@ public class BookingApplicationService {
             .stream()
             .map(Enum::name)
             .collect(Collectors.toList());
+    }
+    
+    // ========== Buchungshistorie Use Cases ==========
+    
+    /**
+     * Ruft alle Buchungen eines Kunden ab (chronologisch, neueste zuerst).
+     * 
+     * @param customerId ID des Kunden
+     * @return Liste aller Buchungen
+     * @throws CustomerNotFoundException wenn Kunde nicht existiert
+     */
+    @Transactional(readOnly = true)
+    public List<Booking> getCustomerBookings(Long customerId) {
+        validateCustomerExists(customerId);
+        return bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
+    }
+
+    /**
+     * Ruft Buchungen eines Kunden gefiltert nach Status ab.
+     * 
+     * @param customerId ID des Kunden
+     * @param status Gewünschter Status (null = alle)
+     * @return Liste der Buchungen
+     * @throws CustomerNotFoundException wenn Kunde nicht existiert
+     */
+    @Transactional(readOnly = true)
+    public List<Booking> getCustomerBookingsByStatus(Long customerId, BookingStatus status) {
+        validateCustomerExists(customerId);
+        
+        if (status == null) {
+            return bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
+        }
+        
+        return bookingRepository.findByCustomerIdAndStatusOrderByCreatedAtDesc(customerId, status);
+    }
+
+    /**
+     * Ruft eine spezifische Buchung ab.
+     * 
+     * @param bookingId ID der Buchung
+     * @return Buchung
+     * @throws BookingNotFoundException wenn Buchung nicht gefunden
+     */
+    @Transactional(readOnly = true)
+    public Booking getBookingById(Long bookingId) {
+        return bookingRepository.findById(bookingId)
+            .orElseThrow(() -> new BookingNotFoundException(bookingId));
+    }
+
+    /**
+     * Validiert, ob ein Kunde existiert.
+     * 
+     * @param customerId ID des Kunden
+     * @throws CustomerNotFoundException wenn Kunde nicht existiert
+     */
+    private void validateCustomerExists(Long customerId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new CustomerNotFoundException(customerId);
+        }
     }
 }

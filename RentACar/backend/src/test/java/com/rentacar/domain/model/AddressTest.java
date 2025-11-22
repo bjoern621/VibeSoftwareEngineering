@@ -29,8 +29,8 @@ class AddressTest {
     @Test
     void shouldRejectNullStreet() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address(null, "12345", "Berlin")
         );
         assertTrue(exception.getMessage().contains("Straße"));
@@ -39,8 +39,8 @@ class AddressTest {
     @Test
     void shouldRejectEmptyStreet() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address("  ", "12345", "Berlin")
         );
         assertTrue(exception.getMessage().contains("Straße"));
@@ -49,8 +49,8 @@ class AddressTest {
     @Test
     void shouldRejectTooShortStreet() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address("AB", "12345", "Berlin")
         );
         assertTrue(exception.getMessage().contains("zwischen 3 und 100"));
@@ -62,8 +62,8 @@ class AddressTest {
         String longStreet = "A".repeat(101);
 
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address(longStreet, "12345", "Berlin")
         );
         assertTrue(exception.getMessage().contains("zwischen 3 und 100"));
@@ -72,8 +72,8 @@ class AddressTest {
     @Test
     void shouldRejectNullPostalCode() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address("Hauptstraße 123", null, "Berlin")
         );
         assertTrue(exception.getMessage().contains("Postleitzahl"));
@@ -82,8 +82,8 @@ class AddressTest {
     @Test
     void shouldRejectInvalidPostalCodeFormat() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address("Hauptstraße 123", "1234", "Berlin")
         );
         assertTrue(exception.getMessage().contains("5 Ziffern"));
@@ -92,8 +92,8 @@ class AddressTest {
     @Test
     void shouldRejectPostalCodeWithLetters() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address("Hauptstraße 123", "1234A", "Berlin")
         );
         assertTrue(exception.getMessage().contains("5 Ziffern"));
@@ -102,8 +102,8 @@ class AddressTest {
     @Test
     void shouldRejectNullCity() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address("Hauptstraße 123", "12345", null)
         );
         assertTrue(exception.getMessage().contains("Stadt"));
@@ -112,8 +112,8 @@ class AddressTest {
     @Test
     void shouldRejectEmptyCity() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address("Hauptstraße 123", "12345", "  ")
         );
         assertTrue(exception.getMessage().contains("Stadt"));
