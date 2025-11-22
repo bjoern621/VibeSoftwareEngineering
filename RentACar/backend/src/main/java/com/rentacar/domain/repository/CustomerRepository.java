@@ -26,6 +26,14 @@ public interface CustomerRepository {
     Optional<Customer> findById(Long id);
 
     /**
+     * Prüft, ob ein Kunde mit der gegebenen ID existiert.
+     *
+     * @param id Kunden-ID
+     * @return true, wenn Kunde existiert
+     */
+    boolean existsById(Long id);
+
+    /**
      * Sucht einen Kunden anhand seiner E-Mail-Adresse.
      *
      * @param email E-Mail-Adresse

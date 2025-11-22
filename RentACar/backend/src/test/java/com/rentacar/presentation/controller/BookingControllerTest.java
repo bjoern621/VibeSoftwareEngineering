@@ -48,6 +48,12 @@ class BookingControllerTest {
     @MockBean
     private CustomerUserDetailsService customerUserDetailsService;
     
+    @MockBean
+    private com.rentacar.domain.repository.BookingRepository bookingRepository;
+    
+    @MockBean
+    private com.rentacar.domain.repository.CustomerRepository customerRepository;
+    
     @Test
     void shouldCalculatePriceSuccessfully() throws Exception {
         // Arrange

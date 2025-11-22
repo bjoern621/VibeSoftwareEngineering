@@ -77,7 +77,8 @@ public class Branch {
      */
     private void validateName(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Filialname darf nicht null oder leer sein");
+            throw new com.rentacar.domain.exception.InvalidBranchDataException(
+                "name", "Filialname darf nicht null oder leer sein");
         }
     }
     
@@ -89,7 +90,8 @@ public class Branch {
      */
     private void validateAddress(String address) {
         if (address == null || address.isBlank()) {
-            throw new IllegalArgumentException("Filialadresse darf nicht null oder leer sein");
+            throw new com.rentacar.domain.exception.InvalidBranchDataException(
+                "address", "Filialadresse darf nicht null oder leer sein");
         }
     }
     

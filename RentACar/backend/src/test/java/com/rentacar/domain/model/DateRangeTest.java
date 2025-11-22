@@ -71,8 +71,8 @@ class DateRangeTest {
         LocalDateTime end = LocalDateTime.now().plusDays(3);
         
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDateRangeException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDateRangeException.class,
             () -> new DateRange(null, end)
         );
         assertTrue(exception.getMessage().contains("Startdatum darf nicht null sein"));
@@ -84,8 +84,8 @@ class DateRangeTest {
         LocalDateTime start = LocalDateTime.now().plusDays(1);
         
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDateRangeException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDateRangeException.class,
             () -> new DateRange(start, null)
         );
         assertTrue(exception.getMessage().contains("Enddatum darf nicht null sein"));
@@ -98,8 +98,8 @@ class DateRangeTest {
         LocalDateTime end = LocalDateTime.now().plusDays(1);
         
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDateRangeException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDateRangeException.class,
             () -> new DateRange(start, end)
         );
         assertTrue(exception.getMessage().contains("Startdatum muss vor dem Enddatum liegen"));
@@ -112,8 +112,8 @@ class DateRangeTest {
         LocalDateTime end = LocalDateTime.now().plusDays(1);
         
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidDateRangeException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidDateRangeException.class,
             () -> new DateRange(start, end)
         );
         assertTrue(exception.getMessage().contains("Startdatum darf nicht in der Vergangenheit liegen"));

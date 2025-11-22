@@ -147,12 +147,12 @@ public class Customer {
 
     private void validateName(String name, String fieldName) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " darf nicht leer sein");
+            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
+                fieldName, fieldName + " darf nicht leer sein");
         }
         if (name.length() < 2 || name.length() > 100) {
-            throw new IllegalArgumentException(
-                fieldName + " muss zwischen 2 und 100 Zeichen lang sein"
-            );
+            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
+                fieldName, fieldName + " muss zwischen 2 und 100 Zeichen lang sein");
         }
     }
 
@@ -167,12 +167,14 @@ public class Customer {
 
     private void validatePassword(String password) {
         if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("Passwort darf nicht leer sein");
+            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
+                "password", "Passwort darf nicht leer sein");
         }
         // Passwort sollte bereits BCrypt-gehasht sein
         // BCrypt-Hashes haben eine feste Länge von 60 Zeichen und beginnen mit "$2a$", "$2b$" oder "$2y$"
         if (!password.startsWith("$2") || password.length() != 60) {
-            throw new IllegalArgumentException("Passwort muss BCrypt-gehasht sein");
+            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
+                "password", "Passwort muss BCrypt-gehasht sein");
         }
     }
 
@@ -183,9 +185,8 @@ public class Customer {
         // Entfernt Leerzeichen und Bindestriche
         String normalized = phoneNumber.replaceAll("[\\s-]", "");
         if (normalized.length() < 5 || normalized.length() > 20) {
-            throw new IllegalArgumentException(
-                "Telefonnummer muss zwischen 5 und 20 Zeichen lang sein"
-            );
+            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
+                "phoneNumber", "Telefonnummer muss zwischen 5 und 20 Zeichen lang sein");
         }
         return normalized;
     }
@@ -213,13 +214,16 @@ public class Customer {
      */
     public void verifyEmail(String token) {
         if (this.emailVerified) {
-            throw new IllegalArgumentException("E-Mail wurde bereits verifiziert");
+            throw new com.rentacar.domain.exception.EmailAlreadyVerifiedException(
+                "E-Mail wurde bereits verifiziert");
         }
         if (this.verificationToken == null || !this.verificationToken.equals(token)) {
-            throw new IllegalArgumentException("Ungültiger Verifikations-Token");
+            throw new com.rentacar.domain.exception.InvalidVerificationTokenException(
+                "Ungültiger Verifikations-Token");
         }
         if (this.tokenExpiryDate == null || LocalDateTime.now().isAfter(this.tokenExpiryDate)) {
-            throw new IllegalArgumentException("Verifikations-Token ist abgelaufen");
+            throw new com.rentacar.domain.exception.ExpiredVerificationTokenException(
+                "Verifikations-Token ist abgelaufen");
         }
         this.emailVerified = true;
         this.verificationToken = null;

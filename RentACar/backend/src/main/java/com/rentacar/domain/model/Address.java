@@ -48,25 +48,30 @@ public class Address {
 
     private void validateStreet(String street) {
         if (street == null || street.isBlank()) {
-            throw new IllegalArgumentException("Straße darf nicht leer sein");
+            throw new com.rentacar.domain.exception.InvalidAddressException(
+                "street", "Straße darf nicht leer sein");
         }
         if (street.length() < 3 || street.length() > 100) {
-            throw new IllegalArgumentException("Straße muss zwischen 3 und 100 Zeichen lang sein");
+            throw new com.rentacar.domain.exception.InvalidAddressException(
+                "street", "Straße muss zwischen 3 und 100 Zeichen lang sein");
         }
     }
 
     private void validatePostalCode(String postalCode) {
         if (postalCode == null || postalCode.isBlank()) {
-            throw new IllegalArgumentException("Postleitzahl darf nicht leer sein");
+            throw new com.rentacar.domain.exception.InvalidAddressException(
+                "postalCode", "Postleitzahl darf nicht leer sein");
         }
         if (!postalCode.matches("\\d{5}")) {
-            throw new IllegalArgumentException("Postleitzahl muss genau 5 Ziffern enthalten");
+            throw new com.rentacar.domain.exception.InvalidAddressException(
+                "postalCode", "Postleitzahl muss genau 5 Ziffern enthalten");
         }
     }
 
     private void validateCity(String city) {
         if (city == null || city.isBlank()) {
-            throw new IllegalArgumentException("Stadt darf nicht leer sein");
+            throw new com.rentacar.domain.exception.InvalidAddressException(
+                "city", "Stadt darf nicht leer sein");
         }
         if (city.length() < 2 || city.length() > 100) {
             throw new IllegalArgumentException("Stadt muss zwischen 2 und 100 Zeichen lang sein");

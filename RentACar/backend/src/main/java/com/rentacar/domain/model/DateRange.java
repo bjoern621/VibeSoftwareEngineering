@@ -37,20 +37,20 @@ public class DateRange {
      */
     private void validateDateRange(LocalDateTime start, LocalDateTime end) {
         if (start == null) {
-            throw new IllegalArgumentException("Startdatum darf nicht null sein");
+            throw new com.rentacar.domain.exception.InvalidDateRangeException(
+                "Startdatum darf nicht null sein");
         }
         if (end == null) {
-            throw new IllegalArgumentException("Enddatum darf nicht null sein");
+            throw new com.rentacar.domain.exception.InvalidDateRangeException(
+                "Enddatum darf nicht null sein");
         }
         if (!start.isBefore(end)) {
-            throw new IllegalArgumentException(
-                "Startdatum muss vor dem Enddatum liegen. Start: " + start + ", Ende: " + end
-            );
+            throw new com.rentacar.domain.exception.InvalidDateRangeException(
+                start, end, "Startdatum muss vor dem Enddatum liegen. Start: " + start + ", Ende: " + end);
         }
         if (start.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException(
-                "Startdatum darf nicht in der Vergangenheit liegen. Start: " + start
-            );
+            throw new com.rentacar.domain.exception.InvalidDateRangeException(
+                start, end, "Startdatum darf nicht in der Vergangenheit liegen. Start: " + start);
         }
     }
     
