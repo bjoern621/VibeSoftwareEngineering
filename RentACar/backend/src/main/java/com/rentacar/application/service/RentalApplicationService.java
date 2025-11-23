@@ -2,12 +2,16 @@ package com.rentacar.application.service;
 
 import com.rentacar.domain.model.*;
 import com.rentacar.domain.repository.BookingRepository;
+import com.rentacar.domain.repository.DamageReportRepository;
 import com.rentacar.domain.repository.RentalAgreementRepository;
 import com.rentacar.domain.repository.VehicleRepository;
+import com.rentacar.domain.service.AdditionalCostService;
+import com.rentacar.domain.service.EmailService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class RentalApplicationService {
@@ -15,13 +19,21 @@ public class RentalApplicationService {
     private final BookingRepository bookingRepository;
     private final RentalAgreementRepository rentalAgreementRepository;
     private final VehicleRepository vehicleRepository;
+    private final DamageReportRepository damageReportRepository;
+    private final EmailService emailService;
+    private final AdditionalCostService additionalCostService;
 
     public RentalApplicationService(BookingRepository bookingRepository, 
                                     RentalAgreementRepository rentalAgreementRepository,
-                                    VehicleRepository vehicleRepository) {
+                                    VehicleRepository vehicleRepository,
+                                    DamageReportRepository damageReportRepository,
+                                    EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.rentalAgreementRepository = rentalAgreementRepository;
         this.vehicleRepository = vehicleRepository;
+        this.damageReportRepository = damageReportRepository;
+        this.emailService = emailService;
+        this.additionalCostService = new AdditionalCostService();
     }
 
     @Transactional
@@ -71,9 +83,15 @@ public class RentalApplicationService {
                 LocalDateTime.now(),
                 new VehicleCondition(fuelLevel, cleanliness, damagesDescription)
         );
+
+        // 2. Calculate Additional Costs
+        List<DamageReport> damageReports = damageReportRepository.findByRentalAgreementId(agreement.getId());
+        AdditionalCosts costs = additionalCostService.calculateAdditionalCosts(booking, agreement, damageReports);
+        agreement.updateAdditionalCosts(costs);
+
         rentalAgreementRepository.save(agreement);
 
-        // 2. Update Vehicle Status
+        // 3. Update Vehicle Status
         vehicle.markAsAvailable(Mileage.of(mileage));
         
         if (damagesDescription != null && !damagesDescription.isBlank()) {
@@ -81,8 +99,12 @@ public class RentalApplicationService {
         }
         vehicleRepository.save(vehicle);
 
-        // 3. Complete Booking
+        // 4. Complete Booking
         booking.complete();
         bookingRepository.save(booking);
+
+        // 5. Send Invoice Email
+        Customer customer = booking.getCustomer();
+        emailService.sendInvoiceEmail(customer.getEmail(), customer.getFirstName() + " " + customer.getLastName(), booking, agreement);
     }
 }

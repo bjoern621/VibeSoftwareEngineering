@@ -37,18 +37,21 @@ public class BookingApplicationService {
     private final BookingDomainService bookingDomainService;
     private final VehicleRepository vehicleRepository;
     private final BranchRepository branchRepository;
+    private final com.rentacar.domain.repository.RentalAgreementRepository rentalAgreementRepository;
     
     public BookingApplicationService(BookingRepository bookingRepository,
                                      CustomerRepository customerRepository,
                                      BookingDomainService bookingDomainService,
                                      VehicleRepository vehicleRepository,
-                                     BranchRepository branchRepository) {
+                                     BranchRepository branchRepository,
+                                     com.rentacar.domain.repository.RentalAgreementRepository rentalAgreementRepository) {
         this.pricingService = new PricingService();
         this.bookingRepository = bookingRepository;
         this.customerRepository = customerRepository;
         this.bookingDomainService = bookingDomainService;
         this.vehicleRepository = vehicleRepository;
         this.branchRepository = branchRepository;
+        this.rentalAgreementRepository = rentalAgreementRepository;
     }
 
     /**
@@ -259,5 +262,22 @@ public class BookingApplicationService {
         if (!customerRepository.existsById(customerId)) {
             throw new CustomerNotFoundException(customerId);
         }
+    }
+
+    public com.rentacar.presentation.dto.AdditionalCostsDTO getAdditionalCosts(Long bookingId) {
+        RentalAgreement agreement = rentalAgreementRepository.findByBookingId(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Rental agreement not found for booking ID: " + bookingId));
+        
+        AdditionalCosts costs = agreement.getAdditionalCosts();
+        if (costs == null) {
+             return new com.rentacar.presentation.dto.AdditionalCostsDTO(java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO);
+        }
+
+        return new com.rentacar.presentation.dto.AdditionalCostsDTO(
+                costs.getLateFee(),
+                costs.getExcessMileageFee(),
+                costs.getDamageCost(),
+                costs.getTotalAdditionalCost()
+        );
     }
 }

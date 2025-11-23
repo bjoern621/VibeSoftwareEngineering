@@ -54,6 +54,9 @@ public class RentalAgreement {
     })
     private VehicleCondition checkinCondition;
 
+    @Embedded
+    private AdditionalCosts additionalCosts;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RentalAgreementStatus status;
@@ -68,6 +71,7 @@ public class RentalAgreement {
         this.checkoutTime = Objects.requireNonNull(checkoutTime, "Checkout time must not be null");
         this.checkoutCondition = Objects.requireNonNull(checkoutCondition, "Checkout condition must not be null");
         this.status = RentalAgreementStatus.OPEN;
+        this.additionalCosts = AdditionalCosts.zero();
     }
 
     public void checkIn(Mileage checkinMileage, LocalDateTime checkinTime, VehicleCondition checkinCondition) {
@@ -119,6 +123,14 @@ public class RentalAgreement {
 
     public VehicleCondition getCheckinCondition() {
         return checkinCondition;
+    }
+
+    public AdditionalCosts getAdditionalCosts() {
+        return additionalCosts;
+    }
+
+    public void updateAdditionalCosts(AdditionalCosts additionalCosts) {
+        this.additionalCosts = Objects.requireNonNull(additionalCosts, "Additional costs must not be null");
     }
 
     public RentalAgreementStatus getStatus() {

@@ -28,12 +28,16 @@ class RentalApplicationServiceTest {
     private RentalAgreementRepository rentalAgreementRepository;
     @Mock
     private VehicleRepository vehicleRepository;
+    @Mock
+    private com.rentacar.domain.repository.DamageReportRepository damageReportRepository;
+    @Mock
+    private com.rentacar.domain.service.EmailService emailService;
 
     private RentalApplicationService rentalApplicationService;
 
     @BeforeEach
     void setUp() {
-        rentalApplicationService = new RentalApplicationService(bookingRepository, rentalAgreementRepository, vehicleRepository);
+        rentalApplicationService = new RentalApplicationService(bookingRepository, rentalAgreementRepository, vehicleRepository, damageReportRepository, emailService);
     }
 
     @Test
@@ -101,11 +105,16 @@ class RentalApplicationServiceTest {
         RentalAgreement agreement = mock(RentalAgreement.class);
         Booking booking = mock(Booking.class);
         Vehicle vehicle = mock(Vehicle.class);
+        Customer customer = mock(Customer.class);
         Mileage checkoutMileage = Mileage.of(1000);
 
         when(rentalAgreementRepository.findByBookingId(bookingId)).thenReturn(Optional.of(agreement));
         when(agreement.getBooking()).thenReturn(booking);
         when(booking.getVehicle()).thenReturn(vehicle);
+        when(booking.getCustomer()).thenReturn(customer);
+        when(customer.getEmail()).thenReturn("test@example.com");
+        when(customer.getFirstName()).thenReturn("John");
+        when(customer.getLastName()).thenReturn("Doe");
         when(agreement.getCheckoutMileage()).thenReturn(checkoutMileage);
         when(agreement.getStatus()).thenReturn(RentalAgreementStatus.OPEN);
 
@@ -130,11 +139,16 @@ class RentalApplicationServiceTest {
         RentalAgreement agreement = mock(RentalAgreement.class);
         Booking booking = mock(Booking.class);
         Vehicle vehicle = mock(Vehicle.class);
+        Customer customer = mock(Customer.class);
         Mileage checkoutMileage = Mileage.of(1000);
 
         when(rentalAgreementRepository.findByBookingId(bookingId)).thenReturn(Optional.of(agreement));
         lenient().when(agreement.getBooking()).thenReturn(booking);
         lenient().when(booking.getVehicle()).thenReturn(vehicle);
+        when(booking.getCustomer()).thenReturn(customer);
+        when(customer.getEmail()).thenReturn("test@example.com");
+        when(customer.getFirstName()).thenReturn("John");
+        when(customer.getLastName()).thenReturn("Doe");
         when(agreement.getCheckoutMileage()).thenReturn(checkoutMileage);
         when(agreement.getStatus()).thenReturn(RentalAgreementStatus.OPEN);
 
