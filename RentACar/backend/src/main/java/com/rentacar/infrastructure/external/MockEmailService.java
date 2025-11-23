@@ -68,4 +68,23 @@ public class MockEmailService implements EmailService {
         log.info("Ihr RentACar Team");
         log.info("============================");
     }
+
+    @Override
+    public void sendDamageReportNotification(String recipientEmail, String recipientName, String damageDescription) {
+        log.info("=== E-MAIL VERSAND (MOCK) ===");
+        log.info("An: {}", recipientEmail);
+        log.info("Empfänger: {}", recipientName);
+        log.info("Betreff: Schadensbericht zu Ihrer Buchung");
+        log.info("Inhalt:");
+        log.info("Hallo {},", recipientName);
+        log.info("");
+        log.info("Es wurde ein Schadensbericht zu Ihrer Buchung erstellt.");
+        log.info("Beschreibung des Schadens: {}", damageDescription);
+        log.info("");
+        log.info("Details finden Sie in Ihrem Kundenkonto.");
+        log.info("");
+        log.info("Mit freundlichen Grüßen");
+        log.info("Ihr RentACar Team");
+        log.info("============================");
+    }
 }
