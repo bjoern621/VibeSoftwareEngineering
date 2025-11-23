@@ -5,6 +5,7 @@ import com.rentacar.domain.model.Booking;
 import com.rentacar.domain.model.BookingStatus;
 import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.presentation.dto.BookingHistoryDto;
+import com.rentacar.presentation.dto.CreateBookingRequestDTO;
 import com.rentacar.presentation.dto.FahrzeugInfoDto;
 import com.rentacar.presentation.dto.FilialeInfoDto;
 import com.rentacar.presentation.dto.PriceCalculationRequestDTO;
@@ -99,6 +100,25 @@ public class BookingController {
             .collect(Collectors.toList());
         
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Erstellt eine neue Buchung.
+     * 
+     * @param request Buchungsanfrage
+     * @param authentication Authentifizierung
+     * @return Die erstellte Buchung (als DTO)
+     */
+    @PostMapping("/buchungen")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<BookingHistoryDto> createBooking(
+            @Valid @RequestBody CreateBookingRequestDTO request,
+            Authentication authentication) {
+        
+        Long customerId = jwtUtil.extractCustomerId(authentication);
+        Booking booking = bookingApplicationService.createBooking(customerId, request);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapToDto(booking));
     }
 
     /**

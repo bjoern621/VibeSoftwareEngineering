@@ -1,6 +1,13 @@
 package com.rentacar.presentation.controller;
 
+import com.rentacar.domain.exception.VehicleNotAvailableException;
+import com.rentacar.domain.model.*;
+import com.rentacar.presentation.dto.CreateBookingRequestDTO;
+import java.util.Collections;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.test.util.ReflectionTestUtils;
 import com.rentacar.TestSecurityConfig;
 import com.rentacar.application.service.BookingApplicationService;
 import com.rentacar.infrastructure.security.JwtAuthenticationFilter;
@@ -53,6 +60,15 @@ class BookingControllerTest {
     
     @MockBean
     private com.rentacar.domain.repository.CustomerRepository customerRepository;
+
+    @MockBean
+    private com.rentacar.domain.service.BookingDomainService bookingDomainService;
+
+    @MockBean
+    private com.rentacar.domain.repository.VehicleRepository vehicleRepository;
+
+    @MockBean
+    private com.rentacar.domain.repository.BranchRepository branchRepository;
     
     @Test
     void shouldCalculatePriceSuccessfully() throws Exception {
@@ -252,5 +268,56 @@ class BookingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
                 .andExpect(status().isOk());
+    }
+    
+    @Test
+    void shouldReturnConflictWhenVehicleNotAvailable() throws Exception {
+        // Arrange
+        CreateBookingRequestDTO request = new CreateBookingRequestDTO();
+        request.setVehicleId(1L);
+        request.setPickupBranchId(1L);
+        request.setReturnBranchId(1L);
+        request.setPickupDateTime(LocalDateTime.now().plusDays(1));
+        request.setReturnDateTime(LocalDateTime.now().plusDays(3));
+        request.setAdditionalServices(Collections.emptyList());
+
+        Branch branch = new Branch("Branch 1", "Street, City", "9-17");
+        ReflectionTestUtils.setField(branch, "id", 1L);
+
+        Vehicle vehicle = new Vehicle(
+            LicensePlate.of("M-XY 123"),
+            "BMW", "X1", 2023,
+            Mileage.of(1000),
+            VehicleType.COMPACT_CAR,
+            branch
+        );
+        ReflectionTestUtils.setField(vehicle, "id", 1L);
+
+        Vehicle alternative = new Vehicle(
+            LicensePlate.of("M-XY 999"),
+            "BMW", "X1", 2023,
+            Mileage.of(1000),
+            VehicleType.COMPACT_CAR,
+            branch
+        );
+        ReflectionTestUtils.setField(alternative, "id", 2L);
+
+        // Mock dependencies
+        Customer customer = org.mockito.Mockito.mock(Customer.class);
+        when(customerRepository.findById(any())).thenReturn(java.util.Optional.of(customer));
+        when(vehicleRepository.findById(1L)).thenReturn(java.util.Optional.of(vehicle));
+        when(branchRepository.findById(1L)).thenReturn(java.util.Optional.of(branch));
+
+        when(bookingDomainService.createBooking(any(), any(), any(), any(), any(), any(), any()))
+            .thenThrow(new VehicleNotAvailableException("Not available", Collections.singletonList(alternative)));
+
+        // Act & Assert
+        mockMvc.perform(post("/api/buchungen")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Not available"))
+                .andExpect(jsonPath("$.alternativeVehicles[0].id").value(2));
     }
 }
