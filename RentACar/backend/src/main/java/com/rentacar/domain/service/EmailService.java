@@ -30,4 +30,13 @@ public interface EmailService {
      * @param recipientName  Name des Empfängers
      */
     void sendPasswordChangedEmail(String recipientEmail, String recipientName);
+
+    /**
+     * Versendet eine Benachrichtigung über einen erstellten Schadensbericht.
+     *
+     * @param recipientEmail E-Mail-Adresse des Empfängers
+     * @param recipientName  Name des Empfängers
+     * @param damageDescription Beschreibung des Schadens
+     */
+    void sendDamageReportNotification(String recipientEmail, String recipientName, String damageDescription);
 }
