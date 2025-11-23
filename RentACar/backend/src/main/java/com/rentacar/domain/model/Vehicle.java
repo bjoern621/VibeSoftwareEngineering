@@ -137,6 +137,24 @@ public class Vehicle {
     }
     
     /**
+     * Markiert das Fahrzeug als verfügbar (z.B. nach Buchungsstornierung).
+     * Kilometerstand bleibt unverändert.
+     *
+     * Business Rule: Nur möglich, wenn Fahrzeug aktuell RENTED ist.
+     *
+     * @throws VehicleStatusTransitionException wenn das Fahrzeug nicht vermietet ist
+     */
+    public void makeAvailable() {
+        if (status != VehicleStatus.RENTED) {
+            throw new VehicleStatusTransitionException(
+                "Fahrzeug " + licensePlate + " kann nur aus Status RENTED verfügbar gemacht werden (aktuell: " + status + ")",
+                status
+            );
+        }
+        this.status = VehicleStatus.AVAILABLE;
+    }
+
+    /**
      * Markiert das Fahrzeug als in Wartung.
      */
     public void markAsInMaintenance() {

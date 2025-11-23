@@ -1,11 +1,16 @@
 package com.rentacar.presentation.controller;
 
+import com.rentacar.application.command.CancelBookingCommand;
 import com.rentacar.application.service.BookingApplicationService;
+import com.rentacar.domain.exception.BookingNotFoundException;
+import com.rentacar.domain.exception.CancellationDeadlineExceededException;
+import com.rentacar.domain.exception.UnauthorizedBookingAccessException;
 import com.rentacar.domain.model.Booking;
 import com.rentacar.domain.model.BookingStatus;
 import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.presentation.dto.BookingHistoryDto;
 import com.rentacar.presentation.dto.CreateBookingRequestDTO;
+import com.rentacar.presentation.dto.CancelBookingRequestDto;
 import com.rentacar.presentation.dto.FahrzeugInfoDto;
 import com.rentacar.presentation.dto.FilialeInfoDto;
 import com.rentacar.presentation.dto.PriceCalculationRequestDTO;
@@ -104,7 +109,7 @@ public class BookingController {
 
     /**
      * Erstellt eine neue Buchung.
-     * 
+     *
      * @param request Buchungsanfrage
      * @param authentication Authentifizierung
      * @return Die erstellte Buchung (als DTO)
@@ -114,17 +119,17 @@ public class BookingController {
     public ResponseEntity<BookingHistoryDto> createBooking(
             @Valid @RequestBody CreateBookingRequestDTO request,
             Authentication authentication) {
-        
+
         Long customerId = jwtUtil.extractCustomerId(authentication);
         Booking booking = bookingApplicationService.createBooking(customerId, request);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(mapToDto(booking));
     }
 
     /**
      * GET /api/buchungen/{id}/zusatzkosten
      * Ruft die Zusatzkosten für eine Buchung ab.
-     * 
+     *
      * @param id Buchungs-ID
      * @return Aufschlüsselung der Zusatzkosten
      */
@@ -172,6 +177,117 @@ public class BookingController {
         );
     }
     
+    // ========== Buchungsstornierung Endpoint ==========
+
+    /**
+     * DELETE /api/buchungen/{id}/stornieren
+     *
+     * Storniert eine Buchung (mind. 24h vor Abholung).
+     *
+     * Authorization:
+     * - CUSTOMER: Nur eigene Buchungen
+     * - EMPLOYEE/ADMIN: Alle Buchungen (via @PreAuthorize)
+     *
+     * @param id Buchungs-ID
+     * @param request Optionaler Stornierungsgrund
+     * @param authentication JWT-Token
+     * @return 204 No Content bei Erfolg
+     * @throws BookingNotFoundException wenn Buchung nicht existiert (404)
+     * @throws UnauthorizedBookingAccessException wenn keine Berechtigung (403)
+     * @throws CancellationDeadlineExceededException wenn < 24h vor Abholung (400)
+     */
+    @DeleteMapping("/buchungen/{id}/stornieren")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<Void> cancelBooking(
+        @PathVariable Long id,
+        @RequestBody(required = false) @Valid CancelBookingRequestDto request,
+        Authentication authentication
+    ) {
+        // Customer-ID aus JWT extrahieren (null für Employee/Admin)
+        Long customerId = null;
+        if (authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+            customerId = jwtUtil.extractCustomerId(authentication);
+        }
+
+        String reason = (request != null) ? request.reason() : null;
+
+        // Application Service aufrufen (Use-Case-Orchestrierung)
+        CancelBookingCommand command = new CancelBookingCommand(id, customerId, reason);
+        bookingApplicationService.cancelBooking(command);
+
+        // 204 No Content zurückgeben
+        return ResponseEntity.noContent().build();
+    }
+
+    // ========== Exception Handlers ==========
+
+    /**
+     * Exception Handler für BookingNotFoundException.
+     *
+     * @param ex BookingNotFoundException
+     * @return 404 Not Found
+     */
+    @ExceptionHandler(BookingNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBookingNotFound(BookingNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    /**
+     * Exception Handler für UnauthorizedBookingAccessException.
+     *
+     * @param ex UnauthorizedBookingAccessException
+     * @return 403 Forbidden
+     */
+    @ExceptionHandler(UnauthorizedBookingAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedBookingAccess(
+        UnauthorizedBookingAccessException ex
+    ) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.FORBIDDEN.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    /**
+     * Exception Handler für CancellationDeadlineExceededException.
+     *
+     * @param ex CancellationDeadlineExceededException
+     * @return 400 Bad Request
+     */
+    @ExceptionHandler(CancellationDeadlineExceededException.class)
+    public ResponseEntity<ErrorResponse> handleCancellationDeadlineExceeded(
+        CancellationDeadlineExceededException ex
+    ) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    /**
+     * Exception Handler für BookingStatusTransitionException.
+     *
+     * @param ex BookingStatusTransitionException
+     * @return 400 Bad Request
+     */
+    @ExceptionHandler(com.rentacar.domain.exception.BookingStatusTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleBookingStatusTransition(
+        com.rentacar.domain.exception.BookingStatusTransitionException ex
+    ) {
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getMessage()
+        );
+        return ResponseEntity.badRequest().body(error);
+    }
+
     /**
      * Exception Handler für IllegalArgumentException.
      * 
