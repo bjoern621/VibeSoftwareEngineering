@@ -30,4 +30,19 @@ public interface EmailService {
      * @param recipientName  Name des Empfängers
      */
     void sendPasswordChangedEmail(String recipientEmail, String recipientName);
+
+    /**
+     * Versendet eine Bestätigungs-E-Mail nach Buchungsstornierung.
+     *
+     * @param recipientEmail E-Mail-Adresse des Empfängers
+     * @param recipientName Name des Empfängers
+     * @param bookingId ID der stornierten Buchung
+     * @param cancellationReason Grund der Stornierung (optional, kann null sein)
+     */
+    void sendBookingCancellationEmail(
+        String recipientEmail,
+        String recipientName,
+        Long bookingId,
+        String cancellationReason
+    );
 }

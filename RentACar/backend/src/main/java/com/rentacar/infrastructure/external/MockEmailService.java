@@ -68,4 +68,34 @@ public class MockEmailService implements EmailService {
         log.info("Ihr RentACar Team");
         log.info("============================");
     }
+
+    @Override
+    public void sendBookingCancellationEmail(
+        String recipientEmail,
+        String recipientName,
+        Long bookingId,
+        String cancellationReason
+    ) {
+        log.info("=== E-MAIL VERSAND (MOCK) ===");
+        log.info("An: {}", recipientEmail);
+        log.info("Empfänger: {}", recipientName);
+        log.info("Betreff: Buchung #{} wurde storniert", bookingId);
+        log.info("Inhalt:");
+        log.info("Hallo {},", recipientName);
+        log.info("");
+        log.info("Ihre Buchung #{} wurde erfolgreich storniert.", bookingId);
+
+        if (cancellationReason != null && !cancellationReason.isBlank()) {
+            log.info("");
+            log.info("Stornierungsgrund: {}", cancellationReason);
+        }
+
+        log.info("");
+        log.info("Bei Fragen stehen wir Ihnen gerne zur Verfügung.");
+        log.info("Kontakt: support@rentacar.com | Tel: +49 123 456789");
+        log.info("");
+        log.info("Mit freundlichen Grüßen");
+        log.info("Ihr RentACar Team");
+        log.info("============================");
+    }
 }

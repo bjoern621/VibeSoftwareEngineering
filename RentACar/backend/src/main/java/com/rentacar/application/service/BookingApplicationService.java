@@ -1,7 +1,10 @@
 package com.rentacar.application.service;
 
+import com.rentacar.application.command.CancelBookingCommand;
+import com.rentacar.domain.event.BookingCancelled;
 import com.rentacar.domain.exception.BookingNotFoundException;
 import com.rentacar.domain.exception.CustomerNotFoundException;
+import com.rentacar.domain.exception.UnauthorizedBookingAccessException;
 import com.rentacar.domain.model.AdditionalServiceType;
 import com.rentacar.domain.model.Booking;
 import com.rentacar.domain.model.BookingStatus;
@@ -14,9 +17,11 @@ import com.rentacar.domain.service.PricingService;
 import com.rentacar.presentation.dto.PriceCalculationRequestDTO;
 import com.rentacar.presentation.dto.PriceCalculationResponseDTO;
 import com.rentacar.presentation.dto.PriceCalculationResponseDTO.AdditionalServiceItemDTO;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,12 +38,17 @@ public class BookingApplicationService {
     private final PricingService pricingService;
     private final BookingRepository bookingRepository;
     private final CustomerRepository customerRepository;
-    
-    public BookingApplicationService(BookingRepository bookingRepository,
-                                     CustomerRepository customerRepository) {
+    private final ApplicationEventPublisher eventPublisher;
+
+    public BookingApplicationService(
+        BookingRepository bookingRepository,
+        CustomerRepository customerRepository,
+        ApplicationEventPublisher eventPublisher
+    ) {
         this.pricingService = new PricingService();
         this.bookingRepository = bookingRepository;
         this.customerRepository = customerRepository;
+        this.eventPublisher = eventPublisher;
     }
     
     /**
@@ -215,6 +225,71 @@ public class BookingApplicationService {
     private void validateCustomerExists(Long customerId) {
         if (!customerRepository.existsById(customerId)) {
             throw new CustomerNotFoundException(customerId);
+        }
+    }
+
+    // ========== Buchungsstornierung Use Case ==========
+
+    /**
+     * Use-Case: Buchung stornieren.
+     *
+     * Orchestriert:
+     * 1. Booking laden
+     * 2. Authorization (Business Rule: nur Owner darf stornieren)
+     * 3. Domain-Logik ausführen (booking.cancel() mit 24h-Validierung)
+     * 4. Persistierung
+     * 5. Domain Event publizieren (Vehicle-Verfügbarkeit + E-Mail asynchron via Event Handler)
+     *
+     * @param command Stornierungskommando mit bookingId, customerId, reason
+     * @throws BookingNotFoundException wenn Buchung nicht existiert
+     * @throws UnauthorizedBookingAccessException wenn Kunde nicht Owner ist
+     * @throws CancellationDeadlineExceededException wenn < 24h vor Abholung (aus booking.cancel())
+     */
+    public void cancelBooking(CancelBookingCommand command) {
+        // 1. Booking Aggregate laden
+        Booking booking = bookingRepository.findById(command.bookingId())
+            .orElseThrow(() -> new BookingNotFoundException(command.bookingId()));
+
+        // 2. Authorization (Business Rule im Application Layer)
+        validateCancellationAuthorization(booking, command.customerId());
+
+        // 3. Domain-Logik ausführen (24h-Validierung + Status-Transition)
+        booking.cancel(LocalDateTime.now(), command.reason());
+        bookingRepository.save(booking);
+
+        // 4. Domain Event publizieren (ASYNCHRONE Integration!)
+        // Event-Handler wird Vehicle verfügbar machen + E-Mail versenden
+        BookingCancelled event = new BookingCancelled(
+            booking.getId(),
+            booking.getCustomer().getId(),
+            booking.getVehicle().getId(),
+            booking.getCustomer().getEmail(),
+            booking.getCustomer().getFirstName() + " " + booking.getCustomer().getLastName(),
+            command.reason(),
+            LocalDateTime.now()
+        );
+        eventPublisher.publishEvent(event);
+    }
+
+    /**
+     * Validiert, ob der Kunde berechtigt ist, die Buchung zu stornieren.
+     *
+     * Business Rule: Nur der Buchungseigentümer darf stornieren.
+     * (Employee/Admin-Check erfolgt im Controller via @PreAuthorize)
+     *
+     * @param booking die zu stornierende Buchung
+     * @param customerId ID des stornierenden Kunden (null für Employee/Admin)
+     * @throws UnauthorizedBookingAccessException wenn Kunde nicht Owner ist
+     */
+    private void validateCancellationAuthorization(Booking booking, Long customerId) {
+        // Employee/Admin haben keine customerId (null) und dürfen alles stornieren
+        if (customerId == null) {
+            return;
+        }
+
+        // Für Customers: nur eigene Buchungen
+        if (!booking.getCustomer().getId().equals(customerId)) {
+            throw new UnauthorizedBookingAccessException(booking.getId(), customerId);
         }
     }
 }
