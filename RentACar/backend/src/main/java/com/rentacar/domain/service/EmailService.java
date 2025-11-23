@@ -39,4 +39,14 @@ public interface EmailService {
      * @param damageDescription Beschreibung des Schadens
      */
     void sendDamageReportNotification(String recipientEmail, String recipientName, String damageDescription);
+
+    /**
+     * Versendet eine Rechnung per E-Mail.
+     *
+     * @param recipientEmail E-Mail-Adresse des Empfängers
+     * @param recipientName Name des Empfängers
+     * @param booking Die Buchung
+     * @param rentalAgreement Der Mietvertrag (mit Zusatzkosten)
+     */
+    void sendInvoiceEmail(String recipientEmail, String recipientName, com.rentacar.domain.model.Booking booking, com.rentacar.domain.model.RentalAgreement rentalAgreement);
 }

@@ -122,6 +122,20 @@ public class BookingController {
     }
 
     /**
+     * GET /api/buchungen/{id}/zusatzkosten
+     * Ruft die Zusatzkosten für eine Buchung ab.
+     * 
+     * @param id Buchungs-ID
+     * @return Aufschlüsselung der Zusatzkosten
+     */
+    @GetMapping("/buchungen/{id}/zusatzkosten")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<com.rentacar.presentation.dto.AdditionalCostsDTO> getAdditionalCosts(@PathVariable Long id) {
+        com.rentacar.presentation.dto.AdditionalCostsDTO costs = bookingApplicationService.getAdditionalCosts(id);
+        return ResponseEntity.ok(costs);
+    }
+
+    /**
      * Mapped Booking Entity zu DTO (Ubiquitous Language: Deutsche Felder).
      * 
      * @param booking Booking Entity

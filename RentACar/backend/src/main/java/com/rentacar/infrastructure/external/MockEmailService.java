@@ -74,14 +74,41 @@ public class MockEmailService implements EmailService {
         log.info("=== E-MAIL VERSAND (MOCK) ===");
         log.info("An: {}", recipientEmail);
         log.info("Empfänger: {}", recipientName);
-        log.info("Betreff: Schadensbericht zu Ihrer Buchung");
+        log.info("Betreff: Neuer Schadensbericht");
         log.info("Inhalt:");
         log.info("Hallo {},", recipientName);
         log.info("");
-        log.info("Es wurde ein Schadensbericht zu Ihrer Buchung erstellt.");
-        log.info("Beschreibung des Schadens: {}", damageDescription);
+        log.info("Es wurde ein neuer Schadensbericht für Ihre Miete erstellt:");
+        log.info("{}", damageDescription);
         log.info("");
-        log.info("Details finden Sie in Ihrem Kundenkonto.");
+        log.info("Mit freundlichen Grüßen");
+        log.info("Ihr RentACar Team");
+        log.info("============================");
+    }
+
+    @Override
+    public void sendInvoiceEmail(String recipientEmail, String recipientName, com.rentacar.domain.model.Booking booking, com.rentacar.domain.model.RentalAgreement rentalAgreement) {
+        log.info("=== E-MAIL VERSAND (MOCK) ===");
+        log.info("An: {}", recipientEmail);
+        log.info("Empfänger: {}", recipientName);
+        log.info("Betreff: Ihre Rechnung");
+        log.info("Inhalt:");
+        log.info("Hallo {},", recipientName);
+        log.info("");
+        log.info("Vielen Dank für Ihre Miete.");
+        log.info("Hier ist Ihre Abrechnung:");
+        // Note: booking.getId() might not be accessible if package private or protected, but usually it is public.
+        // Assuming standard getters.
+        
+        com.rentacar.domain.model.AdditionalCosts costs = rentalAgreement.getAdditionalCosts();
+        if (costs != null) {
+            log.info("Zusatzkosten:");
+            log.info("- Verspätung: {}", costs.getLateFee());
+            log.info("- Mehrkilometer: {}", costs.getExcessMileageFee());
+            log.info("- Schäden: {}", costs.getDamageCost());
+            log.info("Gesamt Zusatzkosten: {}", costs.getTotalAdditionalCost());
+        }
+        
         log.info("");
         log.info("Mit freundlichen Grüßen");
         log.info("Ihr RentACar Team");
