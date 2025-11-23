@@ -37,6 +37,23 @@ public class RentalAgreement {
     })
     private VehicleCondition checkoutCondition;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "kilometers", column = @Column(name = "checkin_kilometers")),
+    })
+    private Mileage checkinMileage;
+
+    @Column(name = "checkin_time")
+    private LocalDateTime checkinTime;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "fuelLevel", column = @Column(name = "checkin_fuel_level")),
+        @AttributeOverride(name = "cleanliness", column = @Column(name = "checkin_cleanliness")),
+        @AttributeOverride(name = "damagesDescription", column = @Column(name = "checkin_damages"))
+    })
+    private VehicleCondition checkinCondition;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RentalAgreementStatus status;
@@ -51,6 +68,25 @@ public class RentalAgreement {
         this.checkoutTime = Objects.requireNonNull(checkoutTime, "Checkout time must not be null");
         this.checkoutCondition = Objects.requireNonNull(checkoutCondition, "Checkout condition must not be null");
         this.status = RentalAgreementStatus.OPEN;
+    }
+
+    public void checkIn(Mileage checkinMileage, LocalDateTime checkinTime, VehicleCondition checkinCondition) {
+        if (this.status != RentalAgreementStatus.OPEN) {
+            throw new IllegalStateException("Rental agreement is not open. Current status: " + this.status);
+        }
+        this.checkinMileage = Objects.requireNonNull(checkinMileage, "Checkin mileage must not be null");
+        this.checkinTime = Objects.requireNonNull(checkinTime, "Checkin time must not be null");
+        this.checkinCondition = Objects.requireNonNull(checkinCondition, "Checkin condition must not be null");
+        
+        if (checkinMileage.isLessThan(this.checkoutMileage)) {
+             throw new IllegalArgumentException("Checkin mileage cannot be less than checkout mileage");
+        }
+
+        if (checkinTime.isBefore(this.checkoutTime)) {
+            throw new IllegalArgumentException("Checkin time cannot be before checkout time");
+        }
+
+        this.status = RentalAgreementStatus.CLOSED;
     }
 
     public Long getId() {
@@ -71,6 +107,18 @@ public class RentalAgreement {
 
     public VehicleCondition getCheckoutCondition() {
         return checkoutCondition;
+    }
+
+    public Mileage getCheckinMileage() {
+        return checkinMileage;
+    }
+
+    public LocalDateTime getCheckinTime() {
+        return checkinTime;
+    }
+
+    public VehicleCondition getCheckinCondition() {
+        return checkinCondition;
     }
 
     public RentalAgreementStatus getStatus() {

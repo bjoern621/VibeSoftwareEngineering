@@ -67,4 +67,27 @@ class RentalControllerTest {
                 eq("None")
         );
     }
+
+    @Test
+    void performCheckIn_Success() throws Exception {
+        Long bookingId = 1L;
+        com.rentacar.presentation.dto.CheckInRequestDTO request = new com.rentacar.presentation.dto.CheckInRequestDTO();
+        request.setMileage(1200);
+        request.setFuelLevel("FULL");
+        request.setCleanliness("CLEAN");
+        request.setDamagesDescription("None");
+
+        mockMvc.perform(post("/api/vermietung/{buchungId}/checkin", bookingId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        verify(rentalApplicationService).performCheckIn(
+                eq(bookingId),
+                eq(1200),
+                eq("FULL"),
+                eq("CLEAN"),
+                eq("None")
+        );
+    }
 }

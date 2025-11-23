@@ -56,4 +56,33 @@ public class RentalApplicationService {
         
         return agreement.getId();
     }
+
+    @Transactional
+    public void performCheckIn(Long bookingId, Integer mileage, String fuelLevel, String cleanliness, String damagesDescription) {
+        RentalAgreement agreement = rentalAgreementRepository.findByBookingId(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Rental agreement not found for booking ID: " + bookingId));
+
+        Booking booking = agreement.getBooking();
+        Vehicle vehicle = booking.getVehicle();
+
+        // 1. Perform Check-in on Agreement
+        agreement.checkIn(
+                Mileage.of(mileage),
+                LocalDateTime.now(),
+                new VehicleCondition(fuelLevel, cleanliness, damagesDescription)
+        );
+        rentalAgreementRepository.save(agreement);
+
+        // 2. Update Vehicle Status
+        vehicle.markAsAvailable(Mileage.of(mileage));
+        
+        if (damagesDescription != null && !damagesDescription.isBlank()) {
+            vehicle.markAsInMaintenance();
+        }
+        vehicleRepository.save(vehicle);
+
+        // 3. Complete Booking
+        booking.complete();
+        bookingRepository.save(booking);
+    }
 }
