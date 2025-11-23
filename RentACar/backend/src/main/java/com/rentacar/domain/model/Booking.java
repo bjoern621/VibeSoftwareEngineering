@@ -163,15 +163,31 @@ public class Booking {
     }
 
     /**
+     * Aktiviert die Buchung (Fahrzeug abgeholt).
+     * 
+     * @throws com.rentacar.domain.exception.BookingStatusTransitionException wenn Status-Übergang ungültig
+     */
+    public void activate() {
+        if (status != BookingStatus.CONFIRMED) {
+            throw new com.rentacar.domain.exception.BookingStatusTransitionException(
+                id, status, BookingStatus.ACTIVE,
+                "Nur bestätigte Buchungen können aktiviert werden"
+            );
+        }
+        this.status = BookingStatus.ACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * Markiert die Buchung als abgeschlossen (Fahrzeug zurückgegeben).
      * 
      * @throws com.rentacar.domain.exception.BookingStatusTransitionException wenn Status-Übergang ungültig
      */
     public void complete() {
-        if (status != BookingStatus.CONFIRMED) {
+        if (status != BookingStatus.ACTIVE) {
             throw new com.rentacar.domain.exception.BookingStatusTransitionException(
                 id, status, BookingStatus.COMPLETED,
-                "Nur bestätigte Buchungen können abgeschlossen werden"
+                "Nur aktive Buchungen können abgeschlossen werden"
             );
         }
         this.status = BookingStatus.COMPLETED;

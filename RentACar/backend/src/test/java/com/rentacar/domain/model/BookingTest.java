@@ -95,11 +95,12 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("Bestätigte Buchung kann abgeschlossen werden")
-    void confirmedBooking_canBeCompleted() {
+    @DisplayName("Aktive Buchung kann abgeschlossen werden")
+    void activeBooking_canBeCompleted() {
         Booking booking = new Booking(customer, vehicle, pickupBranch, returnBranch,
                 pickupDateTime, returnDateTime, totalPrice, null);
         booking.confirm();
+        booking.activate();
 
         booking.complete();
 
@@ -107,11 +108,13 @@ class BookingTest {
     }
 
     @Test
-    @DisplayName("Nur bestätigte Buchung kann abgeschlossen werden")
-    void onlyConfirmedBooking_canBeCompleted() {
+    @DisplayName("Nur aktive Buchung kann abgeschlossen werden")
+    void onlyActiveBooking_canBeCompleted() {
         Booking booking = new Booking(customer, vehicle, pickupBranch, returnBranch,
                 pickupDateTime, returnDateTime, totalPrice, null);
+        booking.confirm();
 
+        // Confirmed booking cannot be completed directly
         assertThrows(BookingStatusTransitionException.class, booking::complete);
     }
 
