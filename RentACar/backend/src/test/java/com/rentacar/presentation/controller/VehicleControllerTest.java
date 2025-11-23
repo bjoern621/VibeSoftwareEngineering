@@ -305,4 +305,34 @@ class VehicleControllerTest {
         
         verify(vehicleApplicationService).getVehicleById(99L);
     }
+    
+    @Test
+    @DisplayName("GET /api/fahrzeuge/suche - Findet verfügbare Fahrzeuge")
+    void searchVehicles_Success() throws Exception {
+        // Arrange
+        java.time.LocalDateTime from = java.time.LocalDate.of(2025, 12, 1).atStartOfDay();
+        java.time.LocalDateTime to = java.time.LocalDate.of(2025, 12, 10).atTime(java.time.LocalTime.MAX);
+        
+        com.rentacar.presentation.dto.VehicleSearchResultDTO resultDTO = 
+            new com.rentacar.presentation.dto.VehicleSearchResultDTO(testVehicleResponse, new java.math.BigDecimal("49.99"), new java.math.BigDecimal("499.90"));
+            
+        // Verifikation: Nur verfügbare Fahrzeuge werden angezeigt (durch Service-Mock)
+        // Verifikation: Bereits gebuchte Fahrzeuge im Zeitraum werden ausgeschlossen (durch Service-Mock) (FR8 - https://github.com/bjoern621/VibeSoftwareEngineering/issues/85)
+        when(vehicleApplicationService.searchVehicles(any(java.time.LocalDateTime.class), any(java.time.LocalDateTime.class), eq(VehicleType.SUV), eq("Berlin")))
+            .thenReturn(Arrays.asList(resultDTO));
+            
+        // Act & Assert
+        mockMvc.perform(get("/api/fahrzeuge/suche")
+                .param("von", "2025-12-01")
+                .param("bis", "2025-12-10")
+                .param("typ", "SUV")
+                .param("standort", "Berlin")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(1)))
+            // Verifikation: Ergebnis enthält Fahrzeug-Details, Verfügbarkeit und Preis pro Tag (FR8 - https://github.com/bjoern621/VibeSoftwareEngineering/issues/85)
+            .andExpect(jsonPath("$[0].id", is(1)))
+            .andExpect(jsonPath("$[0].pricePerDay", is(49.99)))
+            .andExpect(jsonPath("$[0].estimatedTotalPrice", is(499.90)));
+    }
 }

@@ -2,6 +2,7 @@ package com.rentacar.domain.repository;
 
 import com.rentacar.domain.model.Booking;
 import com.rentacar.domain.model.BookingStatus;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,4 +62,14 @@ public interface BookingRepository {
      * @return true wenn die Buchung existiert
      */
     boolean existsById(Long id);
+    
+    /**
+     * Findet überlappende Buchungen für ein Fahrzeug in einem Zeitraum.
+     * 
+     * @param vehicleId Die Fahrzeug-ID
+     * @param start Startzeitpunkt
+     * @param end Endzeitpunkt
+     * @return Liste der überlappenden Buchungen
+     */
+    List<Booking> findOverlappingBookings(Long vehicleId, LocalDateTime start, LocalDateTime end);
 }

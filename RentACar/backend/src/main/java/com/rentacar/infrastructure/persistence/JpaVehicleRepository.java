@@ -6,8 +6,11 @@ import com.rentacar.domain.model.VehicleStatus;
 import com.rentacar.domain.model.VehicleType;
 import com.rentacar.domain.repository.VehicleRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,4 +53,31 @@ public interface JpaVehicleRepository extends VehicleRepository, JpaRepository<V
      * Spring Data JPA leitet automatisch die Query ab.
      */
     List<Vehicle> findByVehicleTypeAndBranchIdAndStatus(VehicleType vehicleType, Long branchId, VehicleStatus status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT v FROM Vehicle v " +
+           "JOIN v.branch b " +
+           "WHERE v.status = 'AVAILABLE' " +
+           "AND (:type IS NULL OR v.vehicleType = :type) " +
+           "AND (:location IS NULL OR LOWER(b.address) LIKE LOWER(CONCAT('%', :location, '%')) OR LOWER(b.name) LIKE LOWER(CONCAT('%', :location, '%'))) " +
+           "AND NOT EXISTS (" +
+           "  SELECT bk FROM Booking bk " +
+           "  WHERE bk.vehicle = v " +
+           "  AND bk.status NOT IN ('CANCELLED', 'EXPIRED') " +
+           "  AND bk.pickupDateTime < :to " +
+           "  AND bk.returnDateTime > :from " +
+           ")")
+    @Override
+    List<Vehicle> findAvailableVehicles(@org.springframework.data.repository.query.Param("from") java.time.LocalDateTime from,
+                                        @org.springframework.data.repository.query.Param("to") java.time.LocalDateTime to,
+                                        @org.springframework.data.repository.query.Param("type") VehicleType type,
+                                        @org.springframework.data.repository.query.Param("location") String location);
+
+    @Override
+    @Query("SELECT v FROM Vehicle v WHERE v.vehicleType = :type AND v.status = 'AVAILABLE' " +
+           "AND NOT EXISTS (SELECT b FROM Booking b WHERE b.vehicle = v " +
+           "AND b.status NOT IN ('CANCELLED', 'EXPIRED') " +
+           "AND ((b.pickupDateTime < :end) AND (b.returnDateTime > :start)))")
+    List<Vehicle> findAvailableVehicles(@Param("type") VehicleType type, 
+                                        @Param("start") LocalDateTime start, 
+                                        @Param("end") LocalDateTime end);
 }

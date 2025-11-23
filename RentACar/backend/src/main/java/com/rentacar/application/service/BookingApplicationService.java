@@ -4,6 +4,7 @@ import com.rentacar.application.command.CancelBookingCommand;
 import com.rentacar.domain.event.BookingCancelled;
 import com.rentacar.domain.exception.BookingNotFoundException;
 import com.rentacar.domain.exception.CustomerNotFoundException;
+import com.rentacar.domain.model.*;
 import com.rentacar.domain.exception.UnauthorizedBookingAccessException;
 import com.rentacar.domain.model.AdditionalServiceType;
 import com.rentacar.domain.model.Booking;
@@ -12,18 +13,25 @@ import com.rentacar.domain.model.DateRange;
 import com.rentacar.domain.model.PricingCalculation;
 import com.rentacar.domain.model.VehicleType;
 import com.rentacar.domain.repository.BookingRepository;
+import com.rentacar.domain.repository.BranchRepository;
 import com.rentacar.domain.repository.CustomerRepository;
+import com.rentacar.domain.repository.VehicleRepository;
+import com.rentacar.domain.service.BookingDomainService;
 import com.rentacar.domain.service.PricingService;
+import com.rentacar.presentation.dto.CreateBookingRequestDTO;
 import com.rentacar.presentation.dto.PriceCalculationRequestDTO;
 import com.rentacar.presentation.dto.PriceCalculationResponseDTO;
 import com.rentacar.presentation.dto.PriceCalculationResponseDTO.AdditionalServiceItemDTO;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -38,17 +46,61 @@ public class BookingApplicationService {
     private final PricingService pricingService;
     private final BookingRepository bookingRepository;
     private final CustomerRepository customerRepository;
+    private final BookingDomainService bookingDomainService;
+    private final VehicleRepository vehicleRepository;
+    private final BranchRepository branchRepository;
+    private final com.rentacar.domain.repository.RentalAgreementRepository rentalAgreementRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public BookingApplicationService(
-        BookingRepository bookingRepository,
-        CustomerRepository customerRepository,
-        ApplicationEventPublisher eventPublisher
-    ) {
+    public BookingApplicationService(BookingRepository bookingRepository,
+                                     CustomerRepository customerRepository,
+                                     BookingDomainService bookingDomainService,
+                                     VehicleRepository vehicleRepository,
+                                     BranchRepository branchRepository,
+                                     com.rentacar.domain.repository.RentalAgreementRepository rentalAgreementRepository,
+                                     ApplicationEventPublisher eventPublisher) {
         this.pricingService = new PricingService();
         this.bookingRepository = bookingRepository;
         this.customerRepository = customerRepository;
+        this.bookingDomainService = bookingDomainService;
+        this.vehicleRepository = vehicleRepository;
+        this.branchRepository = branchRepository;
+        this.rentalAgreementRepository = rentalAgreementRepository;
         this.eventPublisher = eventPublisher;
+
+    }
+
+    /**
+     * Erstellt eine neue Buchung.
+     *
+     * @param customerId ID des Kunden
+     * @param request Buchungsanfrage
+     * @return Die erstellte Buchung
+     */
+    public Booking createBooking(Long customerId, CreateBookingRequestDTO request) {
+        Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new CustomerNotFoundException(customerId));
+
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+            .orElseThrow(() -> new IllegalArgumentException("Fahrzeug nicht gefunden: " + request.getVehicleId()));
+
+        Branch pickupBranch = branchRepository.findById(request.getPickupBranchId())
+            .orElseThrow(() -> new IllegalArgumentException("Abholfiliale nicht gefunden: " + request.getPickupBranchId()));
+
+        Branch returnBranch = branchRepository.findById(request.getReturnBranchId())
+            .orElseThrow(() -> new IllegalArgumentException("Rückgabefiliale nicht gefunden: " + request.getReturnBranchId()));
+
+        Set<AdditionalServiceType> additionalServices = new HashSet<>(parseAdditionalServices(request.getAdditionalServices()));
+
+        return bookingDomainService.createBooking(
+            customer,
+            vehicle,
+            pickupBranch,
+            returnBranch,
+            request.getPickupDateTime(),
+            request.getReturnDateTime(),
+            additionalServices
+        );
     }
     
     /**
@@ -226,6 +278,23 @@ public class BookingApplicationService {
         if (!customerRepository.existsById(customerId)) {
             throw new CustomerNotFoundException(customerId);
         }
+    }
+
+    public com.rentacar.presentation.dto.AdditionalCostsDTO getAdditionalCosts(Long bookingId) {
+        RentalAgreement agreement = rentalAgreementRepository.findByBookingId(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Rental agreement not found for booking ID: " + bookingId));
+
+        AdditionalCosts costs = agreement.getAdditionalCosts();
+        if (costs == null) {
+             return new com.rentacar.presentation.dto.AdditionalCostsDTO(java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO, java.math.BigDecimal.ZERO);
+        }
+
+        return new com.rentacar.presentation.dto.AdditionalCostsDTO(
+                costs.getLateFee(),
+                costs.getExcessMileageFee(),
+                costs.getDamageCost(),
+                costs.getTotalAdditionalCost()
+        );
     }
 
     // ========== Buchungsstornierung Use Case ==========

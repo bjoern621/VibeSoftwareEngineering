@@ -1,6 +1,8 @@
 package com.rentacar.presentation.exception;
 
 import com.rentacar.domain.exception.*;
+import com.rentacar.domain.model.Vehicle;
+import com.rentacar.presentation.dto.VehicleResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -10,7 +12,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Globaler Exception Handler für die REST API.
@@ -286,6 +290,28 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * Behandelt VehicleNotAvailableException.
+     * 
+     * @param ex die Exception
+     * @return HTTP 409 Conflict mit Fehlermeldung und Alternativen
+     */
+    @ExceptionHandler(VehicleNotAvailableException.class)
+    public ResponseEntity<VehicleNotAvailableErrorResponse> handleVehicleNotAvailableException(VehicleNotAvailableException ex) {
+        List<VehicleResponseDTO> alternatives = ex.getAlternativeVehicles().stream()
+            .map(VehicleResponseDTO::fromEntity)
+            .collect(Collectors.toList());
+
+        VehicleNotAvailableErrorResponse error = new VehicleNotAvailableErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.CONFLICT.value(),
+            "Fahrzeug nicht verfügbar",
+            ex.getMessage(),
+            alternatives
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /**
      * Behandelt alle anderen unerwarteten Exceptions.
      * 
      * @param ex die Exception
@@ -338,5 +364,20 @@ public class GlobalExceptionHandler {
         }
         
         public Map<String, String> getFieldErrors() { return fieldErrors; }
+    }
+
+    /**
+     * Erweiterte Fehlerantwort für nicht verfügbare Fahrzeuge.
+     */
+    public static class VehicleNotAvailableErrorResponse extends ErrorResponse {
+        private List<VehicleResponseDTO> alternativeVehicles;
+        
+        public VehicleNotAvailableErrorResponse(LocalDateTime timestamp, int status, String error, 
+                                      String message, List<VehicleResponseDTO> alternativeVehicles) {
+            super(timestamp, status, error, message);
+            this.alternativeVehicles = alternativeVehicles;
+        }
+        
+        public List<VehicleResponseDTO> getAlternativeVehicles() { return alternativeVehicles; }
     }
 }

@@ -4,6 +4,7 @@ import com.rentacar.application.service.VehicleApplicationService;
 import com.rentacar.presentation.dto.CreateVehicleRequestDTO;
 import com.rentacar.presentation.dto.UpdateVehicleRequestDTO;
 import com.rentacar.presentation.dto.VehicleResponseDTO;
+import com.rentacar.presentation.dto.VehicleSearchResultDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -126,5 +127,28 @@ public class VehicleController {
     public ResponseEntity<VehicleResponseDTO> getVehicleById(@PathVariable Long id) {
         VehicleResponseDTO response = vehicleApplicationService.getVehicleById(id);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/fahrzeuge/suche - Sucht nach verfügbaren Fahrzeugen.
+     * 
+     * @param von Startdatum (yyyy-MM-dd)
+     * @param bis Enddatum (yyyy-MM-dd)
+     * @param typ Fahrzeugtyp (optional)
+     * @param standort Standort (optional)
+     * @return Liste der verfügbaren Fahrzeuge
+     */
+    @GetMapping("/suche")
+    public ResponseEntity<List<VehicleSearchResultDTO>> searchVehicles(
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate von,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate bis,
+            @RequestParam(required = false) com.rentacar.domain.model.VehicleType typ,
+            @RequestParam(required = false) String standort) {
+        
+        java.time.LocalDateTime from = von.atStartOfDay();
+        java.time.LocalDateTime to = bis.atTime(java.time.LocalTime.MAX);
+        
+        List<VehicleSearchResultDTO> results = vehicleApplicationService.searchVehicles(from, to, typ, standort);
+        return ResponseEntity.ok(results);
     }
 }

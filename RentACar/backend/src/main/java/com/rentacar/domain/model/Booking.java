@@ -66,6 +66,9 @@ public class Booking {
     @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
 
+    @Column(name = "included_kilometers")
+    private Integer includedKilometers = 500;
+
     /**
      * JPA-Konstruktor.
      */
@@ -89,6 +92,27 @@ public class Booking {
                    Branch returnBranch, LocalDateTime pickupDateTime, 
                    LocalDateTime returnDateTime, BigDecimal totalPrice,
                    Set<AdditionalServiceType> additionalServices) {
+        this(customer, vehicle, pickupBranch, returnBranch, pickupDateTime, returnDateTime, totalPrice, additionalServices, 500);
+    }
+
+    /**
+     * Erstellt eine neue Buchung mit vereinbarten Freikilometern.
+     * 
+     * @param customer Kunde, der die Buchung durchführt
+     * @param vehicle Gebuchtes Fahrzeug
+     * @param pickupBranch Abholfiliale
+     * @param returnBranch Rückgabefiliale
+     * @param pickupDateTime Abholdatum und -zeit
+     * @param returnDateTime Rückgabedatum und -zeit
+     * @param totalPrice Gesamtpreis
+     * @param additionalServices Zusatzleistungen (optional)
+     * @param includedKilometers Vereinbarte Freikilometer
+     */
+    public Booking(Customer customer, Vehicle vehicle, Branch pickupBranch, 
+                   Branch returnBranch, LocalDateTime pickupDateTime, 
+                   LocalDateTime returnDateTime, BigDecimal totalPrice,
+                   Set<AdditionalServiceType> additionalServices,
+                   Integer includedKilometers) {
         validateBookingData(customer, vehicle, pickupBranch, returnBranch, 
                            pickupDateTime, returnDateTime, totalPrice);
         
@@ -99,10 +123,12 @@ public class Booking {
         this.pickupDateTime = pickupDateTime;
         this.returnDateTime = returnDateTime;
         this.totalPrice = totalPrice;
+        if (additionalServices != null) {
+            this.additionalServices.addAll(additionalServices);
+        }
+        this.includedKilometers = includedKilometers != null ? includedKilometers : 500;
         this.status = BookingStatus.REQUESTED;
-        this.additionalServices = additionalServices != null ? new HashSet<>(additionalServices) : new HashSet<>();
         this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     /**
@@ -163,15 +189,31 @@ public class Booking {
     }
 
     /**
+     * Aktiviert die Buchung (Fahrzeug abgeholt).
+     * 
+     * @throws com.rentacar.domain.exception.BookingStatusTransitionException wenn Status-Übergang ungültig
+     */
+    public void activate() {
+        if (status != BookingStatus.CONFIRMED) {
+            throw new com.rentacar.domain.exception.BookingStatusTransitionException(
+                id, status, BookingStatus.ACTIVE,
+                "Nur bestätigte Buchungen können aktiviert werden"
+            );
+        }
+        this.status = BookingStatus.ACTIVE;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * Markiert die Buchung als abgeschlossen (Fahrzeug zurückgegeben).
      * 
      * @throws com.rentacar.domain.exception.BookingStatusTransitionException wenn Status-Übergang ungültig
      */
     public void complete() {
-        if (status != BookingStatus.CONFIRMED) {
+        if (status != BookingStatus.ACTIVE) {
             throw new com.rentacar.domain.exception.BookingStatusTransitionException(
                 id, status, BookingStatus.COMPLETED,
-                "Nur bestätigte Buchungen können abgeschlossen werden"
+                "Nur aktive Buchungen können abgeschlossen werden"
             );
         }
         this.status = BookingStatus.COMPLETED;
@@ -278,5 +320,9 @@ public class Booking {
     
     public String getCancellationReason() { 
         return cancellationReason; 
+    }
+
+    public Integer getIncludedKilometers() {
+        return includedKilometers;
     }
 }
