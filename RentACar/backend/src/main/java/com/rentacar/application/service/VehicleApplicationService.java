@@ -193,4 +193,36 @@ public class VehicleApplicationService {
         
         return VehicleResponseDTO.fromEntity(vehicle);
     }
+    
+    /**
+     * Sucht nach verfügbaren Fahrzeugen.
+     * 
+     * @param from Startdatum
+     * @param to Enddatum
+     * @param type Fahrzeugtyp (optional)
+     * @param location Standort (optional)
+     * @return Liste der verfügbaren Fahrzeuge mit Preisinformationen
+     */
+    @Transactional(readOnly = true)
+    public List<com.rentacar.presentation.dto.VehicleSearchResultDTO> searchVehicles(
+            java.time.LocalDateTime from, 
+            java.time.LocalDateTime to, 
+            VehicleType type, 
+            String location) {
+        
+        List<Vehicle> vehicles = vehicleRepository.findAvailableVehicles(from, to, type, location);
+        
+        long days = java.time.temporal.ChronoUnit.DAYS.between(from, to);
+        if (days < 1) days = 1; // Mindestens 1 Tag
+        final long rentalDays = days;
+
+        return vehicles.stream()
+            .map(vehicle -> {
+                VehicleResponseDTO baseDto = VehicleResponseDTO.fromEntity(vehicle);
+                java.math.BigDecimal pricePerDay = vehicle.getVehicleType().getDailyBaseRate();
+                java.math.BigDecimal totalPrice = pricePerDay.multiply(java.math.BigDecimal.valueOf(rentalDays));
+                return new com.rentacar.presentation.dto.VehicleSearchResultDTO(baseDto, pricePerDay, totalPrice);
+            })
+            .collect(Collectors.toList());
+    }
 }

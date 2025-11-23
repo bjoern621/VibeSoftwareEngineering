@@ -80,6 +80,17 @@ public interface VehicleRepository {
     List<Vehicle> findAvailableByTypeAndBranch(VehicleType vehicleType, Long branchId);
     
     /**
+     * Findet verfügbare Fahrzeuge basierend auf Suchkriterien.
+     * 
+     * @param from Startzeitpunkt der Buchung
+     * @param to Endzeitpunkt der Buchung
+     * @param type Fahrzeugtyp (optional)
+     * @param location Standort/Stadt (optional)
+     * @return Liste der verfügbaren Fahrzeuge
+     */
+    List<Vehicle> findAvailableVehicles(java.time.LocalDateTime from, java.time.LocalDateTime to, VehicleType type, String location);
+    
+    /**
      * Löscht ein Fahrzeug.
      * 
      * @param vehicle das zu löschende Fahrzeug

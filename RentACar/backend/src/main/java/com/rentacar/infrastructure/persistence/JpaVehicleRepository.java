@@ -50,4 +50,22 @@ public interface JpaVehicleRepository extends VehicleRepository, JpaRepository<V
      * Spring Data JPA leitet automatisch die Query ab.
      */
     List<Vehicle> findByVehicleTypeAndBranchIdAndStatus(VehicleType vehicleType, Long branchId, VehicleStatus status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT v FROM Vehicle v " +
+           "JOIN v.branch b " +
+           "WHERE v.status = 'AVAILABLE' " +
+           "AND (:type IS NULL OR v.vehicleType = :type) " +
+           "AND (:location IS NULL OR LOWER(b.address) LIKE LOWER(CONCAT('%', :location, '%')) OR LOWER(b.name) LIKE LOWER(CONCAT('%', :location, '%'))) " +
+           "AND NOT EXISTS (" +
+           "  SELECT bk FROM Booking bk " +
+           "  WHERE bk.vehicle = v " +
+           "  AND bk.status NOT IN ('CANCELLED', 'EXPIRED') " +
+           "  AND bk.pickupDateTime < :to " +
+           "  AND bk.returnDateTime > :from " +
+           ")")
+    @Override
+    List<Vehicle> findAvailableVehicles(@org.springframework.data.repository.query.Param("from") java.time.LocalDateTime from,
+                                        @org.springframework.data.repository.query.Param("to") java.time.LocalDateTime to,
+                                        @org.springframework.data.repository.query.Param("type") VehicleType type,
+                                        @org.springframework.data.repository.query.Param("location") String location);
 }

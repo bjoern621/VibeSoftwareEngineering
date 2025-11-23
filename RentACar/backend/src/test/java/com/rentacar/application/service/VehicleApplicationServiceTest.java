@@ -409,6 +409,32 @@ class VehicleApplicationServiceTest {
         verify(vehicleRepository, never()).save(any());
     }
     
+    @Test
+    @DisplayName("searchVehicles - Findet verfügbare Fahrzeuge")
+    void searchVehicles_Success() {
+        // Arrange
+        java.time.LocalDateTime from = java.time.LocalDateTime.now().plusDays(1);
+        java.time.LocalDateTime to = java.time.LocalDateTime.now().plusDays(3);
+        VehicleType type = VehicleType.SEDAN;
+        String location = "Hamburg";
+        
+        // Verifikation: Nur verfügbare Fahrzeuge werden angezeigt (durch Mocking des Repository-Aufrufs simuliert)
+        // Verifikation: Bereits gebuchte Fahrzeuge im Zeitraum werden ausgeschlossen (durch Mocking des Repository-Aufrufs simuliert) (FR8 - https://github.com/bjoern621/VibeSoftwareEngineering/issues/85)
+        when(vehicleRepository.findAvailableVehicles(from, to, type, location))
+            .thenReturn(Arrays.asList(testVehicle));
+            
+        // Act
+        List<com.rentacar.presentation.dto.VehicleSearchResultDTO> results = 
+            vehicleApplicationService.searchVehicles(from, to, type, location);
+            
+        // Assert
+        assertThat(results).hasSize(1);
+        // Verifikation: Ergebnis enthält Fahrzeug-Details, Verfügbarkeit und Preis pro Tag (FR8 - https://github.com/bjoern621/VibeSoftwareEngineering/issues/85)
+        // 2 days * 49.99 = 99.98
+        assertThat(results.get(0).getPricePerDay()).isEqualTo(new java.math.BigDecimal("49.99"));
+        assertThat(results.get(0).getEstimatedTotalPrice()).isEqualTo(new java.math.BigDecimal("99.98"));
+    }
+    
     /**
      * Hilfsmethode zum Setzen der ID via Reflection für Tests.
      */
