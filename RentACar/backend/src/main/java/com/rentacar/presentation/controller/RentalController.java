@@ -2,6 +2,7 @@ package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.RentalApplicationService;
 import com.rentacar.presentation.dto.CheckOutRequestDTO;
+import com.rentacar.presentation.dto.CheckInRequestDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,6 +35,30 @@ public class RentalController {
             @Valid @RequestBody CheckOutRequestDTO request) {
         
         rentalApplicationService.performCheckOut(
+                buchungId,
+                request.getMileage(),
+                request.getFuelLevel(),
+                request.getCleanliness(),
+                request.getDamagesDescription()
+        );
+        
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Führt den Check-in (Fahrzeugrückgabe) durch.
+     * 
+     * @param buchungId ID der Buchung
+     * @param request Check-in Daten (Kilometerstand, Zustand)
+     * @return 200 OK bei Erfolg
+     */
+    @PostMapping("/{buchungId}/checkin")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
+    public ResponseEntity<Void> performCheckIn(
+            @PathVariable Long buchungId,
+            @Valid @RequestBody CheckInRequestDTO request) {
+        
+        rentalApplicationService.performCheckIn(
                 buchungId,
                 request.getMileage(),
                 request.getFuelLevel(),
