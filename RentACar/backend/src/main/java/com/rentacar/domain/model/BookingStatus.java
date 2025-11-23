@@ -11,6 +11,9 @@ public enum BookingStatus {
     
     /** Buchung bestätigt */
     CONFIRMED,
+
+    /** Buchung aktiv (Fahrzeug abgeholt) */
+    ACTIVE,
     
     /** Buchung storniert */
     CANCELLED,
@@ -36,7 +39,7 @@ public enum BookingStatus {
      * @return true wenn Buchung aktiv ist
      */
     public boolean isActive() {
-        return this == REQUESTED || this == CONFIRMED;
+        return this == REQUESTED || this == CONFIRMED || this == ACTIVE;
     }
 
     /**
