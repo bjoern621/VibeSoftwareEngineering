@@ -6,8 +6,11 @@ import com.rentacar.domain.model.VehicleStatus;
 import com.rentacar.domain.model.VehicleType;
 import com.rentacar.domain.repository.VehicleRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,4 +71,13 @@ public interface JpaVehicleRepository extends VehicleRepository, JpaRepository<V
                                         @org.springframework.data.repository.query.Param("to") java.time.LocalDateTime to,
                                         @org.springframework.data.repository.query.Param("type") VehicleType type,
                                         @org.springframework.data.repository.query.Param("location") String location);
+
+    @Override
+    @Query("SELECT v FROM Vehicle v WHERE v.vehicleType = :type AND v.status = 'AVAILABLE' " +
+           "AND NOT EXISTS (SELECT b FROM Booking b WHERE b.vehicle = v " +
+           "AND b.status NOT IN ('CANCELLED', 'EXPIRED') " +
+           "AND ((b.pickupDateTime < :end) AND (b.returnDateTime > :start)))")
+    List<Vehicle> findAvailableVehicles(@Param("type") VehicleType type, 
+                                        @Param("start") LocalDateTime start, 
+                                        @Param("end") LocalDateTime end);
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -41,4 +42,17 @@ public interface JpaBookingRepository extends BookingRepository, JpaRepository<B
     @Query("SELECT b FROM Booking b WHERE b.vehicle.id = :vehicleId " +
            "AND b.status IN ('REQUESTED', 'CONFIRMED')")
     List<Booking> findActiveBookingsByVehicleId(@Param("vehicleId") Long vehicleId);
+
+    /**
+     * Findet überlappende Buchungen für ein Fahrzeug.
+     * Verwendet explizite JPQL-Query für komplexere Logik.
+     */
+    @Override
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT b FROM Booking b WHERE b.vehicle.id = :vehicleId " +
+           "AND b.status NOT IN ('CANCELLED', 'EXPIRED') " +
+           "AND ((b.pickupDateTime < :end) AND (b.returnDateTime > :start))")
+    List<Booking> findOverlappingBookings(@Param("vehicleId") Long vehicleId,
+                                          @Param("start") LocalDateTime start,
+                                          @Param("end") LocalDateTime end);
 }

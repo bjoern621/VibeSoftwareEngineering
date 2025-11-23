@@ -91,6 +91,16 @@ public interface VehicleRepository {
     List<Vehicle> findAvailableVehicles(java.time.LocalDateTime from, java.time.LocalDateTime to, VehicleType type, String location);
     
     /**
+     * Findet verfügbare Fahrzeuge eines bestimmten Typs in einem Zeitraum.
+     * 
+     * @param type Der Fahrzeugtyp
+     * @param start Startzeitpunkt
+     * @param end Endzeitpunkt
+     * @return Liste der verfügbaren Fahrzeuge
+     */
+    List<Vehicle> findAvailableVehicles(VehicleType type, java.time.LocalDateTime start, java.time.LocalDateTime end);
+    
+    /**
      * Löscht ein Fahrzeug.
      * 
      * @param vehicle das zu löschende Fahrzeug
