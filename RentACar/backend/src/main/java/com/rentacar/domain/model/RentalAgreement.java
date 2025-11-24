@@ -1,8 +1,10 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidMileageException;
+import com.rentacar.domain.exception.InvalidRentalAgreementDataException;
+import com.rentacar.domain.exception.RentalAgreementStatusTransitionException;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * Aggregate Root für den Mietvertrag.
@@ -66,28 +68,52 @@ public class RentalAgreement {
     }
 
     public RentalAgreement(Booking booking, Mileage checkoutMileage, LocalDateTime checkoutTime, VehicleCondition checkoutCondition) {
-        this.booking = Objects.requireNonNull(booking, "Booking must not be null");
-        this.checkoutMileage = Objects.requireNonNull(checkoutMileage, "Checkout mileage must not be null");
-        this.checkoutTime = Objects.requireNonNull(checkoutTime, "Checkout time must not be null");
-        this.checkoutCondition = Objects.requireNonNull(checkoutCondition, "Checkout condition must not be null");
+        if (booking == null) {
+            throw new InvalidRentalAgreementDataException("Booking must not be null");
+        }
+        if (checkoutMileage == null) {
+            throw new InvalidRentalAgreementDataException("Checkout mileage must not be null");
+        }
+        if (checkoutTime == null) {
+            throw new InvalidRentalAgreementDataException("Checkout time must not be null");
+        }
+        if (checkoutCondition == null) {
+            throw new InvalidRentalAgreementDataException("Checkout condition must not be null");
+        }
+        
+        this.booking = booking;
+        this.checkoutMileage = checkoutMileage;
+        this.checkoutTime = checkoutTime;
+        this.checkoutCondition = checkoutCondition;
         this.status = RentalAgreementStatus.OPEN;
         this.additionalCosts = AdditionalCosts.zero();
     }
 
     public void checkIn(Mileage checkinMileage, LocalDateTime checkinTime, VehicleCondition checkinCondition) {
         if (this.status != RentalAgreementStatus.OPEN) {
-            throw new IllegalStateException("Rental agreement is not open. Current status: " + this.status);
+            throw new RentalAgreementStatusTransitionException(this.id, this.status, RentalAgreementStatus.CLOSED);
         }
-        this.checkinMileage = Objects.requireNonNull(checkinMileage, "Checkin mileage must not be null");
-        this.checkinTime = Objects.requireNonNull(checkinTime, "Checkin time must not be null");
-        this.checkinCondition = Objects.requireNonNull(checkinCondition, "Checkin condition must not be null");
+        
+        if (checkinMileage == null) {
+            throw new InvalidRentalAgreementDataException("Checkin mileage must not be null");
+        }
+        if (checkinTime == null) {
+            throw new InvalidRentalAgreementDataException("Checkin time must not be null");
+        }
+        if (checkinCondition == null) {
+            throw new InvalidRentalAgreementDataException("Checkin condition must not be null");
+        }
+        
+        this.checkinMileage = checkinMileage;
+        this.checkinTime = checkinTime;
+        this.checkinCondition = checkinCondition;
         
         if (checkinMileage.isLessThan(this.checkoutMileage)) {
-             throw new IllegalArgumentException("Checkin mileage cannot be less than checkout mileage");
+             throw new InvalidMileageException("Rückgabe-Kilometerstand darf nicht kleiner als Ausgabe-Kilometerstand sein");
         }
 
         if (checkinTime.isBefore(this.checkoutTime)) {
-            throw new IllegalArgumentException("Checkin time cannot be before checkout time");
+            throw new InvalidRentalAgreementDataException("Rückgabezeitpunkt darf nicht vor Ausgabezeitpunkt liegen");
         }
 
         this.status = RentalAgreementStatus.CLOSED;
@@ -130,7 +156,10 @@ public class RentalAgreement {
     }
 
     public void updateAdditionalCosts(AdditionalCosts additionalCosts) {
-        this.additionalCosts = Objects.requireNonNull(additionalCosts, "Additional costs must not be null");
+        if (additionalCosts == null) {
+            throw new InvalidRentalAgreementDataException("Additional costs must not be null");
+        }
+        this.additionalCosts = additionalCosts;
     }
 
     public RentalAgreementStatus getStatus() {

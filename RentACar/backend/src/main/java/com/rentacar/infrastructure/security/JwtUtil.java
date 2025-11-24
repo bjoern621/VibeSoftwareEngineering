@@ -21,11 +21,14 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final String secret;
+    private final Long expiration; // in Millisekunden
 
-    @Value("${jwt.expiration}")
-    private Long expiration; // in Millisekunden
+    public JwtUtil(@Value("${jwt.secret}") String secret,
+                   @Value("${jwt.expiration}") Long expiration) {
+        this.secret = secret;
+        this.expiration = expiration;
+    }
 
     /**
      * Generiert einen JWT-Token für einen Benutzer.

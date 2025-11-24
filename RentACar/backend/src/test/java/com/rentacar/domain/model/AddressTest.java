@@ -122,8 +122,8 @@ class AddressTest {
     @Test
     void shouldRejectTooShortCity() {
         // When & Then
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
+        com.rentacar.domain.exception.InvalidAddressException exception = assertThrows(
+            com.rentacar.domain.exception.InvalidAddressException.class,
             () -> new Address("Hauptstraße 123", "12345", "A")
         );
         assertTrue(exception.getMessage().contains("zwischen 2 und 100"));

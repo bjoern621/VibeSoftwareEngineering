@@ -15,6 +15,8 @@ import java.util.Objects;
 @Table(name = "damage_reports")
 public class DamageReport {
 
+    private static final int DESCRIPTION_LENGTH = 1000;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,7 +25,7 @@ public class DamageReport {
     @JoinColumn(name = "rental_agreement_id", nullable = false)
     private RentalAgreement rentalAgreement;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, length = DESCRIPTION_LENGTH)
     private String description;
 
     @Column(name = "estimated_cost")

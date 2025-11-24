@@ -14,8 +14,6 @@ import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.presentation.dto.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,19 +34,20 @@ public class CustomerApplicationService {
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
     
-    @org.springframework.beans.factory.annotation.Value("${customer.auto-verify-email:false}")
-    private boolean autoVerifyEmail;
+    private final boolean autoVerifyEmail;
 
     public CustomerApplicationService(CustomerRepository customerRepository,
                                      PasswordEncoder passwordEncoder,
                                      AuthenticationManager authenticationManager,
                                      JwtUtil jwtUtil,
-                                     EmailService emailService) {
+                                     EmailService emailService,
+                                     @org.springframework.beans.factory.annotation.Value("${customer.auto-verify-email:false}") boolean autoVerifyEmail) {
         this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
+        this.autoVerifyEmail = autoVerifyEmail;
     }
 
     /**
@@ -123,7 +122,7 @@ public class CustomerApplicationService {
      */
     public AuthenticationResponseDTO authenticateCustomer(LoginRequestDTO request) {
         // Authentifizierung mit Spring Security
-        Authentication authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()

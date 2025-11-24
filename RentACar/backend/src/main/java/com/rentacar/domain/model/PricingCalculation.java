@@ -1,5 +1,6 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidPricingDataException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,15 +40,25 @@ public class PricingCalculation {
         BigDecimal additionalServicesPrice,
         BigDecimal totalPrice
     ) {
-        this.vehicleType = Objects.requireNonNull(vehicleType, "Fahrzeugtyp darf nicht null sein");
+        if (vehicleType == null) {
+            throw new InvalidPricingDataException("Fahrzeugtyp darf nicht null sein");
+        }
+        if (basePrice == null) {
+            throw new InvalidPricingDataException("Grundpreis darf nicht null sein");
+        }
+        if (additionalServicesPrice == null) {
+            throw new InvalidPricingDataException("Preis für Zusatzleistungen darf nicht null sein");
+        }
+        if (totalPrice == null) {
+            throw new InvalidPricingDataException("Gesamtpreis darf nicht null sein");
+        }
+
+        this.vehicleType = vehicleType;
         this.numberOfDays = numberOfDays;
-        this.basePrice = Objects.requireNonNull(basePrice, "Grundpreis darf nicht null sein");
+        this.basePrice = basePrice;
         this.additionalServices = new ArrayList<>(additionalServices);
-        this.additionalServicesPrice = Objects.requireNonNull(
-            additionalServicesPrice, 
-            "Preis für Zusatzleistungen darf nicht null sein"
-        );
-        this.totalPrice = Objects.requireNonNull(totalPrice, "Gesamtpreis darf nicht null sein");
+        this.additionalServicesPrice = additionalServicesPrice;
+        this.totalPrice = totalPrice;
     }
     
     /**
@@ -137,8 +148,14 @@ public class PricingCalculation {
         private final BigDecimal price;
         
         public AdditionalServiceItem(AdditionalServiceType serviceType, BigDecimal price) {
-            this.serviceType = Objects.requireNonNull(serviceType);
-            this.price = Objects.requireNonNull(price);
+            if (serviceType == null) {
+                throw new InvalidPricingDataException("Service type must not be null");
+            }
+            if (price == null) {
+                throw new InvalidPricingDataException("Price must not be null");
+            }
+            this.serviceType = serviceType;
+            this.price = price;
         }
         
         public AdditionalServiceType getServiceType() {

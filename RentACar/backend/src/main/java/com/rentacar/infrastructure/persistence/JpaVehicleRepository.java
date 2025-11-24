@@ -1,6 +1,5 @@
 package com.rentacar.infrastructure.persistence;
 
-import com.rentacar.domain.model.LicensePlate;
 import com.rentacar.domain.model.Vehicle;
 import com.rentacar.domain.model.VehicleStatus;
 import com.rentacar.domain.model.VehicleType;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * JPA-Implementierung des VehicleRepository.

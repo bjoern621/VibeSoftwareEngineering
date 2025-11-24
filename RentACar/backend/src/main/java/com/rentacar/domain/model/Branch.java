@@ -38,7 +38,7 @@ public class Branch {
      * @param name der Name der Filiale
      * @param address die Adresse der Filiale
      * @param openingHours die Öffnungszeiten
-     * @throws IllegalArgumentException wenn Pflichtfelder ungültig sind
+     * @throws com.rentacar.domain.exception.InvalidBranchDataException wenn Pflichtfelder ungültig sind
      */
     public Branch(String name, String address, String openingHours) {
         validateName(name);
@@ -53,7 +53,7 @@ public class Branch {
      * Aktualisiert die Adresse der Filiale.
      * 
      * @param newAddress die neue Adresse
-     * @throws IllegalArgumentException wenn die Adresse ungültig ist
+     * @throws com.rentacar.domain.exception.InvalidBranchDataException wenn die Adresse ungültig ist
      */
     public void updateAddress(String newAddress) {
         validateAddress(newAddress);
@@ -73,7 +73,7 @@ public class Branch {
      * Validiert den Filialnamen.
      * 
      * @param name der zu validierende Name
-     * @throws IllegalArgumentException wenn der Name ungültig ist
+     * @throws com.rentacar.domain.exception.InvalidBranchDataException wenn der Name ungültig ist
      */
     private void validateName(String name) {
         if (name == null || name.isBlank()) {
@@ -86,7 +86,7 @@ public class Branch {
      * Validiert die Adresse.
      * 
      * @param address die zu validierende Adresse
-     * @throws IllegalArgumentException wenn die Adresse ungültig ist
+     * @throws com.rentacar.domain.exception.InvalidBranchDataException wenn die Adresse ungültig ist
      */
     private void validateAddress(String address) {
         if (address == null || address.isBlank()) {

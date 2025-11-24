@@ -50,6 +50,9 @@ public class Vehicle {
     @ManyToOne(optional = false)
     @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
+
+    private static final int MIN_PRODUCTION_YEAR = 1900;
+    private static final int MAX_FUTURE_YEAR_OFFSET = 1;
     
     /**
      * Standardkonstruktor für JPA.
@@ -257,9 +260,9 @@ public class Vehicle {
             throw new InvalidVehicleDataException("Baujahr darf nicht null sein", "year", null);
         }
         int currentYear = Year.now().getValue();
-        if (year < 1900 || year > currentYear + 1) {
+        if (year < MIN_PRODUCTION_YEAR || year > currentYear + MAX_FUTURE_YEAR_OFFSET) {
             throw new InvalidVehicleDataException(
-                "Baujahr muss zwischen 1900 und " + (currentYear + 1) + " liegen: " + year,
+                "Baujahr muss zwischen " + MIN_PRODUCTION_YEAR + " und " + (currentYear + MAX_FUTURE_YEAR_OFFSET) + " liegen: " + year,
                 "year",
                 year
             );

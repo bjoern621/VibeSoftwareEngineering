@@ -15,6 +15,13 @@ import java.util.*;
 @Table(name = "bookings")
 public class Booking {
 
+    private static final String DEFAULT_CURRENCY = "EUR";
+    private static final int DEFAULT_INCLUDED_KILOMETERS = 500;
+    private static final int CANCELLATION_DEADLINE_HOURS = 24;
+    private static final int STATUS_COLUMN_LENGTH = 20;
+    private static final int CURRENCY_COLUMN_LENGTH = 3;
+    private static final int CANCELLATION_REASON_LENGTH = 500;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,14 +49,14 @@ public class Booking {
     private LocalDateTime returnDateTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = STATUS_COLUMN_LENGTH)
     private BookingStatus status;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPrice;
 
-    @Column(nullable = false, length = 3)
-    private String currency = "EUR";
+    @Column(nullable = false, length = CURRENCY_COLUMN_LENGTH)
+    private String currency = DEFAULT_CURRENCY;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "booking_additional_services", joinColumns = @JoinColumn(name = "booking_id"))
@@ -63,11 +70,11 @@ public class Booking {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "cancellation_reason", length = 500)
+    @Column(name = "cancellation_reason", length = CANCELLATION_REASON_LENGTH)
     private String cancellationReason;
 
     @Column(name = "included_kilometers")
-    private Integer includedKilometers = 500;
+    private Integer includedKilometers = DEFAULT_INCLUDED_KILOMETERS;
 
     /**
      * JPA-Konstruktor.
@@ -92,7 +99,7 @@ public class Booking {
                    Branch returnBranch, LocalDateTime pickupDateTime, 
                    LocalDateTime returnDateTime, BigDecimal totalPrice,
                    Set<AdditionalServiceType> additionalServices) {
-        this(customer, vehicle, pickupBranch, returnBranch, pickupDateTime, returnDateTime, totalPrice, additionalServices, 500);
+        this(customer, vehicle, pickupBranch, returnBranch, pickupDateTime, returnDateTime, totalPrice, additionalServices, DEFAULT_INCLUDED_KILOMETERS);
     }
 
     /**
@@ -126,7 +133,7 @@ public class Booking {
         if (additionalServices != null) {
             this.additionalServices.addAll(additionalServices);
         }
-        this.includedKilometers = includedKilometers != null ? includedKilometers : 500;
+        this.includedKilometers = includedKilometers != null ? includedKilometers : DEFAULT_INCLUDED_KILOMETERS;
         this.status = BookingStatus.REQUESTED;
         this.createdAt = LocalDateTime.now();
     }
@@ -227,12 +234,12 @@ public class Booking {
      * @throws com.rentacar.domain.exception.CancellationDeadlineExceededException wenn Frist überschritten
      */
     private void validateCancellationWindow(LocalDateTime now) {
-        LocalDateTime cancellationDeadline = pickupDateTime.minusHours(24);
+        LocalDateTime cancellationDeadline = pickupDateTime.minusHours(CANCELLATION_DEADLINE_HOURS);
         
         if (now.isAfter(cancellationDeadline)) {
             throw new com.rentacar.domain.exception.CancellationDeadlineExceededException(
                 id, pickupDateTime,
-                "Stornierung muss mindestens 24 Stunden vor Abholung erfolgen"
+                "Stornierung muss mindestens " + CANCELLATION_DEADLINE_HOURS + " Stunden vor Abholung erfolgen"
             );
         }
     }
@@ -240,7 +247,7 @@ public class Booking {
     /**
      * Validiert die Buchungsdaten bei Erstellung.
      * 
-     * @throws IllegalArgumentException wenn Validierung fehlschlägt
+     * @throws com.rentacar.domain.exception.InvalidBookingDataException wenn Validierung fehlschlägt
      */
     private void validateBookingData(Customer customer, Vehicle vehicle, Branch pickupBranch,
                                      Branch returnBranch, LocalDateTime pickupDateTime,

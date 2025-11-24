@@ -1,7 +1,20 @@
 package com.rentacar.presentation.exception;
 
-import com.rentacar.domain.exception.*;
-import com.rentacar.domain.model.Vehicle;
+import com.rentacar.domain.exception.BranchNotFoundException;
+import com.rentacar.domain.exception.CustomerNotFoundException;
+import com.rentacar.domain.exception.DuplicateDriverLicenseException;
+import com.rentacar.domain.exception.DuplicateEmailException;
+import com.rentacar.domain.exception.DuplicateLicensePlateException;
+import com.rentacar.domain.exception.ExpiredVerificationTokenException;
+import com.rentacar.domain.exception.InvalidDriverLicenseException;
+import com.rentacar.domain.exception.InvalidEmailException;
+import com.rentacar.domain.exception.InvalidLicensePlateException;
+import com.rentacar.domain.exception.InvalidMileageException;
+import com.rentacar.domain.exception.InvalidVehicleDataException;
+import com.rentacar.domain.exception.InvalidVerificationTokenException;
+import com.rentacar.domain.exception.VehicleNotAvailableException;
+import com.rentacar.domain.exception.VehicleNotFoundException;
+import com.rentacar.domain.exception.VehicleStatusTransitionException;
 import com.rentacar.presentation.dto.VehicleResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

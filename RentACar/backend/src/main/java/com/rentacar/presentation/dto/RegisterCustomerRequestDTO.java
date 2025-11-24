@@ -9,12 +9,17 @@ import jakarta.validation.constraints.Size;
  */
 public class RegisterCustomerRequestDTO {
 
+    private static final int MIN_NAME_LENGTH = 2;
+    private static final int MAX_NAME_LENGTH = 100;
+    private static final int MIN_PASSWORD_LENGTH = 8;
+    private static final int MAX_PASSWORD_LENGTH = 100;
+
     @NotBlank(message = "Vorname darf nicht leer sein")
-    @Size(min = 2, max = 100, message = "Vorname muss zwischen 2 und 100 Zeichen lang sein")
+    @Size(min = MIN_NAME_LENGTH, max = MAX_NAME_LENGTH, message = "Vorname muss zwischen 2 und 100 Zeichen lang sein")
     private String firstName;
 
     @NotBlank(message = "Nachname darf nicht leer sein")
-    @Size(min = 2, max = 100, message = "Nachname muss zwischen 2 und 100 Zeichen lang sein")
+    @Size(min = MIN_NAME_LENGTH, max = MAX_NAME_LENGTH, message = "Nachname muss zwischen 2 und 100 Zeichen lang sein")
     private String lastName;
 
     @NotBlank(message = "Straße darf nicht leer sein")
@@ -36,7 +41,7 @@ public class RegisterCustomerRequestDTO {
     private String phoneNumber;
 
     @NotBlank(message = "Passwort darf nicht leer sein")
-    @Size(min = 8, max = 100, message = "Passwort muss mindestens 8 Zeichen lang sein")
+    @Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH, message = "Passwort muss mindestens 8 Zeichen lang sein")
     private String password;
 
     // Constructors

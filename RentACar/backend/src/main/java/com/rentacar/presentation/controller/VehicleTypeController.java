@@ -1,7 +1,6 @@
 package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.VehicleTypeApplicationService;
-import com.rentacar.domain.model.VehicleType;
 import com.rentacar.presentation.dto.VehicleTypeResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

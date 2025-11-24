@@ -1,5 +1,6 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidCustomerDataException;
 import com.rentacar.domain.exception.InvalidEmailException;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit Tests für Customer Entity.
  */
 class CustomerTest {
+
+    private static final String VALID_PASSWORD_HASH = "$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1";
 
     private Address createValidAddress() {
         return new Address("Hauptstraße 123", "12345", "Berlin");
@@ -29,7 +32,7 @@ class CustomerTest {
         String phoneNumber = "0301234567";
 
         // When
-        Customer customer = new Customer(firstName, lastName, address, licenseNumber, email, phoneNumber);
+        Customer customer = new Customer(firstName, lastName, address, licenseNumber, email, phoneNumber, VALID_PASSWORD_HASH);
 
         // Then
         assertNotNull(customer);
@@ -52,7 +55,8 @@ class CustomerTest {
             createValidAddress(),
             createValidLicenseNumber(),
             email,
-            "0301234567"
+            "0301234567",
+            VALID_PASSWORD_HASH
         );
 
         // Then
@@ -70,7 +74,8 @@ class CustomerTest {
             createValidAddress(),
             createValidLicenseNumber(),
             "max@example.com",
-            phoneNumber
+            phoneNumber,
+            VALID_PASSWORD_HASH
         );
 
         // Then (Leerzeichen und Bindestriche werden entfernt)
@@ -85,7 +90,8 @@ class CustomerTest {
             createValidAddress(),
             createValidLicenseNumber(),
             "max@example.com",
-            null
+            null,
+            VALID_PASSWORD_HASH
         );
 
         // Then
@@ -94,15 +100,19 @@ class CustomerTest {
 
     @Test
     void shouldRejectNullFirstName() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
             com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 null, "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "max@example.com",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("Vorname"));
@@ -110,15 +120,19 @@ class CustomerTest {
 
     @Test
     void shouldRejectEmptyFirstName() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
             com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "  ", "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "max@example.com",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("Vorname"));
@@ -126,15 +140,19 @@ class CustomerTest {
 
     @Test
     void shouldRejectTooShortFirstName() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
             com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "M", "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "max@example.com",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("zwischen 2 und 100"));
@@ -142,15 +160,19 @@ class CustomerTest {
 
     @Test
     void shouldRejectNullLastName() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
             com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "Max", null,
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "max@example.com",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("Nachname"));
@@ -158,15 +180,18 @@ class CustomerTest {
 
     @Test
     void shouldRejectNullAddress() {
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
-        NullPointerException exception = assertThrows(
-            NullPointerException.class,
+        InvalidCustomerDataException exception = assertThrows(
+            InvalidCustomerDataException.class,
             () -> new Customer(
                 "Max", "Mustermann",
                 null,
-                createValidLicenseNumber(),
+                licenseNumber,
                 "max@example.com",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("Adresse"));
@@ -174,15 +199,18 @@ class CustomerTest {
 
     @Test
     void shouldRejectNullDriverLicenseNumber() {
+        Address address = createValidAddress();
+
         // When & Then
-        NullPointerException exception = assertThrows(
-            NullPointerException.class,
+        InvalidCustomerDataException exception = assertThrows(
+            InvalidCustomerDataException.class,
             () -> new Customer(
                 "Max", "Mustermann",
-                createValidAddress(),
+                address,
                 null,
                 "max@example.com",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("Führerscheinnummer"));
@@ -190,15 +218,19 @@ class CustomerTest {
 
     @Test
     void shouldRejectNullEmail() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         InvalidEmailException exception = assertThrows(
             InvalidEmailException.class,
             () -> new Customer(
                 "Max", "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 null,
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("E-Mail"));
@@ -206,15 +238,19 @@ class CustomerTest {
 
     @Test
     void shouldRejectInvalidEmailFormat() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         InvalidEmailException exception = assertThrows(
             InvalidEmailException.class,
             () -> new Customer(
                 "Max", "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "invalid-email",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().toLowerCase().contains("ungültig"));
@@ -222,45 +258,57 @@ class CustomerTest {
 
     @Test
     void shouldRejectEmailWithoutAtSign() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         assertThrows(
             InvalidEmailException.class,
             () -> new Customer(
                 "Max", "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "maxexample.com",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
     }
 
     @Test
     void shouldRejectEmailWithoutDomain() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         assertThrows(
             InvalidEmailException.class,
             () -> new Customer(
                 "Max", "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "max@",
-                "0301234567"
+                "0301234567",
+                VALID_PASSWORD_HASH
             )
         );
     }
 
     @Test
     void shouldRejectTooShortPhoneNumber() {
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
+
         // When & Then
         com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
             com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "Max", "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "max@example.com",
-                "1234"
+                "1234",
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("Telefonnummer"));
@@ -270,16 +318,19 @@ class CustomerTest {
     void shouldRejectTooLongPhoneNumber() {
         // Given
         String longPhone = "1".repeat(21);
+        Address address = createValidAddress();
+        DriverLicenseNumber licenseNumber = createValidLicenseNumber();
 
         // When & Then
         com.rentacar.domain.exception.InvalidCustomerDataException exception = assertThrows(
             com.rentacar.domain.exception.InvalidCustomerDataException.class,
             () -> new Customer(
                 "Max", "Mustermann",
-                createValidAddress(),
-                createValidLicenseNumber(),
+                address,
+                licenseNumber,
                 "max@example.com",
-                longPhone
+                longPhone,
+                VALID_PASSWORD_HASH
             )
         );
         assertTrue(exception.getMessage().contains("Telefonnummer"));
@@ -354,7 +405,7 @@ class CustomerTest {
 
         // When & Then
         assertThrows(
-            NullPointerException.class,
+            InvalidCustomerDataException.class,
             () -> customer.updateAddress(null)
         );
     }

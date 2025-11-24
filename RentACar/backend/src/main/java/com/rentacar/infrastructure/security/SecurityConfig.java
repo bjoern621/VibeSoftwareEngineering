@@ -34,9 +34,10 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("java:S4502") // CSRF deaktiviert: Stateless REST API nutzt JWT, keine Session-Cookies
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // CSRF für REST API deaktivieren
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         // Öffentliche Endpoints - Kunden
                         .requestMatchers(

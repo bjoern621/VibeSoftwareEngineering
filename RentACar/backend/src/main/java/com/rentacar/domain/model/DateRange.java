@@ -12,6 +12,9 @@ import java.util.Objects;
  */
 public class DateRange {
     
+    private static final double HOURS_PER_DAY = 24.0;
+    private static final int MIN_RENTAL_DAYS = 1;
+
     private final LocalDateTime startDateTime;
     private final LocalDateTime endDateTime;
     
@@ -20,7 +23,7 @@ public class DateRange {
      * 
      * @param startDateTime Startdatum und -zeit
      * @param endDateTime Enddatum und -zeit
-     * @throws IllegalArgumentException wenn die Validierung fehlschlägt
+     * @throws com.rentacar.domain.exception.InvalidDateRangeException wenn die Validierung fehlschlägt
      */
     public DateRange(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         validateDateRange(startDateTime, endDateTime);
@@ -33,7 +36,7 @@ public class DateRange {
      * 
      * @param start Startdatum
      * @param end Enddatum
-     * @throws IllegalArgumentException wenn die Validierung fehlschlägt
+     * @throws com.rentacar.domain.exception.InvalidDateRangeException wenn die Validierung fehlschlägt
      */
     private void validateDateRange(LocalDateTime start, LocalDateTime end) {
         if (start == null) {
@@ -64,8 +67,8 @@ public class DateRange {
     public int getDays() {
         long hours = ChronoUnit.HOURS.between(startDateTime, endDateTime);
         // Aufrunden: Jede angefangene 24-Stunden-Periode zählt als voller Tag
-        int days = (int) Math.ceil(hours / 24.0);
-        return Math.max(1, days); // Mindestens 1 Tag
+        int days = (int) Math.ceil(hours / HOURS_PER_DAY);
+        return Math.max(MIN_RENTAL_DAYS, days); // Mindestens 1 Tag
     }
     
     /**

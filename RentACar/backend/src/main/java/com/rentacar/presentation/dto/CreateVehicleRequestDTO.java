@@ -11,26 +11,32 @@ import jakarta.validation.constraints.*;
  */
 public class CreateVehicleRequestDTO {
     
+    private static final int MAX_LICENSE_PLATE_LENGTH = 20;
+    private static final int MAX_STRING_LENGTH = 100;
+    private static final int MIN_YEAR = 1900;
+    private static final int MAX_YEAR = 2026;
+    private static final int MAX_MILEAGE = 10000000;
+
     @NotBlank(message = "Kennzeichen darf nicht leer sein")
-    @Size(min = 1, max = 20, message = "Kennzeichen muss zwischen 1 und 20 Zeichen lang sein")
+    @Size(min = 1, max = MAX_LICENSE_PLATE_LENGTH, message = "Kennzeichen muss zwischen 1 und 20 Zeichen lang sein")
     private String licensePlate;
     
     @NotBlank(message = "Marke darf nicht leer sein")
-    @Size(min = 1, max = 100, message = "Marke muss zwischen 1 und 100 Zeichen lang sein")
+    @Size(min = 1, max = MAX_STRING_LENGTH, message = "Marke muss zwischen 1 und 100 Zeichen lang sein")
     private String brand;
     
     @NotBlank(message = "Modell darf nicht leer sein")
-    @Size(min = 1, max = 100, message = "Modell muss zwischen 1 und 100 Zeichen lang sein")
+    @Size(min = 1, max = MAX_STRING_LENGTH, message = "Modell muss zwischen 1 und 100 Zeichen lang sein")
     private String model;
     
     @NotNull(message = "Baujahr darf nicht null sein")
-    @Min(value = 1900, message = "Baujahr muss mindestens 1900 sein")
-    @Max(value = 2026, message = "Baujahr darf maximal 2026 sein")
+    @Min(value = MIN_YEAR, message = "Baujahr muss mindestens 1900 sein")
+    @Max(value = MAX_YEAR, message = "Baujahr darf maximal 2026 sein")
     private Integer year;
     
     @NotNull(message = "Kilometerstand darf nicht null sein")
     @Min(value = 0, message = "Kilometerstand darf nicht negativ sein")
-    @Max(value = 10000000, message = "Kilometerstand ist unrealistisch hoch")
+    @Max(value = MAX_MILEAGE, message = "Kilometerstand ist unrealistisch hoch")
     private Integer mileage;
     
     @NotNull(message = "Fahrzeugtyp darf nicht null sein")

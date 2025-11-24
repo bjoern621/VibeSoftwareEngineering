@@ -1,5 +1,6 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidCustomerDataException;
 import com.rentacar.domain.exception.InvalidEmailException;
 import com.rentacar.infrastructure.persistence.converter.EncryptedStringConverter;
 import jakarta.persistence.*;
@@ -18,6 +19,13 @@ public class Customer {
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
         "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     );
+
+    private static final int MIN_NAME_LENGTH = 2;
+    private static final int MAX_NAME_LENGTH = 100;
+    private static final int BCRYPT_HASH_LENGTH = 60;
+    private static final int MIN_PHONE_LENGTH = 5;
+    private static final int MAX_PHONE_LENGTH = 20;
+    private static final int VERIFICATION_TOKEN_VALIDITY_HOURS = 24;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -102,11 +110,17 @@ public class Customer {
 
         this.firstName = firstName;
         this.lastName = lastName;
-        this.address = Objects.requireNonNull(address, "Adresse darf nicht null sein");
-        this.driverLicenseNumber = Objects.requireNonNull(
-            driverLicenseNumber,
-            "Führerscheinnummer darf nicht null sein"
-        );
+        
+        if (address == null) {
+            throw new InvalidCustomerDataException("address", "Adresse darf nicht null sein");
+        }
+        this.address = address;
+        
+        if (driverLicenseNumber == null) {
+            throw new InvalidCustomerDataException("driverLicenseNumber", "Führerscheinnummer darf nicht null sein");
+        }
+        this.driverLicenseNumber = driverLicenseNumber;
+        
         this.email = email.toLowerCase();
         this.phoneNumber = normalizePhoneNumber(phoneNumber);
         this.password = password;
@@ -132,11 +146,17 @@ public class Customer {
 
         this.firstName = firstName;
         this.lastName = lastName;
-        this.address = Objects.requireNonNull(address, "Adresse darf nicht null sein");
-        this.driverLicenseNumber = Objects.requireNonNull(
-            driverLicenseNumber,
-            "Führerscheinnummer darf nicht null sein"
-        );
+        
+        if (address == null) {
+            throw new InvalidCustomerDataException("address", "Adresse darf nicht null sein");
+        }
+        this.address = address;
+        
+        if (driverLicenseNumber == null) {
+            throw new InvalidCustomerDataException("driverLicenseNumber", "Führerscheinnummer darf nicht null sein");
+        }
+        this.driverLicenseNumber = driverLicenseNumber;
+        
         this.email = email.toLowerCase();
         this.phoneNumber = normalizePhoneNumber(phoneNumber);
         this.password = null; // Für Legacy-Support
@@ -147,12 +167,12 @@ public class Customer {
 
     private void validateName(String name, String fieldName) {
         if (name == null || name.isBlank()) {
-            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
+            throw new InvalidCustomerDataException(
                 fieldName, fieldName + " darf nicht leer sein");
         }
-        if (name.length() < 2 || name.length() > 100) {
-            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
-                fieldName, fieldName + " muss zwischen 2 und 100 Zeichen lang sein");
+        if (name.length() < MIN_NAME_LENGTH || name.length() > MAX_NAME_LENGTH) {
+            throw new InvalidCustomerDataException(
+                fieldName, fieldName + " muss zwischen " + MIN_NAME_LENGTH + " und " + MAX_NAME_LENGTH + " Zeichen lang sein");
         }
     }
 
@@ -167,13 +187,13 @@ public class Customer {
 
     private void validatePassword(String password) {
         if (password == null || password.isBlank()) {
-            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
+            throw new InvalidCustomerDataException(
                 "password", "Passwort darf nicht leer sein");
         }
         // Passwort sollte bereits BCrypt-gehasht sein
         // BCrypt-Hashes haben eine feste Länge von 60 Zeichen und beginnen mit "$2a$", "$2b$" oder "$2y$"
-        if (!password.startsWith("$2") || password.length() != 60) {
-            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
+        if (!password.startsWith("$2") || password.length() != BCRYPT_HASH_LENGTH) {
+            throw new InvalidCustomerDataException(
                 "password", "Passwort muss BCrypt-gehasht sein");
         }
     }
@@ -184,9 +204,9 @@ public class Customer {
         }
         // Entfernt Leerzeichen und Bindestriche
         String normalized = phoneNumber.replaceAll("[\\s-]", "");
-        if (normalized.length() < 5 || normalized.length() > 20) {
-            throw new com.rentacar.domain.exception.InvalidCustomerDataException(
-                "phoneNumber", "Telefonnummer muss zwischen 5 und 20 Zeichen lang sein");
+        if (normalized.length() < MIN_PHONE_LENGTH || normalized.length() > MAX_PHONE_LENGTH) {
+            throw new InvalidCustomerDataException(
+                "phoneNumber", "Telefonnummer muss zwischen " + MIN_PHONE_LENGTH + " und " + MAX_PHONE_LENGTH + " Zeichen lang sein");
         }
         return normalized;
     }
@@ -201,7 +221,7 @@ public class Customer {
      */
     public String generateVerificationToken() {
         this.verificationToken = java.util.UUID.randomUUID().toString();
-        this.tokenExpiryDate = LocalDateTime.now().plusHours(24);
+        this.tokenExpiryDate = LocalDateTime.now().plusHours(VERIFICATION_TOKEN_VALIDITY_HOURS);
         this.lastModifiedAt = LocalDateTime.now();
         return this.verificationToken;
     }
@@ -210,7 +230,9 @@ public class Customer {
      * Verifiziert die E-Mail-Adresse mit dem gegebenen Token.
      *
      * @param token der Verifikations-Token
-     * @throws IllegalArgumentException wenn Token ungültig oder abgelaufen ist
+     * @throws com.rentacar.domain.exception.EmailAlreadyVerifiedException wenn E-Mail bereits verifiziert ist
+     * @throws com.rentacar.domain.exception.InvalidVerificationTokenException wenn Token ungültig ist
+     * @throws com.rentacar.domain.exception.ExpiredVerificationTokenException wenn Token abgelaufen ist
      */
     public void verifyEmail(String token) {
         if (this.emailVerified) {
@@ -265,7 +287,10 @@ public class Customer {
      * @param newAddress neue Adresse
      */
     public void updateAddress(Address newAddress) {
-        this.address = Objects.requireNonNull(newAddress, "Adresse darf nicht null sein");
+        if (newAddress == null) {
+            throw new InvalidCustomerDataException("address", "Adresse darf nicht null sein");
+        }
+        this.address = newAddress;
         this.lastModifiedAt = LocalDateTime.now();
     }
 
@@ -276,10 +301,10 @@ public class Customer {
      * @param newDriverLicenseNumber neue Führerscheinnummer
      */
     public void updateDriverLicenseNumber(DriverLicenseNumber newDriverLicenseNumber) {
-        this.driverLicenseNumber = Objects.requireNonNull(
-            newDriverLicenseNumber,
-            "Führerscheinnummer darf nicht null sein"
-        );
+        if (newDriverLicenseNumber == null) {
+            throw new InvalidCustomerDataException("driverLicenseNumber", "Führerscheinnummer darf nicht null sein");
+        }
+        this.driverLicenseNumber = newDriverLicenseNumber;
         this.lastModifiedAt = LocalDateTime.now();
     }
 

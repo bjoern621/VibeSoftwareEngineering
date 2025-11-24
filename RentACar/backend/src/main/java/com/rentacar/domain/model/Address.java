@@ -12,6 +12,12 @@ import java.util.Objects;
 @Embeddable
 public class Address {
 
+    private static final int MIN_STREET_LENGTH = 3;
+    private static final int MAX_STREET_LENGTH = 100;
+    private static final int MIN_CITY_LENGTH = 2;
+    private static final int MAX_CITY_LENGTH = 100;
+    private static final String POSTAL_CODE_REGEX = "\\d{5}";
+
     @Convert(converter = EncryptedStringConverter.class)
     private final String street;
     
@@ -34,7 +40,7 @@ public class Address {
      * @param street     Straße mit Hausnummer
      * @param postalCode Postleitzahl (5-stellig)
      * @param city       Stadt
-     * @throws IllegalArgumentException wenn Parameter ungültig sind
+     * @throws com.rentacar.domain.exception.InvalidAddressException wenn Parameter ungültig sind
      */
     public Address(String street, String postalCode, String city) {
         validateStreet(street);
@@ -51,9 +57,9 @@ public class Address {
             throw new com.rentacar.domain.exception.InvalidAddressException(
                 "street", "Straße darf nicht leer sein");
         }
-        if (street.length() < 3 || street.length() > 100) {
+        if (street.length() < MIN_STREET_LENGTH || street.length() > MAX_STREET_LENGTH) {
             throw new com.rentacar.domain.exception.InvalidAddressException(
-                "street", "Straße muss zwischen 3 und 100 Zeichen lang sein");
+                "street", "Straße muss zwischen " + MIN_STREET_LENGTH + " und " + MAX_STREET_LENGTH + " Zeichen lang sein");
         }
     }
 
@@ -62,7 +68,7 @@ public class Address {
             throw new com.rentacar.domain.exception.InvalidAddressException(
                 "postalCode", "Postleitzahl darf nicht leer sein");
         }
-        if (!postalCode.matches("\\d{5}")) {
+        if (!postalCode.matches(POSTAL_CODE_REGEX)) {
             throw new com.rentacar.domain.exception.InvalidAddressException(
                 "postalCode", "Postleitzahl muss genau 5 Ziffern enthalten");
         }
@@ -73,8 +79,9 @@ public class Address {
             throw new com.rentacar.domain.exception.InvalidAddressException(
                 "city", "Stadt darf nicht leer sein");
         }
-        if (city.length() < 2 || city.length() > 100) {
-            throw new IllegalArgumentException("Stadt muss zwischen 2 und 100 Zeichen lang sein");
+        if (city.length() < MIN_CITY_LENGTH || city.length() > MAX_CITY_LENGTH) {
+            throw new com.rentacar.domain.exception.InvalidAddressException(
+                "city", "Stadt muss zwischen " + MIN_CITY_LENGTH + " und " + MAX_CITY_LENGTH + " Zeichen lang sein");
         }
     }
 

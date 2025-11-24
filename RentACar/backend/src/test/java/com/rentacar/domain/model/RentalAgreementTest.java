@@ -1,5 +1,8 @@
 package com.rentacar.domain.model;
 
+import com.rentacar.domain.exception.InvalidMileageException;
+import com.rentacar.domain.exception.InvalidRentalAgreementDataException;
+import com.rentacar.domain.exception.RentalAgreementStatusTransitionException;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.*;
@@ -44,8 +47,8 @@ class RentalAgreementTest {
         // Act & Assert
         assertThatThrownBy(() -> agreement.checkIn(checkinMileage, LocalDateTime.now(), 
             new VehicleCondition("FULL", "CLEAN", null)))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Checkin mileage cannot be less than checkout mileage");
+            .isInstanceOf(InvalidMileageException.class)
+            .hasMessageContaining("Rückgabe-Kilometerstand darf nicht kleiner als Ausgabe-Kilometerstand sein");
     }
 
     @Test
@@ -61,8 +64,8 @@ class RentalAgreementTest {
         // Act & Assert
         assertThatThrownBy(() -> agreement.checkIn(Mileage.of(1100), checkinTime, 
             new VehicleCondition("FULL", "CLEAN", null)))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Checkin time cannot be before checkout time");
+            .isInstanceOf(InvalidRentalAgreementDataException.class)
+            .hasMessageContaining("Rückgabezeitpunkt darf nicht vor Ausgabezeitpunkt liegen");
     }
 
     @Test
@@ -78,7 +81,7 @@ class RentalAgreementTest {
         // Act & Assert
         assertThatThrownBy(() -> agreement.checkIn(Mileage.of(1200), LocalDateTime.now().plusHours(2), 
             new VehicleCondition("FULL", "CLEAN", null)))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Rental agreement is not open");
+            .isInstanceOf(RentalAgreementStatusTransitionException.class)
+            .hasMessageContaining("Ungültiger Statusübergang für Mietvertrag");
     }
 }
