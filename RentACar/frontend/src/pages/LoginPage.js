@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
 const LoginPage = () => {
   const [activeTab, setActiveTab] = useState('login');
@@ -137,6 +138,24 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Handler für Adress-Änderungen (für AddressAutocomplete)
+   */
+  const handleAddressChange = (addressFields) => {
+    setRegisterData({
+      ...registerData,
+      ...addressFields,
+    });
+    // Entferne Validierungsfehler für geänderte Adressfelder
+    const newValidationErrors = { ...validationErrors };
+    Object.keys(addressFields).forEach((key) => {
+      if (newValidationErrors[key]) {
+        delete newValidationErrors[key];
+      }
+    });
+    setValidationErrors(newValidationErrors);
   };
 
   return (
@@ -350,71 +369,13 @@ const LoginPage = () => {
                   <p className="text-red-500 text-xs mt-1">{validationErrors.driverLicenseNumber}</p>
                 )}
               </label>
-              <div className="grid grid-cols-2 gap-4">
-                <label className="flex flex-col col-span-2">
-                  <p className="text-sm font-medium pb-2">Straße</p>
-                  <input
-                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.street ? 'border-red-500' : ''}`}
-                    type="text"
-                    value={registerData.street}
-                    onChange={(e) => {
-                      setRegisterData({
-                        ...registerData,
-                        street: e.target.value,
-                      });
-                      if (validationErrors.street) {
-                        setValidationErrors({ ...validationErrors, street: undefined });
-                      }
-                    }}
-                    required
-                  />
-                  {validationErrors.street && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors.street}</p>
-                  )}
-                </label>
-                <label className="flex flex-col">
-                  <p className="text-sm font-medium pb-2">PLZ</p>
-                  <input
-                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.postalCode ? 'border-red-500' : ''}`}
-                    type="text"
-                    value={registerData.postalCode}
-                    onChange={(e) => {
-                      setRegisterData({
-                        ...registerData,
-                        postalCode: e.target.value,
-                      });
-                      if (validationErrors.postalCode) {
-                        setValidationErrors({ ...validationErrors, postalCode: undefined });
-                      }
-                    }}
-                    required
-                  />
-                  {validationErrors.postalCode && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors.postalCode}</p>
-                  )}
-                </label>
-                <label className="flex flex-col">
-                  <p className="text-sm font-medium pb-2">Stadt</p>
-                  <input
-                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.city ? 'border-red-500' : ''}`}
-                    type="text"
-                    value={registerData.city}
-                    onChange={(e) => {
-                      setRegisterData({
-                        ...registerData,
-                        city: e.target.value,
-                      });
-                      if (validationErrors.city) {
-                        setValidationErrors({ ...validationErrors, city: undefined });
-                      }
-                    }}
-                    required
-                  />
-                  {validationErrors.city && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors.city}</p>
-                  )}
-                </label>
-              </div>
+              <AddressAutocomplete
+                street={registerData.street}
+                postalCode={registerData.postalCode}
+                city={registerData.city}
+                onAddressChange={handleAddressChange}
+                validationErrors={validationErrors}
+              />
               <button
                 type="submit"
                 disabled={loading}

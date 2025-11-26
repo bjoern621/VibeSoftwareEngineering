@@ -16,6 +16,7 @@ import VehicleDetailsPage from './pages/VehicleDetailsPage';
 import BookingsPage from './pages/BookingsPage';
 import VehicleManagementPage from './pages/VehicleManagementPage';
 import CheckInOutPage from './pages/CheckInOutPage';
+import ProfilePage from './pages/ProfilePage';
 
 // ProtectedRoute Komponente für geschützte Routen
 const ProtectedRoute = ({ children }) => {
@@ -55,6 +56,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <BookingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profil"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
                   </ProtectedRoute>
                 }
               />
