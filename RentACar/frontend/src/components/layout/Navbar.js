@@ -33,14 +33,24 @@ const Navbar = () => {
             Fahrzeuge
           </Link>
           {isAuthenticated && (
-            <Link
-              to="/bookings"
-              className={`text-sm font-medium transition-colors ${
-                isActive('/bookings') ? 'text-primary' : 'hover:text-primary'
-              }`}
-            >
-              Meine Buchungen
-            </Link>
+            <>
+              <Link
+                to="/bookings"
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/bookings') ? 'text-primary' : 'hover:text-primary'
+                }`}
+              >
+                Meine Buchungen
+              </Link>
+              <Link
+                to="/profil"
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/profil') ? 'text-primary' : 'hover:text-primary'
+                }`}
+              >
+                Mein Profil
+              </Link>
+            </>
           )}
           <Link
             to="/help"
@@ -67,20 +77,12 @@ const Navbar = () => {
               </button>
             </>
           ) : (
-            <>
-              <Link
-                to="/login"
-                className="flex h-10 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary/10 px-4 text-sm font-bold text-primary transition-colors hover:bg-primary/20"
-              >
-                <span className="truncate">Anmelden</span>
-              </Link>
-              <Link
-                to="/register"
-                className="flex h-10 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-4 text-sm font-bold text-white transition-opacity hover:opacity-90"
-              >
-                <span className="truncate">Registrieren</span>
-              </Link>
-            </>
+            <Link
+              to="/login"
+              className="flex h-10 min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-4 text-sm font-bold text-white transition-opacity hover:opacity-90"
+            >
+              <span className="truncate">Login/Registrieren</span>
+            </Link>
           )}
         </div>
       </div>
