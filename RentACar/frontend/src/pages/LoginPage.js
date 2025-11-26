@@ -17,12 +17,88 @@ const LoginPage = () => {
     password: '',
     phoneNumber: '',
     driverLicenseNumber: '',
-    address: { street: '', postalCode: '', city: '', country: 'Deutschland' },
+    street: '',
+    postalCode: '',
+    city: '',
   });
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
+
+  /**
+   * Validierungsfunktion für Registrierungsformular
+   * Prüft alle Felder und gibt Fehlermeldungen zurück
+   */
+  const validateRegistrationData = () => {
+    const errors = {};
+
+    // Vorname validieren
+    if (!registerData.firstName.trim()) {
+      errors.firstName = 'Vorname ist erforderlich';
+    } else if (registerData.firstName.trim().length < 2) {
+      errors.firstName = 'Vorname muss mindestens 2 Zeichen lang sein';
+    }
+
+    // Nachname validieren
+    if (!registerData.lastName.trim()) {
+      errors.lastName = 'Nachname ist erforderlich';
+    } else if (registerData.lastName.trim().length < 2) {
+      errors.lastName = 'Nachname muss mindestens 2 Zeichen lang sein';
+    }
+
+    // E-Mail validieren
+    if (!registerData.email.trim()) {
+      errors.email = 'E-Mail ist erforderlich';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerData.email)) {
+      errors.email = 'Ungültige E-Mail-Adresse';
+    }
+
+    // Passwort validieren
+    if (!registerData.password) {
+      errors.password = 'Passwort ist erforderlich';
+    } else if (registerData.password.length < 8) {
+      errors.password = 'Passwort muss mindestens 8 Zeichen lang sein';
+    }
+
+    // Telefonnummer validieren (deutsches Format, flexibel)
+    if (!registerData.phoneNumber.trim()) {
+      errors.phoneNumber = 'Telefonnummer ist erforderlich';
+    } else if (!/^[\d\s\+\-\(\)\/]+$/.test(registerData.phoneNumber)) {
+      errors.phoneNumber = 'Ungültige Telefonnummer';
+    }
+
+    // Führerscheinnummer validieren (deutsches Format: 11 Zeichen alphanumerisch)
+    if (!registerData.driverLicenseNumber.trim()) {
+      errors.driverLicenseNumber = 'Führerscheinnummer ist erforderlich';
+    } else if (!/^[A-Z0-9]{11}$/i.test(registerData.driverLicenseNumber.trim())) {
+      errors.driverLicenseNumber = 'Führerscheinnummer muss 11 alphanumerische Zeichen enthalten';
+    }
+
+    // Straße validieren
+    if (!registerData.street.trim()) {
+      errors.street = 'Straße ist erforderlich';
+    } else if (registerData.street.trim().length < 3) {
+      errors.street = 'Straße muss mindestens 3 Zeichen lang sein';
+    }
+
+    // PLZ validieren (deutsches Format: 5 Ziffern)
+    if (!registerData.postalCode.trim()) {
+      errors.postalCode = 'PLZ ist erforderlich';
+    } else if (!/^\d{5}$/.test(registerData.postalCode.trim())) {
+      errors.postalCode = 'PLZ muss aus genau 5 Ziffern bestehen';
+    }
+
+    // Stadt validieren
+    if (!registerData.city.trim()) {
+      errors.city = 'Stadt ist erforderlich';
+    } else if (registerData.city.trim().length < 2) {
+      errors.city = 'Stadt muss mindestens 2 Zeichen lang sein';
+    }
+
+    return errors;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,11 +117,21 @@ const LoginPage = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
+    setValidationErrors({});
+
+    // Client-seitige Validierung durchführen
+    const errors = validateRegistrationData();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setError('Bitte korrigieren Sie die markierten Fehler');
+      return;
+    }
+
     setLoading(true);
     try {
       await register(registerData);
       setActiveTab('login');
-      setError('Registrierung erfolgreich! Bitte bestätigen Sie Ihre E-Mail.');
+      setError('Registrierung erfolgreich! Bitte bestätigen Sie Ihre E-Mail-Adresse und melden Sie sich dann an.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -158,115 +244,175 @@ const LoginPage = () => {
                 <label className="flex flex-col">
                   <p className="text-sm font-medium pb-2">Vorname</p>
                   <input
-                    className="form-input rounded-lg border-gray-300 h-12 px-3"
+                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.firstName ? 'border-red-500' : ''}`}
                     type="text"
                     value={registerData.firstName}
-                    onChange={(e) =>
-                      setRegisterData({ ...registerData, firstName: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setRegisterData({ ...registerData, firstName: e.target.value });
+                      if (validationErrors.firstName) {
+                        setValidationErrors({ ...validationErrors, firstName: undefined });
+                      }
+                    }}
                     required
                   />
+                  {validationErrors.firstName && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.firstName}</p>
+                  )}
                 </label>
                 <label className="flex flex-col">
                   <p className="text-sm font-medium pb-2">Nachname</p>
                   <input
-                    className="form-input rounded-lg border-gray-300 h-12 px-3"
+                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.lastName ? 'border-red-500' : ''}`}
                     type="text"
                     value={registerData.lastName}
-                    onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
+                    onChange={(e) => {
+                      setRegisterData({ ...registerData, lastName: e.target.value });
+                      if (validationErrors.lastName) {
+                        setValidationErrors({ ...validationErrors, lastName: undefined });
+                      }
+                    }}
                     required
                   />
+                  {validationErrors.lastName && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.lastName}</p>
+                  )}
                 </label>
               </div>
               <label className="flex flex-col">
                 <p className="text-sm font-medium pb-2">E-Mail</p>
                 <input
-                  className="form-input rounded-lg border-gray-300 h-12 px-3"
+                  className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.email ? 'border-red-500' : ''}`}
                   type="email"
                   value={registerData.email}
-                  onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                  onChange={(e) => {
+                    setRegisterData({ ...registerData, email: e.target.value });
+                    if (validationErrors.email) {
+                      setValidationErrors({ ...validationErrors, email: undefined });
+                    }
+                  }}
                   required
                 />
+                {validationErrors.email && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>
+                )}
               </label>
               <label className="flex flex-col">
                 <p className="text-sm font-medium pb-2">Passwort</p>
                 <input
-                  className="form-input rounded-lg border-gray-300 h-12 px-3"
+                  className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.password ? 'border-red-500' : ''}`}
                   type="password"
                   value={registerData.password}
-                  onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                  onChange={(e) => {
+                    setRegisterData({ ...registerData, password: e.target.value });
+                    if (validationErrors.password) {
+                      setValidationErrors({ ...validationErrors, password: undefined });
+                    }
+                  }}
                   required
                 />
+                {validationErrors.password && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.password}</p>
+                )}
               </label>
               <label className="flex flex-col">
                 <p className="text-sm font-medium pb-2">Telefon</p>
                 <input
-                  className="form-input rounded-lg border-gray-300 h-12 px-3"
+                  className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.phoneNumber ? 'border-red-500' : ''}`}
                   type="tel"
                   value={registerData.phoneNumber}
-                  onChange={(e) =>
-                    setRegisterData({ ...registerData, phoneNumber: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setRegisterData({ ...registerData, phoneNumber: e.target.value });
+                    if (validationErrors.phoneNumber) {
+                      setValidationErrors({ ...validationErrors, phoneNumber: undefined });
+                    }
+                  }}
                   required
                 />
+                {validationErrors.phoneNumber && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.phoneNumber}</p>
+                )}
               </label>
               <label className="flex flex-col">
                 <p className="text-sm font-medium pb-2">Führerscheinnummer</p>
                 <input
-                  className="form-input rounded-lg border-gray-300 h-12 px-3"
+                  className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.driverLicenseNumber ? 'border-red-500' : ''}`}
                   type="text"
                   value={registerData.driverLicenseNumber}
-                  onChange={(e) =>
-                    setRegisterData({ ...registerData, driverLicenseNumber: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setRegisterData({ ...registerData, driverLicenseNumber: e.target.value });
+                    if (validationErrors.driverLicenseNumber) {
+                      setValidationErrors({ ...validationErrors, driverLicenseNumber: undefined });
+                    }
+                  }}
                   required
                 />
+                {validationErrors.driverLicenseNumber && (
+                  <p className="text-red-500 text-xs mt-1">{validationErrors.driverLicenseNumber}</p>
+                )}
               </label>
               <div className="grid grid-cols-2 gap-4">
                 <label className="flex flex-col col-span-2">
                   <p className="text-sm font-medium pb-2">Straße</p>
                   <input
-                    className="form-input rounded-lg border-gray-300 h-12 px-3"
+                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.street ? 'border-red-500' : ''}`}
                     type="text"
-                    value={registerData.address.street}
-                    onChange={(e) =>
+                    value={registerData.street}
+                    onChange={(e) => {
                       setRegisterData({
                         ...registerData,
-                        address: { ...registerData.address, street: e.target.value },
-                      })
-                    }
+                        street: e.target.value,
+                      });
+                      if (validationErrors.street) {
+                        setValidationErrors({ ...validationErrors, street: undefined });
+                      }
+                    }}
                     required
                   />
+                  {validationErrors.street && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.street}</p>
+                  )}
                 </label>
                 <label className="flex flex-col">
                   <p className="text-sm font-medium pb-2">PLZ</p>
                   <input
-                    className="form-input rounded-lg border-gray-300 h-12 px-3"
+                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.postalCode ? 'border-red-500' : ''}`}
                     type="text"
-                    value={registerData.address.postalCode}
-                    onChange={(e) =>
+                    value={registerData.postalCode}
+                    onChange={(e) => {
                       setRegisterData({
                         ...registerData,
-                        address: { ...registerData.address, postalCode: e.target.value },
-                      })
-                    }
+                        postalCode: e.target.value,
+                      });
+                      if (validationErrors.postalCode) {
+                        setValidationErrors({ ...validationErrors, postalCode: undefined });
+                      }
+                    }}
                     required
                   />
+                  {validationErrors.postalCode && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.postalCode}</p>
+                  )}
                 </label>
                 <label className="flex flex-col">
                   <p className="text-sm font-medium pb-2">Stadt</p>
                   <input
-                    className="form-input rounded-lg border-gray-300 h-12 px-3"
+                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.city ? 'border-red-500' : ''}`}
                     type="text"
-                    value={registerData.address.city}
-                    onChange={(e) =>
+                    value={registerData.city}
+                    onChange={(e) => {
                       setRegisterData({
                         ...registerData,
-                        address: { ...registerData.address, city: e.target.value },
-                      })
-                    }
+                        city: e.target.value,
+                      });
+                      if (validationErrors.city) {
+                        setValidationErrors({ ...validationErrors, city: undefined });
+                      }
+                    }}
                     required
                   />
+                  {validationErrors.city && (
+                    <p className="text-red-500 text-xs mt-1">{validationErrors.city}</p>
+                  )}
                 </label>
               </div>
               <button
