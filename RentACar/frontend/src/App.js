@@ -9,6 +9,7 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import EmailVerificationPage from './pages/EmailVerificationPage';
 import AboutPage from './pages/AboutPage';
 import VehicleSearchPage from './pages/VehicleSearchPage';
 import VehicleDetailsPage from './pages/VehicleDetailsPage';
@@ -45,6 +46,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<LoginPage />} />
+              <Route path="/verify-email" element={<EmailVerificationPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/vehicles" element={<VehicleSearchPage />} />
               <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />

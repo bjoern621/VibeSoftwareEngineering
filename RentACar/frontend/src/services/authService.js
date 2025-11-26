@@ -104,7 +104,8 @@ const getToken = () => {
  */
 const verifyEmail = async (token) => {
   try {
-    const response = await apiClient.post('/kunden/verify-email', { token });
+    // Token als Query-Parameter senden (nicht im Body)
+    const response = await apiClient.post(`/kunden/verify-email?token=${encodeURIComponent(token)}`);
     return response.data;
   } catch (error) {
     throw extractErrorMessage(error);
