@@ -54,7 +54,8 @@ public class SecurityConfig {
                         // Öffentliche Endpoints - Fahrzeuge (für Suche/Browse)
                         .requestMatchers(
                                 "/api/fahrzeuge/**",
-                                "/api/vehicle-types/**"
+                                "/api/vehicle-types/**",
+                                "/api/branches/**"
                         ).permitAll()
                         // H2 Console (nur für Entwicklung)
                         .requestMatchers("/h2-console/**").permitAll()

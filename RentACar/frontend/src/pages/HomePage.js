@@ -3,9 +3,10 @@
  * Basiert auf: stitch_rentacar/homepage/fahrzeugsuche_1/code.html
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getBranches, getVehicleTypes } from '../services/vehicleService';
 
 const HomePage = () => {
   const { isAuthenticated, user } = useAuth();
@@ -15,8 +16,30 @@ const HomePage = () => {
     location: '',
     pickupDate: new Date().toISOString().split('T')[0],
     returnDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    vehicleType: 'Alle Typen',
+    vehicleType: 'ALL',
   });
+  
+  const [branches, setBranches] = useState([]);
+  const [vehicleTypes, setVehicleTypes] = useState([]);
+
+  // Lade Filialen und Fahrzeugtypen beim Mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [branchesData, typesData] = await Promise.all([
+          getBranches(),
+          getVehicleTypes(),
+        ]);
+        console.log('Branches geladen:', branchesData);
+        console.log('Vehicle Types geladen:', typesData);
+        setBranches(branchesData);
+        setVehicleTypes(typesData);
+      } catch (error) {
+        console.error('Fehler beim Laden der Daten:', error);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -62,14 +85,19 @@ const HomePage = () => {
                   <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     location_on
                   </span>
-                  <input
-                    className="form-input h-14 w-full rounded-lg border-gray-300 bg-gray-50 pl-10 text-text-main placeholder:text-gray-400 focus:border-primary focus:ring-primary"
-                    placeholder="Stadt oder Flughafen"
-                    type="text"
+                  <select
+                    className="form-select h-14 w-full rounded-lg border-gray-300 bg-gray-50 pl-10 text-text-main focus:border-primary focus:ring-primary"
                     name="location"
                     value={searchParams.location}
                     onChange={handleInputChange}
-                  />
+                  >
+                    <option value="">Alle Standorte</option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.name}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </label>
 
@@ -116,11 +144,12 @@ const HomePage = () => {
                   value={searchParams.vehicleType}
                   onChange={handleInputChange}
                 >
-                  <option>Alle Typen</option>
-                  <option>Kleinwagen</option>
-                  <option>SUV</option>
-                  <option>Kombi</option>
-                  <option>Sportwagen</option>
+                  <option value="ALL">Alle Typen</option>
+                  {vehicleTypes.map((type) => (
+                    <option key={type.name} value={type.name}>
+                      {type.displayName}
+                    </option>
+                  ))}
                 </select>
               </label>
 
