@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
-                                null,
+                                jwt, // Token als credentials speichern für extractCustomerId
                                 userDetails.getAuthorities()
                         );
                 authenticationToken.setDetails(

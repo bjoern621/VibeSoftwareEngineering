@@ -1,7 +1,7 @@
 package com.rentacar.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
@@ -17,12 +17,12 @@ public class PriceCalculationRequestDTO {
     private String vehicleType;
     
     @NotNull(message = "Abholzeitpunkt darf nicht null sein")
-    @Future(message = "Abholzeitpunkt muss in der Zukunft liegen")
+    @FutureOrPresent(message = "Abholzeitpunkt darf nicht in der Vergangenheit liegen")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime pickupDateTime;
     
     @NotNull(message = "Rückgabezeitpunkt darf nicht null sein")
-    @Future(message = "Rückgabezeitpunkt muss in der Zukunft liegen")
+    @FutureOrPresent(message = "Rückgabezeitpunkt darf nicht in der Vergangenheit liegen")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime returnDateTime;
     

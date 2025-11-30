@@ -5,6 +5,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { BookingProvider } from './context/BookingContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
@@ -18,6 +19,8 @@ import VehicleManagementPage from './pages/VehicleManagementPage';
 import CheckInOutPage from './pages/CheckInOutPage';
 import ProfilePage from './pages/ProfilePage';
 import PriceCalculatorPage from './pages/PriceCalculatorPage';
+import BookingWizardPage from './pages/BookingWizardPage';
+import BookingSuccessPage from './pages/BookingSuccessPage';
 
 // ProtectedRoute Komponente für geschützte Routen
 const ProtectedRoute = ({ children }) => {
@@ -40,11 +43,12 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-grow">
-            <Routes>
+      <BookingProvider>
+        <Router>
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<LoginPage />} />
@@ -53,6 +57,15 @@ function App() {
               <Route path="/price-calculator" element={<PriceCalculatorPage />} />
               <Route path="/vehicles" element={<VehicleSearchPage />} />
               <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
+              <Route path="/booking/wizard" element={<BookingWizardPage />} />
+              <Route
+                path="/booking/success/:id"
+                element={
+                  <ProtectedRoute>
+                    <BookingSuccessPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/bookings"
                 element={
@@ -72,11 +85,12 @@ function App() {
               {/* Mitarbeiter-Seiten (nur Design, keine Funktion) */}
               <Route path="/employee/vehicles" element={<VehicleManagementPage />} />
               <Route path="/employee/check-in-out" element={<CheckInOutPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </BookingProvider>
     </AuthProvider>
   );
 }

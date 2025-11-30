@@ -51,7 +51,9 @@ public class DateRange {
             throw new com.rentacar.domain.exception.InvalidDateRangeException(
                 start, end, "Startdatum muss vor dem Enddatum liegen. Start: " + start + ", Ende: " + end);
         }
-        if (start.isBefore(LocalDateTime.now())) {
+        // Erlaube Buchungen für heute (ab Mitternacht heute)
+        LocalDateTime todayStart = LocalDateTime.now().toLocalDate().atStartOfDay();
+        if (start.isBefore(todayStart)) {
             throw new com.rentacar.domain.exception.InvalidDateRangeException(
                 start, end, "Startdatum darf nicht in der Vergangenheit liegen. Start: " + start);
         }

@@ -1,6 +1,6 @@
 package com.rentacar.presentation.dto;
 
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,11 +17,11 @@ public class CreateBookingRequestDTO {
     private Long returnBranchId;
 
     @NotNull
-    @Future
+    @FutureOrPresent(message = "Abholzeitpunkt darf nicht in der Vergangenheit liegen")
     private LocalDateTime pickupDateTime;
 
     @NotNull
-    @Future
+    @FutureOrPresent(message = "Rückgabezeitpunkt darf nicht in der Vergangenheit liegen")
     private LocalDateTime returnDateTime;
 
     private List<String> additionalServices;
