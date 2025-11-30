@@ -17,6 +17,7 @@ import BookingsPage from './pages/BookingsPage';
 import VehicleManagementPage from './pages/VehicleManagementPage';
 import CheckInOutPage from './pages/CheckInOutPage';
 import ProfilePage from './pages/ProfilePage';
+import PriceCalculatorPage from './pages/PriceCalculatorPage';
 
 // ProtectedRoute Komponente für geschützte Routen
 const ProtectedRoute = ({ children }) => {
@@ -49,6 +50,7 @@ function App() {
               <Route path="/register" element={<LoginPage />} />
               <Route path="/verify-email" element={<EmailVerificationPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/price-calculator" element={<PriceCalculatorPage />} />
               <Route path="/vehicles" element={<VehicleSearchPage />} />
               <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
               <Route

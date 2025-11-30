@@ -49,7 +49,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/kunden/registrierung",
                                 "/api/kunden/login",
-                                "/api/kunden/verify-email"
+                                "/api/kunden/verify-email",
+                                "/api/buchungen/preis-berechnen" // Preiskalkulator öffentlich verfügbar
                         ).permitAll()
                         // Öffentliche Endpoints - Fahrzeuge (für Suche/Browse)
                         .requestMatchers(

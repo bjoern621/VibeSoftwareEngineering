@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import getVehicleImage from '../../utils/vehicleImages';
+import { safeToFixed } from '../../utils/numberUtils';
 
 /**
  * VehicleCard - Wiederverwendbare Karte für die Fahrzeuganzeige
@@ -98,20 +99,20 @@ const VehicleCard = ({ vehicle, searchParams }) => {
           <div className="text-right">
             <p className="text-sm text-gray-500">ab</p>
             <p className="text-2xl font-bold text-secondary">
-              {vehicle.pricePerDay ? vehicle.pricePerDay.toFixed(2) : '0.00'}€
+              {safeToFixed(vehicle?.pricePerDay, 2)}€
               <span className="text-base font-normal">/Tag</span>
             </p>
           </div>
           
           {/* Geschätzter Gesamtpreis */}
-          {vehicle.estimatedTotalPrice && rentalDays && (
-            <div className="rounded-lg bg-primary/10 px-3 py-2 text-center">
-              <p className="text-xs text-gray-600">Gesamtpreis für {rentalDays} Tag{rentalDays !== 1 ? 'e' : ''}</p>
-              <p className="text-lg font-bold text-primary">
-                {vehicle.estimatedTotalPrice.toFixed(2)}€
-              </p>
-            </div>
-          )}
+          {vehicle?.estimatedTotalPrice != null && rentalDays && (
+             <div className="rounded-lg bg-primary/10 px-3 py-2 text-center">
+               <p className="text-xs text-gray-600">Gesamtpreis für {rentalDays} Tag{rentalDays !== 1 ? 'e' : ''}</p>
+               <p className="text-lg font-bold text-primary">
+                {safeToFixed(vehicle?.estimatedTotalPrice, 2)}€
+               </p>
+             </div>
+           )}
         </div>
         
         <button

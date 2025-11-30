@@ -32,6 +32,14 @@ const Navbar = () => {
           >
             Fahrzeuge
           </Link>
+          <Link
+            to="/price-calculator"
+            className={`text-sm font-medium transition-colors ${
+              isActive('/price-calculator') ? 'text-primary' : 'hover:text-primary'
+            }`}
+          >
+            Preiskalkulator
+          </Link>
           {isAuthenticated && (
             <>
               <Link
