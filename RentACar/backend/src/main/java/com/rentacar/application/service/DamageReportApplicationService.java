@@ -10,6 +10,10 @@ import com.rentacar.presentation.dto.DamageReportResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class DamageReportApplicationService {
 
@@ -44,11 +48,6 @@ public class DamageReportApplicationService {
 
         // Update Vehicle Status
         Vehicle vehicle = rentalAgreement.getBooking().getVehicle();
-        // Note: This might throw VehicleStatusTransitionException if vehicle is RENTED.
-        // We assume damage reports are typically created after check-in or require the vehicle to be not RENTED.
-        // If the vehicle is already IN_MAINTENANCE, this is fine (idempotent-ish logic in Vehicle needed or catch exception?)
-        // Vehicle.markAsInMaintenance() throws if RENTED. It does NOT throw if already IN_MAINTENANCE (it just sets it).
-        // So we are good unless it is RENTED.
         vehicle.markAsInMaintenance();
         vehicleRepository.save(vehicle);
 
@@ -63,6 +62,20 @@ public class DamageReportApplicationService {
         DamageReport report = damageReportRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Damage report not found with ID: " + id));
         return mapToDTO(report);
+    }
+
+    public List<DamageReportResponseDTO> getDamageReportsByBooking(Long bookingId) {
+        RentalAgreement rentalAgreement = rentalAgreementRepository.findByBookingId(bookingId)
+                .orElse(null);
+        
+        if (rentalAgreement == null) {
+            return Collections.emptyList();
+        }
+        
+        List<DamageReport> reports = damageReportRepository.findByRentalAgreementId(rentalAgreement.getId());
+        return reports.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     private DamageReportResponseDTO mapToDTO(DamageReport report) {
