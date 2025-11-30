@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * BookingsPage - Buchungsübersicht für Kunden
  * Konvertiert von Stitch Design: buchungsübersicht_(kunden)_1
  */
 const BookingsPage = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('Alle');
 
   // Mock-Daten (später durch API-Call ersetzen)
@@ -83,7 +85,10 @@ const BookingsPage = () => {
             {/* PageHeading */}
             <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
               <h1 className="text-4xl font-black tracking-tighter">Meine Buchungen</h1>
-              <button className="flex items-center gap-2 min-w-[84px] cursor-pointer justify-center overflow-hidden rounded-lg h-10 px-4 bg-secondary text-white text-sm font-bold shadow-sm hover:opacity-90 transition-colors">
+              <button 
+                onClick={() => navigate('/vehicles')}
+                className="flex items-center gap-2 min-w-[84px] cursor-pointer justify-center overflow-hidden rounded-lg h-10 px-4 bg-secondary text-white text-sm font-bold shadow-sm hover:opacity-90 transition-colors"
+              >
                 <span className="material-symbols-outlined text-lg">add</span>
                 <span>Neue Buchung</span>
               </button>

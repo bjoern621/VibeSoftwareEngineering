@@ -2,8 +2,10 @@
 /**
  * Booking Service - API Calls für Buchungen und Preisberechnung
  *
- * Enthält eine helper-Funktion für die Preisberechnung, die das
- * Backend-Endpoint POST /api/buchungen/preis-berechnen aufruft.
+ * Enthält Funktionen für:
+ * - Preisberechnung
+ * - Buchungserstellung
+ * - Buchungsabfrage
  */
 
 import apiClient from '../config/axiosConfig';
@@ -35,7 +37,111 @@ export const calculatePrice = async (payload) => {
   }
 };
 
+/**
+ * Erstellt eine neue Buchung.
+ *
+ * Erwartetes payload-Shape (gemäß Backend CreateBookingRequestDTO):
+ * {
+ *   vehicleId: number,
+ *   pickupBranchId: number,
+ *   returnBranchId: number,
+ *   pickupDateTime: string, // ISO-8601 format
+ *   returnDateTime: string, // ISO-8601 format
+ *   extras: [{ id: string, name: string, pricePerDay: number, quantity: number }] // optional
+ * }
+ *
+ * @param {Object} bookingData Buchungsdaten aus BookingContext
+ * @returns {Promise<Object>} Erstellte Buchung (BookingHistoryDto)
+ */
+const createBooking = async (bookingData) => {
+  try {
+    // Transformiere Frontend-Daten in Backend-Format
+    const payload = {
+      vehicleId: bookingData.vehicleId,
+      pickupBranchId: bookingData.pickupBranchId,
+      returnBranchId: bookingData.returnBranchId,
+      pickupDateTime: bookingData.pickupDateTime,
+      returnDateTime: bookingData.returnDateTime,
+      // Extras: Frontend nutzt {id, name, pricePerDay, quantity}
+      // Backend erwartet additionalServices: string[]
+      additionalServices: bookingData.extras?.map((extra) => extra.id) || [],
+    };
+
+    const response = await apiClient.post('/buchungen', payload);
+    return response.data;
+  } catch (error) {
+    console.error('Fehler beim Erstellen der Buchung:', error);
+    throw new Error(
+      error.response?.data?.message ||
+      'Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.'
+    );
+  }
+};
+
+/**
+ * Ruft eine Buchung anhand ihrer ID ab.
+ *
+ * @param {number|string} bookingId Buchungs-ID
+ * @returns {Promise<Object>} Buchungsdetails
+ */
+const getBookingById = async (bookingId) => {
+  try {
+    const response = await apiClient.get(`/buchungen/${bookingId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Fehler beim Laden der Buchung:', error);
+    throw new Error(
+      error.response?.data?.message ||
+      'Die Buchung konnte nicht geladen werden.'
+    );
+  }
+};
+
+/**
+ * Ruft alle Buchungen des aktuellen Kunden ab.
+ *
+ * @param {string} status Optional: Filter nach Status (z.B. "CONFIRMED", "CANCELLED")
+ * @returns {Promise<Array>} Liste der Buchungen
+ */
+const getMyBookings = async (status = null) => {
+  try {
+    const params = status ? { status } : {};
+    const response = await apiClient.get('/kunden/meine-buchungen', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Fehler beim Laden der Buchungen:', error);
+    throw new Error(
+      error.response?.data?.message ||
+      'Buchungen konnten nicht geladen werden.'
+    );
+  }
+};
+
+/**
+ * Storniert eine Buchung.
+ *
+ * @param {number} bookingId Buchungs-ID
+ * @param {string} reason Stornierungsgrund
+ * @returns {Promise<Object>} Aktualisierte Buchung
+ */
+const cancelBooking = async (bookingId, reason) => {
+  try {
+    const response = await apiClient.post(`/buchungen/${bookingId}/stornieren`, { reason });
+    return response.data;
+  } catch (error) {
+    console.error('Fehler beim Stornieren der Buchung:', error);
+    throw new Error(
+      error.response?.data?.message ||
+      'Die Buchung konnte nicht storniert werden.'
+    );
+  }
+};
+
 export default {
   calculatePrice,
+  createBooking,
+  getBookingById,
+  getMyBookings,
+  cancelBooking,
 };
 

@@ -141,6 +141,34 @@ public class BookingController {
     }
 
     /**
+     * GET /api/buchungen/{id}
+     * Ruft eine einzelne Buchung anhand ihrer ID ab.
+     * 
+     * @param id Buchungs-ID
+     * @param authentication Spring Security Authentication
+     * @return Buchungsdetails als DTO
+     */
+    @GetMapping("/buchungen/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<BookingHistoryDto> getBookingById(
+            @PathVariable Long id,
+            Authentication authentication) {
+        
+        Booking booking = bookingApplicationService.getBookingById(id);
+        
+        // Kunden dürfen nur ihre eigenen Buchungen sehen
+        if (authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
+            Long customerId = jwtUtil.extractCustomerId(authentication);
+            if (!booking.getCustomer().getId().equals(customerId)) {
+                throw new UnauthorizedBookingAccessException(id, customerId);
+            }
+        }
+        
+        return ResponseEntity.ok(mapToDto(booking));
+    }
+
+    /**
      * Mapped Booking Entity zu DTO (Ubiquitous Language: Deutsche Felder).
      * 
      * @param booking Booking Entity

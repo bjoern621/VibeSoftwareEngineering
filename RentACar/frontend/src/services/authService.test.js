@@ -225,7 +225,7 @@ describe('authService', () => {
       const result = await authService.verifyEmail(token);
 
       // Assert
-      expect(apiClient.post).toHaveBeenCalledWith('/kunden/verify-email', { token });
+      expect(apiClient.post).toHaveBeenCalledWith('/kunden/verify-email?token=verification-token-123');
       expect(result).toEqual(mockResponse.data);
     });
   });
