@@ -3,6 +3,7 @@ name: Docker Compose Build
 on:
     push:
         branches: ["*"]
+    workflow_dispatch:
 
 jobs:
     docker-build:

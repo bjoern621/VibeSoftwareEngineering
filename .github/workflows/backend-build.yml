@@ -3,6 +3,7 @@ name: Backend Build
 on:
     push:
         branches: ["*"]
+    workflow_dispatch:
 
 jobs:
     build:
