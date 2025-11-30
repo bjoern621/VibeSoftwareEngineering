@@ -128,11 +128,11 @@ public class VehicleController {
     
     /**
      * GET /api/fahrzeuge - Gibt alle Fahrzeuge zurück.
+     * Öffentlich zugänglich für die Fahrzeugsuche.
      * 
      * @return Liste aller Fahrzeuge mit Status 200 OK
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<List<VehicleResponseDTO>> getAllVehicles() {
         List<VehicleResponseDTO> vehicles = vehicleApplicationService.getAllVehicles();
         return ResponseEntity.ok(vehicles);
@@ -140,12 +140,12 @@ public class VehicleController {
     
     /**
      * GET /api/fahrzeuge/{id} - Gibt ein einzelnes Fahrzeug zurück.
+     * Öffentlich zugänglich für die Fahrzeugdetailansicht.
      * 
      * @param id die ID des Fahrzeugs
      * @return das Fahrzeug mit Status 200 OK
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
     public ResponseEntity<VehicleResponseDTO> getVehicleById(@PathVariable Long id) {
         VehicleResponseDTO response = vehicleApplicationService.getVehicleById(id);
         return ResponseEntity.ok(response);
