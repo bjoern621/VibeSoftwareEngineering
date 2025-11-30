@@ -1,0 +1,24 @@
+meta {
+  name: 05 - Login Nonexistent User
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/kunden/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "nonexistent@example.com",
+    "password": "SomePassword123!"
+  }
+}
+
+tests {
+  test("Status is 401 or 500 (auth error)", function() {
+    expect([401, 500]).to.include(res.status);
+  });
+}

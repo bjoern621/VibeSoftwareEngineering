@@ -1,0 +1,26 @@
+meta {
+  name: 02 - Get Vehicle By ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/fahrzeuge/1
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status is 200 OK or 404 Not Found", function() {
+    expect([200, 404]).to.include(res.status);
+  });
+
+  test("If found, response contains vehicle data", function() {
+    if (res.status === 200) {
+      expect(res.body.id).to.equal(1);
+      expect(res.body).to.have.property("licensePlate");
+      expect(res.body).to.have.property("brand");
+      expect(res.body).to.have.property("model");
+    }
+  });
+}

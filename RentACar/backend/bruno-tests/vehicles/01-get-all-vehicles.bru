@@ -1,0 +1,21 @@
+meta {
+  name: 01 - Get All Vehicles
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/fahrzeuge
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status is 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an("array");
+  });
+}

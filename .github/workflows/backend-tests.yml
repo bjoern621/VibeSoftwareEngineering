@@ -1,0 +1,30 @@
+name: Backend Tests
+
+on:
+    push:
+        branches: ["*"]
+    workflow_dispatch:
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        defaults:
+            run:
+                working-directory: RentACar/backend
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Set up JDK 21
+              uses: actions/setup-java@v4
+              with:
+                  java-version: "21"
+                  distribution: "temurin"
+                  cache: maven
+
+            - name: Run Unit Tests
+              run: mvn test
+              env:
+                  JASYPT_ENCRYPTOR_PASSWORD: test-secret-key
