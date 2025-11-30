@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import bookingService from '../services/bookingService';
 
 /**
  * BookingsPage - Buchungsübersicht für Kunden
@@ -8,74 +9,123 @@ import { useNavigate } from 'react-router-dom';
 const BookingsPage = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('Alle');
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock-Daten (später durch API-Call ersetzen)
-  const mockBookings = [
-    {
-      id: 1,
-      vehicle: {
-        name: 'VW Golf VIII',
-        image:
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuCPrFJkGTc1ozdkhsvNCpVVl-0zQMFwD24xT3JuencRO_FHeVHm21hDZI4F5smtVP0ofs6aycGPMDyouOlvKIpcDaBPtzoiLYk-mszgbV22eabnPjxISn9tIpjcScKa7EcsrSgs0Lgr960s6SlYIt5x_OMM1qE4gS4-XmpKRWX8wpQK8mEwekZLrrM_AHqFLHPdL-IW6CS87WbIMIRHpXBvrgva4D1tUDoXQYqzOlUSsthnS2FeaoPlOuRsaVJQbUIr1tpHZPqWGg0U',
-      },
-      pickupDate: '2024-12-15',
-      returnDate: '2024-12-18',
-      location: 'Frankfurt',
-      status: 'CONFIRMED',
-      statusLabel: 'Bestätigt',
-      totalPrice: 225,
-    },
-    {
-      id: 2,
-      vehicle: {
-        name: 'BMW X5',
-        image:
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuDJLh7OQ9CyPQOO6mtKe9a5CxN4W_4rbgKwY-aAY58ve6LgqC1EkLM81q4nOsQ_aRDCTKiGZCZeHsvpY0776X5SlOCMhqN2RyqVclgDHqd5cytl8qKPNIEubfqp4BCq9-bBayj81dIK76xV4HeeFFHbBji_yDElTrmuiK1gLfEaouvAzEKAPHetBsrOHdKQJGgHsNPEm2Rca9wIYNp0Di0y1FpBdtZwkqUrP1BkCKU0CpSB9H1l2KLYDkQ5LsXaeeyteSLqB_M0xtIj',
-      },
-      pickupDate: '2024-11-01',
-      returnDate: '2024-11-05',
-      location: 'München',
-      status: 'COMPLETED',
-      statusLabel: 'Abgeschlossen',
-      totalPrice: 440,
-    },
-    {
-      id: 3,
-      vehicle: {
-        name: 'Mercedes C-Klasse',
-        image:
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuDHhaAYxeReUWs7jefTT4CYNqTCAaCWVbr-H0pgLdb9IQUq5dDi5BXibTucjS423up6vzyW0SOnG23Cioy2yGfpgRILN3z19qmGjeckA1IYaWTZC7ye3tHl6PursmZJQjRCeTGtB60yr5cKSkQb2lMXuJ2QtoHLzbOrAfpHr3tCMTQ887EakSwFo44uO6BWV_Muk-zT2-CPZj5Nf6r6LicvBVKU-YC4GV6rAsxzDJeCOTgSQOluyZWEpsUnJnHwTfqd-TqiwOW7Cniq',
-      },
-      pickupDate: '2024-10-10',
-      returnDate: '2024-10-12',
-      location: 'Berlin',
-      status: 'CANCELLED',
-      statusLabel: 'Storniert',
-      totalPrice: 190,
-    },
-  ];
+  // Lade Buchungen beim Mounten und wenn Filter sich ändert
+  useEffect(() => {
+    loadBookings();
+  }, [activeFilter]);
+
+  const loadBookings = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Filter-Mapping: Alle = kein Filter, Aktiv = REQUESTED|CONFIRMED|ACTIVE, Vergangen = COMPLETED|CANCELLED|EXPIRED
+      let statusFilter = null;
+      if (activeFilter === 'Aktiv') {
+        // Backend unterstützt nur einen Status pro Query, daher laden wir alle und filtern client-seitig
+        statusFilter = null; // Wir laden alle und filtern unten
+      } else if (activeFilter === 'Vergangen') {
+        statusFilter = null; // Gleiches hier
+      }
+      
+      const data = await bookingService.getMyBookings(statusFilter);
+      
+      // Client-seitige Filterung für Aktiv/Vergangen
+      let filteredData = data;
+      if (activeFilter === 'Aktiv') {
+        filteredData = data.filter(b => 
+          ['REQUESTED', 'CONFIRMED', 'ACTIVE'].includes(b.status)
+        );
+      } else if (activeFilter === 'Vergangen') {
+        filteredData = data.filter(b => 
+          ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(b.status)
+        );
+      }
+      
+      // Sortierung nach Abholdatum (früheste zuerst)
+      filteredData.sort((a, b) => {
+        const dateA = new Date(a.pickupDateTime);
+        const dateB = new Date(b.pickupDateTime);
+        return dateA - dateB; // Aufsteigend sortieren - früheste Abholzeiten zuerst
+      });
+      
+      setBookings(filteredData);
+    } catch (err) {
+      setError(err.message);
+      console.error('Fehler beim Laden der Buchungen:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
+      case 'REQUESTED':
+        return 'bg-blue-100 text-blue-800';
       case 'CONFIRMED':
         return 'bg-green-100 text-green-800';
+      case 'ACTIVE':
+        return 'bg-purple-100 text-purple-800';
       case 'COMPLETED':
         return 'bg-gray-100 text-gray-800';
       case 'CANCELLED':
         return 'bg-red-100 text-red-800';
+      case 'EXPIRED':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const filteredBookings = mockBookings.filter((booking) => {
-    if (activeFilter === 'Alle') return true;
-    if (activeFilter === 'Aktiv')
-      return booking.status === 'CONFIRMED' || booking.status === 'REQUESTED';
-    if (activeFilter === 'Vergangen')
-      return booking.status === 'COMPLETED' || booking.status === 'CANCELLED';
-    return true;
-  });
+  const getStatusLabel = (status) => {
+    const labels = {
+      REQUESTED: 'Angefragt',
+      CONFIRMED: 'Bestätigt',
+      ACTIVE: 'Aktiv',
+      COMPLETED: 'Abgeschlossen',
+      CANCELLED: 'Storniert',
+      EXPIRED: 'Abgelaufen',
+    };
+    return labels[status] || status;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const canCancel = (booking) => {
+    // Nur REQUESTED oder CONFIRMED können storniert werden
+    if (!['REQUESTED', 'CONFIRMED'].includes(booking.status)) {
+      return false;
+    }
+    // Prüfe 24h-Frist
+    const now = new Date();
+    const pickupDate = new Date(booking.abholdatum);
+    const hoursUntilPickup = (pickupDate - now) / (1000 * 60 * 60);
+    return hoursUntilPickup >= 24;
+  };
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -118,37 +168,65 @@ const BookingsPage = () => {
 
             {/* Bookings List */}
             <div className="space-y-4">
-              {filteredBookings.length === 0 ? (
+              {loading ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">Keine Buchungen gefunden.</p>
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                  <p className="mt-4 text-gray-600">Buchungen werden geladen...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <p className="text-red-600 mb-4">{error}</p>
+                  <button
+                    onClick={loadBookings}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90"
+                  >
+                    Erneut versuchen
+                  </button>
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 mb-4">Keine Buchungen gefunden.</p>
+                  <button
+                    onClick={() => navigate('/vehicles')}
+                    className="px-6 py-3 bg-secondary text-white rounded-lg hover:opacity-90"
+                  >
+                    Jetzt Fahrzeug buchen
+                  </button>
                 </div>
               ) : (
-                filteredBookings.map((booking) => (
+                bookings.map((booking) => (
                   <div
                     key={booking.id}
                     className="bg-card-bg border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex flex-col md:flex-row gap-6">
-                      {/* Vehicle Image */}
-                      <div className="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0">
-                        <img
-                          src={booking.vehicle.image}
-                          alt={booking.vehicle.name}
-                          className="w-full h-full object-cover"
-                        />
+                      {/* Vehicle Info */}
+                      <div className="w-full md:w-48 flex-shrink-0">
+                        <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+                          {/* Fallback für Fahrzeugbild */}
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <span className="material-symbols-outlined text-5xl">
+                              directions_car
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Booking Details */}
                       <div className="flex-grow">
                         <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                           <div>
-                            <h3 className="text-xl font-bold mb-1">{booking.vehicle.name}</h3>
-                            <p className="text-sm text-gray-600">Buchungs-Nr: {booking.id}</p>
+                            <h3 className="text-xl font-bold mb-1">
+                              {booking.fahrzeug.marke} {booking.fahrzeug.modell}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Buchungs-Nr: {booking.buchungsnummer} | {booking.fahrzeug.kennzeichen}
+                            </p>
                           </div>
                           <span
                             className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(booking.status)}`}
                           >
-                            {booking.statusLabel}
+                            {getStatusLabel(booking.status)}
                           </span>
                         </div>
 
@@ -158,8 +236,8 @@ const BookingsPage = () => {
                               location_on
                             </span>
                             <div>
-                              <p className="text-gray-500">Standort</p>
-                              <p className="font-medium">{booking.location}</p>
+                              <p className="text-gray-500">Abholfiliale</p>
+                              <p className="font-medium">{booking.abholfiliale.name}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -168,7 +246,7 @@ const BookingsPage = () => {
                             </span>
                             <div>
                               <p className="text-gray-500">Abholdatum</p>
-                              <p className="font-medium">{booking.pickupDate}</p>
+                              <p className="font-medium">{formatDateTime(booking.abholdatum)}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -177,22 +255,28 @@ const BookingsPage = () => {
                             </span>
                             <div>
                               <p className="text-gray-500">Rückgabedatum</p>
-                              <p className="font-medium">{booking.returnDate}</p>
+                              <p className="font-medium">{formatDateTime(booking.rueckgabedatum)}</p>
                             </div>
                           </div>
                         </div>
 
                         <div className="flex flex-wrap justify-between items-center mt-4 pt-4 border-t border-gray-200">
                           <div className="text-lg font-bold text-secondary">
-                            {booking.totalPrice},00 €{' '}
+                            {booking.gesamtpreis.toFixed(2)} {booking.waehrung}{' '}
                             <span className="text-sm font-normal text-gray-600">Gesamt</span>
                           </div>
                           <div className="flex gap-2">
-                            <button className="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium">
+                            <button
+                              onClick={() => navigate(`/bookings/${booking.buchungsnummer}`)}
+                              className="px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary/10 transition-colors text-sm font-medium"
+                            >
                               Details
                             </button>
-                            {booking.status === 'CONFIRMED' && (
-                              <button className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium">
+                            {canCancel(booking) && (
+                              <button
+                                onClick={() => navigate(`/bookings/${booking.buchungsnummer}`)}
+                                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
+                              >
                                 Stornieren
                               </button>
                             )}

@@ -38,13 +38,6 @@ const AVAILABLE_EXTRAS = [
     pricePerDay: 4.99,
     icon: 'ac_unit',
   },
-  {
-    id: 'ski_rack',
-    name: 'Skiträger',
-    description: 'Dachträger für Ski und Snowboards',
-    pricePerDay: 6.99,
-    icon: 'downhill_skiing',
-  },
 ];
 
 const WizardStep4 = () => {

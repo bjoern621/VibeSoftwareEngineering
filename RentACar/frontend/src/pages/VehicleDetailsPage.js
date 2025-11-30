@@ -28,6 +28,33 @@ const VehicleDetailsPage = () => {
   const [pickupDate, setPickupDate] = useState(searchParams.get('pickupDate') || today);
   const [returnDate, setReturnDate] = useState(searchParams.get('returnDate') || nextWeek);
   
+  // Hilfsfunktion: Berechne intelligente Standard-Abholzeit
+  const getDefaultPickupTime = (dateString) => {
+    const selectedDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    // Wenn das Abholdatum heute ist
+    if (selectedDate.getTime() === today.getTime()) {
+      const now = new Date();
+      // Aktuelle Stunde + 2 Stunden als Mindestvorlaufzeit
+      const futureHour = now.getHours() + 2;
+      
+      // Wenn es nach 22 Uhr ist, setze auf 23:59
+      if (futureHour >= 23) {
+        return '23:59:00';
+      }
+      
+      // Sonst: nächste volle Stunde
+      const roundedHour = Math.min(23, futureHour);
+      return `${roundedHour.toString().padStart(2, '0')}:00:00`;
+    }
+    
+    // Für zukünftige Tage: Standard 10:00 Uhr
+    return '10:00:00';
+  };
+  
   // Fahrzeug vom Backend laden
   useEffect(() => {
     const loadVehicle = async () => {
@@ -72,10 +99,15 @@ const VehicleDetailsPage = () => {
       
       try {
         setIsLoadingPrice(true);
+        
+        // Berechne intelligente Zeiten basierend auf den Daten
+        const pickupTime = getDefaultPickupTime(pickupDate);
+        const returnTime = '10:00:00'; // Rückgabe kann Standard bleiben
+        
         const priceData = await calculatePrice({
           vehicleType: vehicle.vehicleType, // Backend erwartet vehicleType, nicht vehicleId
-          pickupDateTime: pickupDate + 'T10:00:00',
-          returnDateTime: returnDate + 'T10:00:00',
+          pickupDateTime: pickupDate + 'T' + pickupTime,
+          returnDateTime: returnDate + 'T' + returnTime,
           additionalServices: []
         });
         
@@ -139,14 +171,17 @@ const VehicleDetailsPage = () => {
       returnBranch: { id: vehicle.branchId, name: vehicle.branchName }
     });
     
-    // 3. Datum/Uhrzeit setzen
+    // 3. Datum/Uhrzeit setzen mit intelligenter Zeitauswahl
+    const pickupTime = getDefaultPickupTime(pickupDate);
+    const returnTime = '10:00:00';
+    
     setDates({
-      pickupDateTime: pickupDate + 'T10:00:00',
-      returnDateTime: returnDate + 'T10:00:00'
+      pickupDateTime: pickupDate + 'T' + pickupTime,
+      returnDateTime: returnDate + 'T' + returnTime
     });
     
-    // 4. Direkt zu Schritt 4 (Extras) springen
-    setStep(4);
+    // 4. Zu Schritt 3 (Zeitraum) springen, damit Benutzer die Uhrzeit angeben können
+    setStep(3);
     
     console.log('Alle Context updates ausgeführt, navigiere zum Wizard...');
     

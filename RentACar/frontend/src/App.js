@@ -15,6 +15,7 @@ import AboutPage from './pages/AboutPage';
 import VehicleSearchPage from './pages/VehicleSearchPage';
 import VehicleDetailsPage from './pages/VehicleDetailsPage';
 import BookingsPage from './pages/BookingsPage';
+import BookingDetailPage from './pages/BookingDetailPage';
 import VehicleManagementPage from './pages/VehicleManagementPage';
 import CheckInOutPage from './pages/CheckInOutPage';
 import DamageReportsPage from './pages/DamageReportsPage';
@@ -76,6 +77,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="/bookings/:id"
+                  element={
+                    <ProtectedRoute>
+                      <BookingDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/profil"
                   element={
                     <ProtectedRoute>
@@ -86,7 +95,6 @@ function App() {
                 {/* Mitarbeiter-Seiten (nur Design, keine Funktion) */}
                 <Route path="/employee/vehicles" element={<VehicleManagementPage />} />
                 <Route path="/employee/check-in-out" element={<CheckInOutPage />} />
-                <Route path="/employee/damage-reports/:bookingId" element={<DamageReportsPage />} />
               </Routes>
             </main>
             <Footer />
