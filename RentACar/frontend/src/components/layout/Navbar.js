@@ -60,6 +60,28 @@ const Navbar = () => {
               </Link>
             </>
           )}
+          {/* Mitarbeiter-Navigation */}
+          {isAuthenticated && user && (user.role === 'EMPLOYEE' || user.role === 'ADMIN') && (
+            <>
+              <div className="h-6 w-px bg-gray-300" />
+              <Link
+                to="/employee/vehicles"
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/employee/vehicles') ? 'text-primary' : 'hover:text-primary'
+                }`}
+              >
+                Fahrzeugverwaltung
+              </Link>
+              <Link
+                to="/employee/check-in-out"
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/employee/check-in-out') ? 'text-primary' : 'hover:text-primary'
+                }`}
+              >
+                Check-in/out
+              </Link>
+            </>
+          )}
           <Link
             to="/help"
             className={`text-sm font-medium transition-colors ${

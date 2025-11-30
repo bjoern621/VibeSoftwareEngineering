@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import com.rentacar.domain.model.Role;
 
 /**
  * DataInitializer - Lädt Testdaten beim Anwendungsstart.
@@ -319,6 +320,35 @@ public class DataInitializer {
                 testCustomer3.verifyEmail(testCustomer3.generateVerificationToken());
                 customerRepository.save(testCustomer3);
                 
+                // ========== UI TEST ACCOUNTS (EINFACH) ==========
+                logger.info("🧪 Erstelle einfache Test-Accounts für UI-Tests (E-Mail/Passwort: 12345678)");
+                Customer uiCustomer = customerRepository.save(new Customer(
+                    "UI",
+                    "Customer",
+                    new Address("Teststr. 1", "10115", "Berlin"),
+                    new DriverLicenseNumber("B2000000000"),
+                    "test.customer@example.com",
+                    "+49 30 00000000",
+                    passwordEncoder.encode("12345678"),
+                    Role.CUSTOMER
+                ));
+                uiCustomer.verifyEmail(uiCustomer.generateVerificationToken());
+                customerRepository.save(uiCustomer);
+
+                Customer uiEmployee = customerRepository.save(new Customer(
+                    "UI",
+                    "Employee",
+                    new Address("Mitarbeiterweg 1", "10115", "Berlin"),
+                    new DriverLicenseNumber("B2000000001"),
+                    "test.employee@example.com",
+                    "+49 30 00000001",
+                    passwordEncoder.encode("12345678"),
+                    Role.EMPLOYEE
+                ));
+                uiEmployee.verifyEmail(uiEmployee.generateVerificationToken());
+                customerRepository.save(uiEmployee);
+
+                logger.info("✅ UI Test-Accounts erstellt: test.customer@example.com (Kunde), test.employee@example.com (Mitarbeiter)");
                 logger.info("✅ 3 Testkunden erstellt");
                 
                 // ========== TESTBUCHUNGEN - WEIHNACHTSZEIT & RANDOM ==========

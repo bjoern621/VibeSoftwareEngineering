@@ -78,6 +78,10 @@ public class Customer {
 
     @Column
     private LocalDateTime lastModifiedAt;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.CUSTOMER;
 
     // JPA benötigt einen Default-Konstruktor
     protected Customer() {
@@ -125,6 +129,45 @@ public class Customer {
         this.phoneNumber = normalizePhoneNumber(phoneNumber);
         this.password = password;
         this.emailVerified = false;
+        this.role = Role.CUSTOMER;
+        this.createdAt = LocalDateTime.now();
+        this.lastModifiedAt = LocalDateTime.now();
+    }
+
+    /**
+     * Konstruktor mit expliziter Rolle (für Data-Initializer / Tests).
+     */
+    public Customer(String firstName,
+                    String lastName,
+                    Address address,
+                    DriverLicenseNumber driverLicenseNumber,
+                    String email,
+                    String phoneNumber,
+                    String password,
+                    Role role) {
+        validateName(firstName, "Vorname");
+        validateName(lastName, "Nachname");
+        validateEmail(email);
+        validatePassword(password);
+
+        this.firstName = firstName;
+        this.lastName = lastName;
+        
+        if (address == null) {
+            throw new InvalidCustomerDataException("address", "Adresse darf nicht null sein");
+        }
+        this.address = address;
+        
+        if (driverLicenseNumber == null) {
+            throw new InvalidCustomerDataException("driverLicenseNumber", "Führerscheinnummer darf nicht null sein");
+        }
+        this.driverLicenseNumber = driverLicenseNumber;
+        
+        this.email = email.toLowerCase();
+        this.phoneNumber = normalizePhoneNumber(phoneNumber);
+        this.password = password;
+        this.emailVerified = false;
+        this.role = role == null ? Role.CUSTOMER : role;
         this.createdAt = LocalDateTime.now();
         this.lastModifiedAt = LocalDateTime.now();
     }
@@ -357,6 +400,10 @@ public class Customer {
 
     public String getVerificationToken() {
         return verificationToken;
+    }
+
+    public Role getRole() {
+        return role;
     }
 
     public LocalDateTime getTokenExpiryDate() {

@@ -18,6 +18,7 @@ public class CustomerProfileResponseDTO {
     private String phoneNumber;
     private boolean emailVerified;
     private LocalDateTime createdAt;
+    private String role;
 
     // Constructors
     public CustomerProfileResponseDTO() {
@@ -27,7 +28,7 @@ public class CustomerProfileResponseDTO {
                                      String street, String postalCode, String city,
                                      String driverLicenseNumber, String email,
                                      String phoneNumber, boolean emailVerified,
-                                     LocalDateTime createdAt) {
+                                     LocalDateTime createdAt, String role) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -39,6 +40,7 @@ public class CustomerProfileResponseDTO {
         this.phoneNumber = phoneNumber;
         this.emailVerified = emailVerified;
         this.createdAt = createdAt;
+        this.role = role;
     }
 
     // Getters and Setters
@@ -128,5 +130,13 @@ public class CustomerProfileResponseDTO {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

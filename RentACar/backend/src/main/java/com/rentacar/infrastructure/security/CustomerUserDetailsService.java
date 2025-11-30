@@ -27,12 +27,13 @@ public class CustomerUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Kunde mit E-Mail '" + email + "' nicht gefunden"));
 
+        String roleName = customer.getRole() != null ? customer.getRole().name() : "CUSTOMER";
         return User.builder()
-                .username(customer.getEmail())
-                .password(customer.getPassword())
-                .roles("CUSTOMER") // Rolle ROLE_CUSTOMER
-                .accountLocked(false) // DEVELOPMENT: Account-Lock deaktiviert für einfaches Testen
-                .build();
+            .username(customer.getEmail())
+            .password(customer.getPassword())
+            .roles(roleName) // Rolle dynamisch aus Customer
+            .accountLocked(false) // DEVELOPMENT: Account-Lock deaktiviert für einfaches Testen
+            .build();
     }
 
     /**
@@ -47,11 +48,12 @@ public class CustomerUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Kunde mit ID '" + customerId + "' nicht gefunden"));
 
+        String roleName = customer.getRole() != null ? customer.getRole().name() : "CUSTOMER";
         return User.builder()
-                .username(customer.getEmail())
-                .password(customer.getPassword())
-                .roles("CUSTOMER")
-                .accountLocked(false) // DEVELOPMENT: Account-Lock deaktiviert für einfaches Testen
-                .build();
+            .username(customer.getEmail())
+            .password(customer.getPassword())
+            .roles(roleName)
+            .accountLocked(false) // DEVELOPMENT: Account-Lock deaktiviert für einfaches Testen
+            .build();
     }
 }
