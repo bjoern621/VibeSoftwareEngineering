@@ -1,0 +1,26 @@
+meta {
+  name: 10 - Calculate Price Invalid Type
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/buchungen/preis-berechnen
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "vehicleType": "INVALID_TYPE",
+    "pickupDateTime": "2025-12-15T10:00:00",
+    "returnDateTime": "2025-12-20T10:00:00",
+    "additionalServices": []
+  }
+}
+
+tests {
+  test("Status is 400 Bad Request", function() {
+    expect(res.status).to.equal(400);
+  });
+}

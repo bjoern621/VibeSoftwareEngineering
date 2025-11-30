@@ -1,0 +1,25 @@
+meta {
+  name: 03 - Create Damage Report No Auth
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/vermietung/1/schadensbericht
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "description": "Scratch on front bumper",
+    "severity": "MINOR",
+    "estimatedCost": 150.00
+  }
+}
+
+tests {
+  test("Status is 401 or 403 Unauthorized", function() {
+    expect([401, 403]).to.include(res.status);
+  });
+}
