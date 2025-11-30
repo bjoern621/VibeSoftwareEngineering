@@ -223,7 +223,7 @@ public class BookingApplicationService {
     // ========== Buchungshistorie Use Cases ==========
     
     /**
-     * Ruft alle Buchungen eines Kunden ab (chronologisch, neueste zuerst).
+     * Ruft alle Buchungen eines Kunden ab (chronologisch, früheste Abholung zuerst).
      * 
      * @param customerId ID des Kunden
      * @return Liste aller Buchungen
@@ -232,11 +232,11 @@ public class BookingApplicationService {
     @Transactional(readOnly = true)
     public List<Booking> getCustomerBookings(Long customerId) {
         validateCustomerExists(customerId);
-        return bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
+        return bookingRepository.findByCustomerIdOrderByPickupDateTimeAsc(customerId);
     }
 
     /**
-     * Ruft Buchungen eines Kunden gefiltert nach Status ab.
+     * Ruft Buchungen eines Kunden gefiltert nach Status ab (früheste Abholung zuerst).
      * 
      * @param customerId ID des Kunden
      * @param status Gewünschter Status (null = alle)
@@ -248,10 +248,10 @@ public class BookingApplicationService {
         validateCustomerExists(customerId);
         
         if (status == null) {
-            return bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
+            return bookingRepository.findByCustomerIdOrderByPickupDateTimeAsc(customerId);
         }
         
-        return bookingRepository.findByCustomerIdAndStatusOrderByCreatedAtDesc(customerId, status);
+        return bookingRepository.findByCustomerIdAndStatusOrderByPickupDateTimeAsc(customerId, status);
     }
 
     /**

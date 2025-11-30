@@ -21,18 +21,18 @@ import java.util.List;
 public interface JpaBookingRepository extends BookingRepository, JpaRepository<Booking, Long> {
 
     /**
-     * Findet alle Buchungen eines Kunden, chronologisch sortiert (neueste zuerst).
+     * Findet alle Buchungen eines Kunden, sortiert nach Abholdatum (früheste zuerst).
      * Spring Data JPA leitet die Query aus dem Methodennamen ab.
      */
     @Override
-    List<Booking> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+    List<Booking> findByCustomerIdOrderByPickupDateTimeAsc(Long customerId);
 
     /**
-     * Findet Buchungen eines Kunden nach Status, chronologisch sortiert.
+     * Findet Buchungen eines Kunden nach Status, sortiert nach Abholdatum (früheste zuerst).
      * Spring Data JPA leitet die Query aus dem Methodennamen ab.
      */
     @Override
-    List<Booking> findByCustomerIdAndStatusOrderByCreatedAtDesc(Long customerId, BookingStatus status);
+    List<Booking> findByCustomerIdAndStatusOrderByPickupDateTimeAsc(Long customerId, BookingStatus status);
 
     /**
      * Findet alle aktiven Buchungen (REQUESTED oder CONFIRMED) für ein Fahrzeug.

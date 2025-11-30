@@ -121,18 +121,37 @@ const getMyBookings = async (status = null) => {
  * Storniert eine Buchung.
  *
  * @param {number} bookingId Buchungs-ID
- * @param {string} reason Stornierungsgrund
- * @returns {Promise<Object>} Aktualisierte Buchung
+ * @param {string} reason Stornierungsgrund (optional)
+ * @returns {Promise<void>} 204 No Content bei Erfolg
  */
-const cancelBooking = async (bookingId, reason) => {
+const cancelBooking = async (bookingId, reason = null) => {
   try {
-    const response = await apiClient.post(`/buchungen/${bookingId}/stornieren`, { reason });
-    return response.data;
+    const payload = reason ? { reason } : null;
+    await apiClient.delete(`/buchungen/${bookingId}/stornieren`, { data: payload });
   } catch (error) {
     console.error('Fehler beim Stornieren der Buchung:', error);
     throw new Error(
       error.response?.data?.message ||
       'Die Buchung konnte nicht storniert werden.'
+    );
+  }
+};
+
+/**
+ * Ruft die Zusatzkosten einer Buchung ab.
+ *
+ * @param {number} bookingId Buchungs-ID
+ * @returns {Promise<Object>} AdditionalCostsDTO (lateFee, excessMileageFee, damageCost, total)
+ */
+const getAdditionalCosts = async (bookingId) => {
+  try {
+    const response = await apiClient.get(`/buchungen/${bookingId}/zusatzkosten`);
+    return response.data;
+  } catch (error) {
+    console.error('Fehler beim Laden der Zusatzkosten:', error);
+    throw new Error(
+      error.response?.data?.message ||
+      'Zusatzkosten konnten nicht geladen werden.'
     );
   }
 };
@@ -143,5 +162,6 @@ export default {
   getBookingById,
   getMyBookings,
   cancelBooking,
+  getAdditionalCosts,
 };
 

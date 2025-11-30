@@ -4,30 +4,81 @@ import { useBooking } from '../../context/BookingContext';
 const WizardStep3 = () => {
   const { bookingData, setDates, calculatePrice } = useBooking();
 
+  // Hilfsfunktion: Berechne intelligente Standard-Abholzeit
+  const getDefaultPickupTime = (dateString) => {
+    const selectedDate = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    // Wenn das Abholdatum heute ist
+    if (selectedDate.getTime() === today.getTime()) {
+      const now = new Date();
+      // Aktuelle Stunde + 2 Stunden als Mindestvorlaufzeit
+      const futureHour = now.getHours() + 2;
+      
+      // Wenn es nach 22 Uhr ist, setze auf 23:59
+      if (futureHour >= 23) {
+        return '23:59';
+      }
+      
+      // Sonst: nächste volle Stunde
+      const roundedHour = Math.min(23, futureHour);
+      return `${roundedHour.toString().padStart(2, '0')}:00`;
+    }
+    
+    // Für zukünftige Tage: Standard 10:00 Uhr
+    return '10:00';
+  };
+
   // Initialisiere mit vorhandenen Daten oder Standardwerten
   const [pickupDate, setPickupDate] = useState('');
-  const [pickupTime, setPickupTime] = useState('09:00');
+  const [pickupTime, setPickupTime] = useState('10:00');
   const [returnDate, setReturnDate] = useState('');
-  const [returnTime, setReturnTime] = useState('09:00');
+  const [returnTime, setReturnTime] = useState('10:00');
   const [errors, setErrors] = useState({});
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Lade vorhandene Daten aus Context
+  // Lade vorhandene Daten aus Context (nur einmal beim ersten Laden)
   useEffect(() => {
-    if (bookingData.pickupDateTime) {
-      const pickup = new Date(bookingData.pickupDateTime);
-      setPickupDate(pickup.toISOString().split('T')[0]);
-      setPickupTime(
-        pickup.toTimeString().slice(0, 5)
-      );
+    if (!isInitialized) {
+      if (bookingData.pickupDateTime) {
+        const pickup = new Date(bookingData.pickupDateTime);
+        const dateStr = pickup.toISOString().split('T')[0];
+        const timeStr = pickup.toTimeString().slice(0, 5);
+        setPickupDate(dateStr);
+        
+        // Setze intelligente Zeit basierend auf dem Datum
+        const defaultTime = getDefaultPickupTime(dateStr);
+        // Nutze die Zeit aus dem Context, wenn sie nach der Mindestzeit liegt
+        const contextTime = new Date(`${dateStr}T${timeStr}`);
+        const minTime = new Date(`${dateStr}T${defaultTime}`);
+        setPickupTime(contextTime >= minTime ? timeStr : defaultTime);
+      }
+      if (bookingData.returnDateTime) {
+        const returnD = new Date(bookingData.returnDateTime);
+        setReturnDate(returnD.toISOString().split('T')[0]);
+        setReturnTime(returnD.toTimeString().slice(0, 5));
+      }
+      setIsInitialized(true);
     }
-    if (bookingData.returnDateTime) {
-      const returnD = new Date(bookingData.returnDateTime);
-      setReturnDate(returnD.toISOString().split('T')[0]);
-      setReturnTime(
-        returnD.toTimeString().slice(0, 5)
-      );
+  }, [bookingData.pickupDateTime, bookingData.returnDateTime, isInitialized]);
+
+  // Aktualisiere Abholzeit intelligent, wenn sich das Datum ändert (nur bei manueller Datumsänderung)
+  const handlePickupDateChange = (newDate) => {
+    setPickupDate(newDate);
+    
+    if (newDate) {
+      const defaultTime = getDefaultPickupTime(newDate);
+      // Nur aktualisieren, wenn die aktuelle Zeit vor der berechneten Mindestzeit liegt
+      const currentDateTime = new Date(`${newDate}T${pickupTime}`);
+      const minDateTime = new Date(`${newDate}T${defaultTime}`);
+      
+      if (currentDateTime < minDateTime) {
+        setPickupTime(defaultTime);
+      }
     }
-  }, [bookingData.pickupDateTime, bookingData.returnDateTime]);
+  };
 
   // Validierung
   const validateDates = () => {
@@ -125,7 +176,7 @@ const WizardStep3 = () => {
               type="date"
               value={pickupDate}
               min={today}
-              onChange={(e) => setPickupDate(e.target.value)}
+              onChange={(e) => handlePickupDateChange(e.target.value)}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1976D2] focus:border-transparent ${
                 errors.pickupDate ? 'border-red-500' : 'border-gray-300'
               }`}
