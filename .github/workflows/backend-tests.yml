@@ -29,19 +29,3 @@ jobs:
               run: mvn test
               env:
                   JASYPT_ENCRYPTOR_PASSWORD: test-secret-key
-
-            - name: Upload Test Results
-              uses: actions/upload-artifact@v4
-              if: always()
-              with:
-                  name: backend-test-results
-                  path: RentACar/backend/target/surefire-reports/
-                  retention-days: 7
-
-            - name: Upload Coverage Report
-              uses: actions/upload-artifact@v4
-              if: always()
-              with:
-                  name: backend-coverage-report
-                  path: RentACar/backend/target/site/jacoco/
-                  retention-days: 7

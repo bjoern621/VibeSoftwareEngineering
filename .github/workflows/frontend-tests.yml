@@ -32,11 +32,3 @@ jobs:
               run: npm test -- --coverage --watchAll=false
               env:
                   CI: true
-
-            - name: Upload Coverage Report
-              uses: actions/upload-artifact@v4
-              if: always()
-              with:
-                  name: frontend-coverage-report
-                  path: RentACar/frontend/coverage/
-                  retention-days: 7
