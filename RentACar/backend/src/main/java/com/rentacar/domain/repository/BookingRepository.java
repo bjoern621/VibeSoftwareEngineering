@@ -31,21 +31,21 @@ public interface BookingRepository {
     Optional<Booking> findById(Long id);
     
     /**
-     * Findet alle Buchungen eines Kunden, chronologisch sortiert (neueste zuerst).
+     * Findet alle Buchungen eines Kunden, sortiert nach Abholdatum (früheste zuerst).
      * 
      * @param customerId Die Kunden-ID
      * @return Liste aller Buchungen des Kunden
      */
-    List<Booking> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+    List<Booking> findByCustomerIdOrderByPickupDateTimeAsc(Long customerId);
     
     /**
-     * Findet Buchungen eines Kunden nach Status, chronologisch sortiert (neueste zuerst).
+     * Findet Buchungen eines Kunden nach Status, sortiert nach Abholdatum (früheste zuerst).
      * 
      * @param customerId Die Kunden-ID
      * @param status Der gewünschte Buchungsstatus
      * @return Liste der Buchungen mit dem angegebenen Status
      */
-    List<Booking> findByCustomerIdAndStatusOrderByCreatedAtDesc(Long customerId, BookingStatus status);
+    List<Booking> findByCustomerIdAndStatusOrderByPickupDateTimeAsc(Long customerId, BookingStatus status);
     
     /**
      * Findet alle aktiven Buchungen für ein Fahrzeug.

@@ -15,6 +15,7 @@ import AboutPage from './pages/AboutPage';
 import VehicleSearchPage from './pages/VehicleSearchPage';
 import VehicleDetailsPage from './pages/VehicleDetailsPage';
 import BookingsPage from './pages/BookingsPage';
+import BookingDetailPage from './pages/BookingDetailPage';
 import VehicleManagementPage from './pages/VehicleManagementPage';
 import CheckInOutPage from './pages/CheckInOutPage';
 import ProfilePage from './pages/ProfilePage';
@@ -71,6 +72,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <BookingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/bookings/:id"
+                element={
+                  <ProtectedRoute>
+                    <BookingDetailPage />
                   </ProtectedRoute>
                 }
               />
