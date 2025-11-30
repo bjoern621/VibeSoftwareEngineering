@@ -348,7 +348,20 @@ public class DataInitializer {
                 uiEmployee.verifyEmail(uiEmployee.generateVerificationToken());
                 customerRepository.save(uiEmployee);
 
-                logger.info("✅ UI Test-Accounts erstellt: test.customer@example.com (Kunde), test.employee@example.com (Mitarbeiter)");
+                Customer uiAdmin = customerRepository.save(new Customer(
+                    "UI",
+                    "Admin",
+                    new Address("Adminplatz 1", "10115", "Berlin"),
+                    new DriverLicenseNumber("B2000000002"),
+                    "test.admin@example.com",
+                    "+49 30 00000002",
+                    passwordEncoder.encode("12345678"),
+                    Role.ADMIN
+                ));
+                uiAdmin.verifyEmail(uiAdmin.generateVerificationToken());
+                customerRepository.save(uiAdmin);
+
+                logger.info("✅ UI Test-Accounts erstellt: test.customer@example.com (Kunde), test.employee@example.com (Mitarbeiter), test.admin@example.com (Admin)");
                 logger.info("✅ 3 Testkunden erstellt");
                 
                 // ========== TESTBUCHUNGEN - WEIHNACHTSZEIT & RANDOM ==========
