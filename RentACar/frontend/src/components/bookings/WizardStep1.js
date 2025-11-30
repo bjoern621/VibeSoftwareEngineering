@@ -8,7 +8,7 @@ const WizardStep1 = () => {
   const navigate = useNavigate();
   const { vehicle } = bookingData;
 
-  // Validierung: Falls kein Fahrzeug vorhanden, zurück zur Suche
+  // Validierung: Falls kein Fahrzeug vorhanden, zurück zur Suche.
   useEffect(() => {
     if (!vehicle) {
       alert('Bitte wählen Sie zuerst ein Fahrzeug aus.');
