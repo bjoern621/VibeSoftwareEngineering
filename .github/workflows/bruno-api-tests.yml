@@ -6,7 +6,7 @@ on:
     workflow_dispatch:
 
 jobs:
-    api-tests:
+    backend-api-tests:
         runs-on: ubuntu-latest
 
         steps:
