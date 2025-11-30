@@ -1,0 +1,17 @@
+meta {
+  name: 03 - Get My Bookings No Token
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/kunden/meine-buchungen
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status is 401 or 403 Unauthorized", function() {
+    expect([401, 403]).to.include(res.status);
+  });
+}
