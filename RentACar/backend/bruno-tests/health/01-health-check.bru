@@ -1,0 +1,21 @@
+meta {
+  name: 01 - Health Check (Vehicle Types)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/vehicle-types
+  body: none
+  auth: none
+}
+
+tests {
+  test("API is reachable", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response time is acceptable", function() {
+    expect(res.responseTime).to.be.lessThan(5000);
+  });
+}
