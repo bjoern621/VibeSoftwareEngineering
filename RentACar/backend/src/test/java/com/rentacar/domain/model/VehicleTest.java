@@ -277,4 +277,57 @@ class VehicleTest {
             () -> vehicle.updateMileage(lowerMileage)
         );
     }
+    
+    @Test
+    void shouldReactivateFromMaintenance() {
+        // Given
+        Vehicle vehicle = new Vehicle(
+            testLicensePlate, "BMW", "3er", 2020, testMileage, VehicleType.SEDAN, testBranch
+        );
+        vehicle.markAsInMaintenance();
+        
+        // When
+        vehicle.reactivate();
+        
+        // Then
+        assertEquals(VehicleStatus.AVAILABLE, vehicle.getStatus());
+    }
+    
+    @Test
+    void shouldReactivateFromOutOfService() {
+        // Given
+        Vehicle vehicle = new Vehicle(
+            testLicensePlate, "BMW", "3er", 2020, testMileage, VehicleType.SEDAN, testBranch
+        );
+        vehicle.retire();
+        
+        // When
+        vehicle.reactivate();
+        
+        // Then
+        assertEquals(VehicleStatus.AVAILABLE, vehicle.getStatus());
+    }
+    
+    @Test
+    void shouldNotReactivateFromAvailable() {
+        // Given
+        Vehicle vehicle = new Vehicle(
+            testLicensePlate, "BMW", "3er", 2020, testMileage, VehicleType.SEDAN, testBranch
+        );
+        
+        // When & Then
+        assertThrows(VehicleStatusTransitionException.class, vehicle::reactivate);
+    }
+    
+    @Test
+    void shouldNotReactivateFromRented() {
+        // Given
+        Vehicle vehicle = new Vehicle(
+            testLicensePlate, "BMW", "3er", 2020, testMileage, VehicleType.SEDAN, testBranch
+        );
+        vehicle.markAsRented();
+        
+        // When & Then
+        assertThrows(VehicleStatusTransitionException.class, vehicle::reactivate);
+    }
 }

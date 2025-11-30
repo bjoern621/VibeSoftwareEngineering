@@ -410,6 +410,68 @@ class VehicleApplicationServiceTest {
     }
     
     @Test
+    @DisplayName("reactivateVehicle - Reaktiviert Fahrzeug aus Wartung")
+    void reactivateVehicle_FromMaintenance_Success() {
+        // Arrange
+        testVehicle.markAsInMaintenance();
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(testVehicle);
+        
+        // Act
+        vehicleApplicationService.reactivateVehicle(1L);
+        
+        // Assert
+        assertThat(testVehicle.getStatus()).isEqualTo(VehicleStatus.AVAILABLE);
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository).save(testVehicle);
+    }
+    
+    @Test
+    @DisplayName("reactivateVehicle - Reaktiviert Fahrzeug aus Außer-Betrieb")
+    void reactivateVehicle_FromOutOfService_Success() {
+        // Arrange
+        testVehicle.retire();
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(testVehicle);
+        
+        // Act
+        vehicleApplicationService.reactivateVehicle(1L);
+        
+        // Assert
+        assertThat(testVehicle.getStatus()).isEqualTo(VehicleStatus.AVAILABLE);
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository).save(testVehicle);
+    }
+    
+    @Test
+    @DisplayName("reactivateVehicle - Wirft Exception wenn Fahrzeug bereits verfügbar")
+    void reactivateVehicle_ThrowsExceptionWhenAlreadyAvailable() {
+        // Arrange
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(testVehicle));
+        
+        // Act & Assert
+        assertThatThrownBy(() -> vehicleApplicationService.reactivateVehicle(1L))
+            .isInstanceOf(VehicleStatusTransitionException.class);
+        
+        verify(vehicleRepository).findById(1L);
+        verify(vehicleRepository, never()).save(any());
+    }
+    
+    @Test
+    @DisplayName("reactivateVehicle - Wirft VehicleNotFoundException wenn nicht gefunden")
+    void reactivateVehicle_ThrowsExceptionWhenNotFound() {
+        // Arrange
+        when(vehicleRepository.findById(99L)).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThatThrownBy(() -> vehicleApplicationService.reactivateVehicle(99L))
+            .isInstanceOf(VehicleNotFoundException.class);
+        
+        verify(vehicleRepository).findById(99L);
+        verify(vehicleRepository, never()).save(any());
+    }
+    
+    @Test
     @DisplayName("searchVehicles - Findet verfügbare Fahrzeuge")
     void searchVehicles_Success() {
         // Arrange

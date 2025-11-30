@@ -8,6 +8,7 @@ import com.rentacar.presentation.dto.VehicleSearchResultDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class VehicleController {
      * @return das erstellte Fahrzeug mit Status 201 Created
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<VehicleResponseDTO> createVehicle(@Valid @RequestBody CreateVehicleRequestDTO request) {
         VehicleResponseDTO response = vehicleApplicationService.createVehicle(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -48,6 +50,7 @@ public class VehicleController {
      * @return das aktualisierte Fahrzeug mit Status 200 OK
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<VehicleResponseDTO> updateVehicle(
             @PathVariable Long id,
             @Valid @RequestBody UpdateVehicleRequestDTO request) {
@@ -62,6 +65,7 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/ausser-betrieb")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<Void> markAsOutOfService(@PathVariable Long id) {
         vehicleApplicationService.markVehicleAsOutOfService(id);
         return ResponseEntity.noContent().build();
@@ -74,6 +78,7 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/vermieten")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<Void> markAsRented(@PathVariable Long id) {
         vehicleApplicationService.markVehicleAsRented(id);
         return ResponseEntity.noContent().build();
@@ -87,6 +92,7 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/zurueckgeben")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<Void> returnVehicle(
             @PathVariable Long id,
             @RequestParam Integer returnMileage) {
@@ -101,13 +107,28 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/wartung")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<Void> markAsInMaintenance(@PathVariable Long id) {
         vehicleApplicationService.markVehicleAsInMaintenance(id);
         return ResponseEntity.noContent().build();
     }
     
     /**
+     * PATCH /api/fahrzeuge/{id}/verfuegbar - Reaktiviert ein Fahrzeug (von IN_MAINTENANCE oder OUT_OF_SERVICE).
+     * 
+     * @param id die ID des Fahrzeugs
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/verfuegbar")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<Void> markAsAvailable(@PathVariable Long id) {
+        vehicleApplicationService.reactivateVehicle(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
      * GET /api/fahrzeuge - Gibt alle Fahrzeuge zurück.
+     * Öffentlich zugänglich für die Fahrzeugsuche.
      * 
      * @return Liste aller Fahrzeuge mit Status 200 OK
      */
@@ -119,6 +140,7 @@ public class VehicleController {
     
     /**
      * GET /api/fahrzeuge/{id} - Gibt ein einzelnes Fahrzeug zurück.
+     * Öffentlich zugänglich für die Fahrzeugdetailansicht.
      * 
      * @param id die ID des Fahrzeugs
      * @return das Fahrzeug mit Status 200 OK

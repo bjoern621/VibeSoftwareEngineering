@@ -32,7 +32,7 @@ export const calculatePrice = async (payload) => {
     console.error('Fehler bei der Preisberechnung:', error);
     throw new Error(
       error.response?.data?.message ||
-      'Fehler bei der Preisberechnung. Bitte versuchen Sie es später erneut.'
+        'Fehler bei der Preisberechnung. Bitte versuchen Sie es später erneut.'
     );
   }
 };
@@ -73,7 +73,7 @@ const createBooking = async (bookingData) => {
     console.error('Fehler beim Erstellen der Buchung:', error);
     throw new Error(
       error.response?.data?.message ||
-      'Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.'
+        'Die Buchung konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.'
     );
   }
 };
@@ -90,10 +90,7 @@ const getBookingById = async (bookingId) => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Laden der Buchung:', error);
-    throw new Error(
-      error.response?.data?.message ||
-      'Die Buchung konnte nicht geladen werden.'
-    );
+    throw new Error(error.response?.data?.message || 'Die Buchung konnte nicht geladen werden.');
   }
 };
 
@@ -110,10 +107,7 @@ const getMyBookings = async (status = null) => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Laden der Buchungen:', error);
-    throw new Error(
-      error.response?.data?.message ||
-      'Buchungen konnten nicht geladen werden.'
-    );
+    throw new Error(error.response?.data?.message || 'Buchungen konnten nicht geladen werden.');
   }
 };
 
@@ -130,10 +124,7 @@ const cancelBooking = async (bookingId, reason = null) => {
     await apiClient.delete(`/buchungen/${bookingId}/stornieren`, { data: payload });
   } catch (error) {
     console.error('Fehler beim Stornieren der Buchung:', error);
-    throw new Error(
-      error.response?.data?.message ||
-      'Die Buchung konnte nicht storniert werden.'
-    );
+    throw new Error(error.response?.data?.message || 'Die Buchung konnte nicht storniert werden.');
   }
 };
 
@@ -149,10 +140,40 @@ const getAdditionalCosts = async (bookingId) => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Laden der Zusatzkosten:', error);
-    throw new Error(
-      error.response?.data?.message ||
-      'Zusatzkosten konnten nicht geladen werden.'
-    );
+    throw new Error(error.response?.data?.message || 'Zusatzkosten konnten nicht geladen werden.');
+  }
+};
+
+/**
+ * Ruft alle Buchungen ab (nur für Employee/Admin).
+ *
+ * @param {string} status Optional: Filter nach Status (z.B. "REQUESTED", "CONFIRMED")
+ * @returns {Promise<Array>} Liste aller Buchungen
+ */
+const getAllBookings = async (status = null) => {
+  try {
+    const params = status ? { status } : {};
+    const response = await apiClient.get('/buchungen', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Fehler beim Laden aller Buchungen:', error);
+    throw new Error(error.response?.data?.message || 'Buchungen konnten nicht geladen werden.');
+  }
+};
+
+/**
+ * Bestätigt eine Buchung (nur für Employee/Admin).
+ *
+ * @param {number} bookingId Buchungs-ID
+ * @returns {Promise<Object>} Die bestätigte Buchung
+ */
+const confirmBooking = async (bookingId) => {
+  try {
+    const response = await apiClient.post(`/buchungen/${bookingId}/bestaetigen`);
+    return response.data;
+  } catch (error) {
+    console.error('Fehler beim Bestätigen der Buchung:', error);
+    throw new Error(error.response?.data?.message || 'Die Buchung konnte nicht bestätigt werden.');
   }
 };
 
@@ -163,5 +184,6 @@ export default {
   getMyBookings,
   cancelBooking,
   getAdditionalCosts,
+  getAllBookings,
+  confirmBooking,
 };
-

@@ -278,6 +278,38 @@ public class BookingApplicationService {
             throw new CustomerNotFoundException(customerId);
         }
     }
+    
+    // ========== Employee/Admin Buchungsverwaltung Use Cases ==========
+    
+    /**
+     * Ruft alle Buchungen ab (für Employee/Admin).
+     * 
+     * @param status Optional: Filter nach Status
+     * @return Liste aller Buchungen
+     */
+    @Transactional(readOnly = true)
+    public List<Booking> getAllBookings(BookingStatus status) {
+        if (status == null) {
+            return bookingRepository.findAllByOrderByPickupDateTimeAsc();
+        }
+        return bookingRepository.findByStatusOrderByPickupDateTimeAsc(status);
+    }
+    
+    /**
+     * Bestätigt eine Buchung (REQUESTED → CONFIRMED).
+     * Nur für Employee/Admin.
+     * 
+     * @param bookingId ID der Buchung
+     * @return Die bestätigte Buchung
+     * @throws BookingNotFoundException wenn Buchung nicht existiert
+     */
+    public Booking confirmBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+            .orElseThrow(() -> new BookingNotFoundException(bookingId));
+        
+        booking.confirm();
+        return bookingRepository.save(booking);
+    }
 
     public com.rentacar.presentation.dto.AdditionalCostsDTO getAdditionalCosts(Long bookingId) {
         RentalAgreement agreement = rentalAgreementRepository.findByBookingId(bookingId)

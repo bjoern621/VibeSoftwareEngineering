@@ -168,6 +168,21 @@ public class VehicleApplicationService {
     }
     
     /**
+     * Reaktiviert ein Fahrzeug (setzt Status von IN_MAINTENANCE oder OUT_OF_SERVICE auf AVAILABLE).
+     * 
+     * @param id die ID des Fahrzeugs
+     * @throws VehicleNotFoundException wenn das Fahrzeug nicht existiert
+     */
+    public void reactivateVehicle(Long id) {
+        Vehicle vehicle = vehicleRepository.findById(id)
+            .orElseThrow(() -> new VehicleNotFoundException(id));
+        
+        vehicle.reactivate();
+        
+        vehicleRepository.save(vehicle);
+    }
+    
+    /**
      * Gibt alle Fahrzeuge zurück.
      * 
      * @return Liste aller Fahrzeuge als Response DTOs

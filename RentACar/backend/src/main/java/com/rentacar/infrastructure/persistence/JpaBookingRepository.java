@@ -55,4 +55,18 @@ public interface JpaBookingRepository extends BookingRepository, JpaRepository<B
     List<Booking> findOverlappingBookings(@Param("vehicleId") Long vehicleId,
                                           @Param("start") LocalDateTime start,
                                           @Param("end") LocalDateTime end);
+
+    /**
+     * Findet alle Buchungen, sortiert nach Abholdatum (früheste zuerst).
+     * Spring Data JPA leitet die Query aus dem Methodennamen ab.
+     */
+    @Override
+    List<Booking> findAllByOrderByPickupDateTimeAsc();
+
+    /**
+     * Findet alle Buchungen nach Status, sortiert nach Abholdatum (früheste zuerst).
+     * Spring Data JPA leitet die Query aus dem Methodennamen ab.
+     */
+    @Override
+    List<Booking> findByStatusOrderByPickupDateTimeAsc(BookingStatus status);
 }

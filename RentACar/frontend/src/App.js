@@ -17,6 +17,7 @@ import VehicleDetailsPage from './pages/VehicleDetailsPage';
 import BookingsPage from './pages/BookingsPage';
 import BookingDetailPage from './pages/BookingDetailPage';
 import VehicleManagementPage from './pages/VehicleManagementPage';
+import BookingManagementPage from './pages/BookingManagementPage';
 import CheckInOutPage from './pages/CheckInOutPage';
 import DamageReportsPage from './pages/DamageReportsPage';
 import ProfilePage from './pages/ProfilePage';
@@ -94,6 +95,7 @@ function App() {
                 />
                 {/* Mitarbeiter-Seiten (nur Design, keine Funktion) */}
                 <Route path="/employee/vehicles" element={<VehicleManagementPage />} />
+                <Route path="/employee/bookings" element={<BookingManagementPage />} />
                 <Route path="/employee/check-in-out" element={<CheckInOutPage />} />
               </Routes>
             </main>

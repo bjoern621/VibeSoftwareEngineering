@@ -72,4 +72,21 @@ public interface BookingRepository {
      * @return Liste der überlappenden Buchungen
      */
     List<Booking> findOverlappingBookings(Long vehicleId, LocalDateTime start, LocalDateTime end);
+    
+    /**
+     * Findet alle Buchungen, sortiert nach Abholdatum (früheste zuerst).
+     * Für Employee/Admin Zugriff.
+     * 
+     * @return Liste aller Buchungen
+     */
+    List<Booking> findAllByOrderByPickupDateTimeAsc();
+    
+    /**
+     * Findet alle Buchungen nach Status, sortiert nach Abholdatum (früheste zuerst).
+     * Für Employee/Admin Zugriff.
+     * 
+     * @param status Der gewünschte Buchungsstatus
+     * @return Liste der Buchungen mit dem angegebenen Status
+     */
+    List<Booking> findByStatusOrderByPickupDateTimeAsc(BookingStatus status);
 }

@@ -250,6 +250,55 @@ class VehicleControllerTest {
     
     @Test
 
+    @DisplayName("PATCH /api/fahrzeuge/{id}/verfuegbar - Reaktiviert Fahrzeug erfolgreich")
+    void markAsAvailable_Success() throws Exception {
+        // Arrange
+        doNothing().when(vehicleApplicationService).reactivateVehicle(1L);
+        
+        // Act & Assert
+        mockMvc.perform(patch("/api/fahrzeuge/1/verfuegbar")
+)
+            .andExpect(status().isNoContent());
+        
+        verify(vehicleApplicationService).reactivateVehicle(1L);
+    }
+    
+    @Test
+
+    @DisplayName("PATCH /api/fahrzeuge/{id}/verfuegbar - Fahrzeug bereits verfügbar führt zu 409")
+    void markAsAvailable_AlreadyAvailable() throws Exception {
+        // Arrange
+        doThrow(new VehicleStatusTransitionException("Fahrzeug ist bereits verfügbar", VehicleStatus.AVAILABLE))
+            .when(vehicleApplicationService).reactivateVehicle(1L);
+        
+        // Act & Assert
+        mockMvc.perform(patch("/api/fahrzeuge/1/verfuegbar")
+)
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message", containsString("verfügbar")));
+        
+        verify(vehicleApplicationService).reactivateVehicle(1L);
+    }
+    
+    @Test
+
+    @DisplayName("PATCH /api/fahrzeuge/{id}/verfuegbar - Fahrzeug nicht gefunden führt zu 404")
+    void markAsAvailable_NotFound() throws Exception {
+        // Arrange
+        doThrow(new VehicleNotFoundException(99L))
+            .when(vehicleApplicationService).reactivateVehicle(99L);
+        
+        // Act & Assert
+        mockMvc.perform(patch("/api/fahrzeuge/99/verfuegbar")
+)
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message", containsString("99")));
+        
+        verify(vehicleApplicationService).reactivateVehicle(99L);
+    }
+    
+    @Test
+
     @DisplayName("GET /api/fahrzeuge - Gibt alle Fahrzeuge zurück")
     void getAllVehicles_Success() throws Exception {
         // Arrange

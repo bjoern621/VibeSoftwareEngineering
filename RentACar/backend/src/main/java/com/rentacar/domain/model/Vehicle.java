@@ -186,6 +186,24 @@ public class Vehicle {
     }
     
     /**
+     * Markiert das Fahrzeug als verfügbar (z.B. nach Wartung oder Reaktivierung).
+     * 
+     * Business Rule: Nur möglich, wenn Fahrzeug IN_MAINTENANCE oder OUT_OF_SERVICE ist.
+     *
+     * @throws VehicleStatusTransitionException wenn das Fahrzeug nicht in Wartung oder außer Betrieb ist
+     */
+    public void reactivate() {
+        if (status != VehicleStatus.IN_MAINTENANCE && status != VehicleStatus.OUT_OF_SERVICE) {
+            throw new VehicleStatusTransitionException(
+                "Fahrzeug " + licensePlate + " kann nur aus Status IN_MAINTENANCE oder OUT_OF_SERVICE " +
+                "reaktiviert werden (aktuell: " + status + ")",
+                status
+            );
+        }
+        this.status = VehicleStatus.AVAILABLE;
+    }
+    
+    /**
      * Versetzt das Fahrzeug an eine andere Filiale.
      * 
      * @param newBranch die neue Filiale
