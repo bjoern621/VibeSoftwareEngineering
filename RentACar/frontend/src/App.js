@@ -18,6 +18,7 @@ import BookingsPage from './pages/BookingsPage';
 import BookingDetailPage from './pages/BookingDetailPage';
 import VehicleManagementPage from './pages/VehicleManagementPage';
 import CheckInOutPage from './pages/CheckInOutPage';
+import DamageReportsPage from './pages/DamageReportsPage';
 import ProfilePage from './pages/ProfilePage';
 import PriceCalculatorPage from './pages/PriceCalculatorPage';
 import BookingWizardPage from './pages/BookingWizardPage';
@@ -50,50 +51,50 @@ function App() {
             <Navbar />
             <main className="flex-grow">
               <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<LoginPage />} />
-              <Route path="/verify-email" element={<EmailVerificationPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/price-calculator" element={<PriceCalculatorPage />} />
-              <Route path="/vehicles" element={<VehicleSearchPage />} />
-              <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
-              <Route path="/booking/wizard" element={<BookingWizardPage />} />
-              <Route
-                path="/booking/success/:id"
-                element={
-                  <ProtectedRoute>
-                    <BookingSuccessPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/bookings"
-                element={
-                  <ProtectedRoute>
-                    <BookingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/bookings/:id"
-                element={
-                  <ProtectedRoute>
-                    <BookingDetailPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profil"
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Mitarbeiter-Seiten (nur Design, keine Funktion) */}
-              <Route path="/employee/vehicles" element={<VehicleManagementPage />} />
-              <Route path="/employee/check-in-out" element={<CheckInOutPage />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<LoginPage />} />
+                <Route path="/verify-email" element={<EmailVerificationPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/price-calculator" element={<PriceCalculatorPage />} />
+                <Route path="/vehicles" element={<VehicleSearchPage />} />
+                <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
+                <Route path="/booking/wizard" element={<BookingWizardPage />} />
+                <Route
+                  path="/booking/success/:id"
+                  element={
+                    <ProtectedRoute>
+                      <BookingSuccessPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/bookings"
+                  element={
+                    <ProtectedRoute>
+                      <BookingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/bookings/:id"
+                  element={
+                    <ProtectedRoute>
+                      <BookingDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profil"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                {/* Mitarbeiter-Seiten (nur Design, keine Funktion) */}
+                <Route path="/employee/vehicles" element={<VehicleManagementPage />} />
+                <Route path="/employee/check-in-out" element={<CheckInOutPage />} />
               </Routes>
             </main>
             <Footer />

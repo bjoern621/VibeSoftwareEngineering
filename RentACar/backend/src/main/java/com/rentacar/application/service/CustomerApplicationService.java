@@ -239,7 +239,8 @@ public class CustomerApplicationService {
                 customer.getEmail(),
                 customer.getPhoneNumber(),
                 customer.isEmailVerified(),
-                customer.getCreatedAt()
+                customer.getCreatedAt(),
+                customer.getRole() != null ? customer.getRole().name() : "CUSTOMER"
         );
     }
 }

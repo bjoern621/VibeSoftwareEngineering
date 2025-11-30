@@ -17,6 +17,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,9 +81,6 @@ class DamageReportApplicationServiceTest {
         when(rentalAgreementRepository.findByBookingId(bookingId)).thenReturn(Optional.of(rentalAgreement));
         when(damageReportRepository.save(any(DamageReport.class))).thenAnswer(invocation -> {
             DamageReport report = invocation.getArgument(0);
-            // We can't set ID on the entity easily without reflection or a setter, 
-            // but for this test we just check the return object which is mapped from the entity.
-            // The DTO mapping uses report.getId() which will be null.
             return report;
         });
 
@@ -104,5 +103,89 @@ class DamageReportApplicationServiceTest {
         when(rentalAgreementRepository.findByBookingId(bookingId)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> service.createDamageReport(bookingId, request));
+    }
+
+    @Test
+    void getDamageReportsByBooking_Success() {
+        Long bookingId = 100L;
+        
+        DamageReport report1 = mock(DamageReport.class);
+        when(report1.getId()).thenReturn(1L);
+        when(report1.getDescription()).thenReturn("Kratzer");
+        when(report1.getEstimatedCost()).thenReturn(new BigDecimal("100.00"));
+        when(report1.getPhotos()).thenReturn(Collections.emptyList());
+        when(report1.getRentalAgreement()).thenReturn(rentalAgreement);
+        
+        DamageReport report2 = mock(DamageReport.class);
+        when(report2.getId()).thenReturn(2L);
+        when(report2.getDescription()).thenReturn("Delle");
+        when(report2.getEstimatedCost()).thenReturn(new BigDecimal("200.00"));
+        when(report2.getPhotos()).thenReturn(Collections.emptyList());
+        when(report2.getRentalAgreement()).thenReturn(rentalAgreement);
+        
+        when(rentalAgreementRepository.findByBookingId(bookingId)).thenReturn(Optional.of(rentalAgreement));
+        when(damageReportRepository.findByRentalAgreementId(1L)).thenReturn(Arrays.asList(report1, report2));
+        
+        List<DamageReportResponseDTO> result = service.getDamageReportsByBooking(bookingId);
+        
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("Kratzer", result.get(0).getDescription());
+        assertEquals("Delle", result.get(1).getDescription());
+    }
+
+    @Test
+    void getDamageReportsByBooking_NoRentalAgreement_ReturnsEmptyList() {
+        Long bookingId = 999L;
+        
+        when(rentalAgreementRepository.findByBookingId(bookingId)).thenReturn(Optional.empty());
+        
+        List<DamageReportResponseDTO> result = service.getDamageReportsByBooking(bookingId);
+        
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getDamageReportsByBooking_NoDamageReports_ReturnsEmptyList() {
+        Long bookingId = 100L;
+        
+        when(rentalAgreementRepository.findByBookingId(bookingId)).thenReturn(Optional.of(rentalAgreement));
+        when(damageReportRepository.findByRentalAgreementId(1L)).thenReturn(Collections.emptyList());
+        
+        List<DamageReportResponseDTO> result = service.getDamageReportsByBooking(bookingId);
+        
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getDamageReport_Success() {
+        Long reportId = 1L;
+        
+        DamageReport report = mock(DamageReport.class);
+        when(report.getId()).thenReturn(reportId);
+        when(report.getDescription()).thenReturn("Test Schaden");
+        when(report.getEstimatedCost()).thenReturn(new BigDecimal("150.00"));
+        when(report.getPhotos()).thenReturn(List.of("photo1.jpg"));
+        when(report.getRentalAgreement()).thenReturn(rentalAgreement);
+        
+        when(damageReportRepository.findById(reportId)).thenReturn(Optional.of(report));
+        
+        DamageReportResponseDTO result = service.getDamageReport(reportId);
+        
+        assertNotNull(result);
+        assertEquals(reportId, result.getId());
+        assertEquals("Test Schaden", result.getDescription());
+        assertEquals(new BigDecimal("150.00"), result.getEstimatedCost());
+    }
+
+    @Test
+    void getDamageReport_NotFound_ThrowsException() {
+        Long reportId = 999L;
+        
+        when(damageReportRepository.findById(reportId)).thenReturn(Optional.empty());
+        
+        assertThrows(IllegalArgumentException.class, () -> service.getDamageReport(reportId));
     }
 }

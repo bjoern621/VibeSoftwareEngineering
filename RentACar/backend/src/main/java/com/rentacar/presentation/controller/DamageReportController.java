@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 public class DamageReportController {
@@ -33,5 +35,12 @@ public class DamageReportController {
     public ResponseEntity<DamageReportResponseDTO> getDamageReport(@PathVariable Long id) {
         DamageReportResponseDTO response = damageReportApplicationService.getDamageReport(id);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/buchungen/{buchungId}/schadensberichte")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<List<DamageReportResponseDTO>> getDamageReportsByBooking(@PathVariable Long buchungId) {
+        List<DamageReportResponseDTO> reports = damageReportApplicationService.getDamageReportsByBooking(buchungId);
+        return ResponseEntity.ok(reports);
     }
 }
