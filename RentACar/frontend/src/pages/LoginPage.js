@@ -115,6 +115,19 @@ const LoginPage = () => {
     }
   };
 
+  const handleQuickLogin = async (email) => {
+    setError('');
+    setLoading(true);
+    try {
+      await login(email, '12345678');
+      navigate('/');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
@@ -132,7 +145,9 @@ const LoginPage = () => {
     try {
       await register(registerData);
       setActiveTab('login');
-      setError('Registrierung erfolgreich! Bitte bestätigen Sie Ihre E-Mail-Adresse und melden Sie sich dann an.');
+      setError(
+        'Registrierung erfolgreich! Bitte bestätigen Sie Ihre E-Mail-Adresse und melden Sie sich dann an.'
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -252,6 +267,39 @@ const LoginPage = () => {
               >
                 {loading ? 'Wird geladen...' : 'Anmelden'}
               </button>
+
+              {/* Schnelllogin Test-Accounts */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500 mb-3 text-center">
+                  Schnelllogin (Test-Accounts)
+                </p>
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('test.customer@example.com')}
+                    disabled={loading}
+                    className="h-10 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+                  >
+                    Kunde
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('test.employee@example.com')}
+                    disabled={loading}
+                    className="h-10 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    Mitarbeiter
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('test.admin@example.com')}
+                    disabled={loading}
+                    className="h-10 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    Admin
+                  </button>
+                </div>
+              </div>
             </form>
           )}
 
@@ -366,7 +414,9 @@ const LoginPage = () => {
                   required
                 />
                 {validationErrors.driverLicenseNumber && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.driverLicenseNumber}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {validationErrors.driverLicenseNumber}
+                  </p>
                 )}
               </label>
               <AddressAutocomplete
