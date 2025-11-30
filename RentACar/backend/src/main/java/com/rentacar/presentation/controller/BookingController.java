@@ -106,6 +106,27 @@ public class BookingController {
         
         return ResponseEntity.ok(response);
     }
+    
+    /**
+     * GET /api/buchungen
+     * Mitarbeiter/Admins können alle Buchungen sehen.
+     * 
+     * @param status Optional: Filter nach Buchungsstatus
+     * @return Liste aller Buchungen
+     */
+    @GetMapping("/buchungen")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<List<BookingHistoryDto>> getAllBookings(
+            @RequestParam(required = false) BookingStatus status) {
+        
+        List<Booking> bookings = bookingApplicationService.getAllBookings(status);
+        
+        List<BookingHistoryDto> response = bookings.stream()
+            .map(this::mapToDto)
+            .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(response);
+    }
 
     /**
      * Erstellt eine neue Buchung.
@@ -138,6 +159,21 @@ public class BookingController {
     public ResponseEntity<com.rentacar.presentation.dto.AdditionalCostsDTO> getAdditionalCosts(@PathVariable Long id) {
         com.rentacar.presentation.dto.AdditionalCostsDTO costs = bookingApplicationService.getAdditionalCosts(id);
         return ResponseEntity.ok(costs);
+    }
+    
+    /**
+     * POST /api/buchungen/{id}/bestaetigen
+     * Bestätigt eine Buchung (REQUESTED → CONFIRMED).
+     * Nur für Mitarbeiter/Admins.
+     *
+     * @param id Buchungs-ID
+     * @return Die bestätigte Buchung
+     */
+    @PostMapping("/buchungen/{id}/bestaetigen")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<BookingHistoryDto> confirmBooking(@PathVariable Long id) {
+        Booking booking = bookingApplicationService.confirmBooking(id);
+        return ResponseEntity.ok(mapToDto(booking));
     }
 
     /**

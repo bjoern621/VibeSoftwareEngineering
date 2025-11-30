@@ -65,6 +65,14 @@ const Navbar = () => {
             <>
               <div className="h-6 w-px bg-gray-300" />
               <Link
+                to="/employee/bookings"
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/employee/bookings') ? 'text-primary' : 'hover:text-primary'
+                }`}
+              >
+                Buchungsverwaltung
+              </Link>
+              <Link
                 to="/employee/vehicles"
                 className={`text-sm font-medium transition-colors ${
                   isActive('/employee/vehicles') ? 'text-primary' : 'hover:text-primary'
