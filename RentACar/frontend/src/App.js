@@ -144,6 +144,14 @@ function App() {
                     </EmployeeRoute>
                   }
                 />
+                <Route
+                  path="/employee/damages/:bookingId"
+                  element={
+                    <EmployeeRoute>
+                      <DamageReportsPage />
+                    </EmployeeRoute>
+                  }
+                />
               </Routes>
             </main>
             <Footer />

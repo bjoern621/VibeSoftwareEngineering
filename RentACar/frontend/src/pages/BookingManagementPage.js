@@ -281,6 +281,15 @@ const BookingManagementPage = () => {
                             >
                               <span className="material-symbols-outlined text-lg">visibility</span>
                             </button>
+                            <button
+                              onClick={() =>
+                                navigate(`/employee/damages/${booking.buchungsnummer}`)
+                              }
+                              className="p-2 rounded-lg hover:bg-orange-100 text-orange-600"
+                              title="Schadensberichte"
+                            >
+                              <span className="material-symbols-outlined text-lg">report</span>
+                            </button>
                             {booking.status === 'REQUESTED' && (
                               <button
                                 onClick={() => handleConfirmBooking(booking.buchungsnummer)}
