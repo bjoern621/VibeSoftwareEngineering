@@ -109,7 +109,10 @@ public class RentalAgreement {
         this.checkinCondition = checkinCondition;
         
         if (checkinMileage.isLessThan(this.checkoutMileage)) {
-             throw new InvalidMileageException("Rückgabe-Kilometerstand darf nicht kleiner als Ausgabe-Kilometerstand sein");
+             throw new InvalidMileageException(
+                 "Rückgabe-Kilometerstand (" + checkinMileage.getKilometers() + 
+                 ") darf nicht kleiner als Ausgabe-Kilometerstand (" + this.checkoutMileage.getKilometers() + ") sein"
+             );
         }
 
         if (checkinTime.isBefore(this.checkoutTime)) {
