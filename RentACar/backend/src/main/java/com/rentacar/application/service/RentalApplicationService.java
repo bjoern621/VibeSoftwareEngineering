@@ -47,22 +47,31 @@ public class RentalApplicationService {
         }
 
         Vehicle vehicle = booking.getVehicle();
+        Mileage checkoutMileage = Mileage.of(mileage);
         
-        // 2. Update Vehicle Status
+        // 2. Validate Mileage - must be >= current vehicle mileage
+        if (checkoutMileage.isLessThan(vehicle.getMileage())) {
+            throw new IllegalArgumentException(
+                "Checkout-Kilometerstand (" + checkoutMileage.getKilometers() + 
+                ") darf nicht kleiner sein als aktueller Fahrzeugstand (" + vehicle.getMileage().getKilometers() + ")"
+            );
+        }
+        
+        // 3. Update Vehicle Status
         vehicle.markAsRented();
         vehicleRepository.save(vehicle); // Explicit save, though transactional should handle it
 
-        // 3. Create RentalAgreement
+        // 4. Create RentalAgreement
         RentalAgreement agreement = new RentalAgreement(
                 booking,
-                Mileage.of(mileage),
+                checkoutMileage,
                 LocalDateTime.now(),
                 new VehicleCondition(fuelLevel, cleanliness, damagesDescription)
         );
         
         rentalAgreementRepository.save(agreement);
         
-        // 4. Update Booking Status
+        // 5. Update Booking Status
         booking.activate();
         bookingRepository.save(booking);
         

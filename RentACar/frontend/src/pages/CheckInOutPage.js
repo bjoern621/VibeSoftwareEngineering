@@ -169,7 +169,7 @@ const CheckInOutPage = () => {
     // Validate
     const validation =
       processType === 'checkout'
-        ? validateCheckoutData(formData)
+        ? validateCheckoutData(formData, selectedBooking?.fahrzeug?.kilometerstand || 0)
         : validateCheckinData(formData, selectedBooking?.checkoutMileage || 0);
 
     if (!validation.isValid) {
@@ -501,6 +501,11 @@ const CheckInOutPage = () => {
                         onChange={(e) => setMileage(e.target.value)}
                         required
                       />
+                      {selectedBooking.fahrzeug?.kilometerstand && processType === 'checkout' && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Aktueller Fahrzeugstand: {selectedBooking.fahrzeug.kilometerstand} km
+                        </p>
+                      )}
                       {selectedBooking.checkoutMileage && processType === 'checkin' && (
                         <p className="text-xs text-gray-500 mt-1">
                           Kilometerstand bei Check-out: {selectedBooking.checkoutMileage} km

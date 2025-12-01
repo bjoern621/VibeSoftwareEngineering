@@ -70,15 +70,20 @@ export const performCheckIn = async (bookingId, checkinData) => {
  * Validiert die Check-out Daten.
  *
  * @param {Object} checkoutData - Zu validierende Daten
+ * @param {number} vehicleMileage - Aktueller Kilometerstand des Fahrzeugs (für Vergleich)
  * @returns {Object} Validierungsergebnis { isValid: boolean, errors: string[] }
  */
-export const validateCheckoutData = (checkoutData) => {
+export const validateCheckoutData = (checkoutData, vehicleMileage = 0) => {
   const errors = [];
 
   if (checkoutData.mileage === undefined || checkoutData.mileage === null) {
     errors.push('Kilometerstand ist erforderlich.');
   } else if (checkoutData.mileage < 0) {
     errors.push('Kilometerstand muss positiv sein.');
+  } else if (vehicleMileage > 0 && checkoutData.mileage < vehicleMileage) {
+    errors.push(
+      `Kilometerstand darf nicht kleiner sein als der aktuelle Fahrzeugstand (${vehicleMileage} km).`
+    );
   }
 
   if (!checkoutData.fuelLevel || checkoutData.fuelLevel.trim() === '') {
