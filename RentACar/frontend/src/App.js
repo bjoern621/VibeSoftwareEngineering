@@ -43,6 +43,32 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
+// EmployeeRoute Komponente für Mitarbeiter/Admin-Routen
+const EmployeeRoute = ({ children }) => {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Lade...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'EMPLOYEE' && user?.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -93,10 +119,31 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* Mitarbeiter-Seiten (nur Design, keine Funktion) */}
-                <Route path="/employee/vehicles" element={<VehicleManagementPage />} />
-                <Route path="/employee/bookings" element={<BookingManagementPage />} />
-                <Route path="/employee/check-in-out" element={<CheckInOutPage />} />
+                {/* Mitarbeiter-Seiten (nur für EMPLOYEE/ADMIN) */}
+                <Route
+                  path="/employee/vehicles"
+                  element={
+                    <EmployeeRoute>
+                      <VehicleManagementPage />
+                    </EmployeeRoute>
+                  }
+                />
+                <Route
+                  path="/employee/bookings"
+                  element={
+                    <EmployeeRoute>
+                      <BookingManagementPage />
+                    </EmployeeRoute>
+                  }
+                />
+                <Route
+                  path="/employee/check-in-out"
+                  element={
+                    <EmployeeRoute>
+                      <CheckInOutPage />
+                    </EmployeeRoute>
+                  }
+                />
               </Routes>
             </main>
             <Footer />
