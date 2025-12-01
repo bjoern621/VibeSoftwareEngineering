@@ -1,146 +1,430 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import bookingService from '../services/bookingService';
+import rentalService, {
+  FUEL_LEVELS,
+  CLEANLINESS_OPTIONS,
+  sliderValueToFuelLevel,
+  validateCheckoutData,
+  validateCheckinData,
+} from '../services/rentalService';
+import {
+  createDamageReport,
+  validateDamageReport,
+  fileToBase64,
+} from '../services/damageReportService';
 
-/**
- * CheckInOutPage - Check-in/Check-out Protokoll für Mitarbeiter (nur Design)
- * Konvertiert von Stitch Design: check-out/check-in_(mitarbeiter)_1
- * OHNE FUNKTION - nur visuelle Darstellung
- */
 const CheckInOutPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Process type: 'checkout' or 'checkin'
+  const [processType, setProcessType] = useState('checkout');
+
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+
+  // Selected booking
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
+  // Form state
+  const [mileage, setMileage] = useState('');
+  const [fuelSliderValue, setFuelSliderValue] = useState(4);
+  const [cleanliness, setCleanliness] = useState('CLEAN');
+  const [damagesDescription, setDamagesDescription] = useState('');
+
+  // Damage report state (for check-in)
+  const [newDamageDescription, setNewDamageDescription] = useState('');
+  const [newDamageEstimatedCost, setNewDamageEstimatedCost] = useState('');
+  const [damagePhotos, setDamagePhotos] = useState([]);
+  const [existingDamages, setExistingDamages] = useState([]);
+
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [validationErrors, setValidationErrors] = useState([]);
+
+  // Check authorization
+  useEffect(() => {
+    if (!user || (user.role !== 'EMPLOYEE' && user.role !== 'ADMIN')) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  // Search for booking by ID
+  const handleSearch = useCallback(async () => {
+    if (!searchTerm.trim()) {
+      setSearchError('Bitte geben Sie eine Buchungsnummer ein.');
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchError(null);
+    setSelectedBooking(null);
+
+    try {
+      const booking = await bookingService.getBookingById(searchTerm.trim());
+
+      // Check if booking status is appropriate
+      if (processType === 'checkout' && booking.status !== 'CONFIRMED') {
+        setSearchError(
+          `Buchung #${booking.buchungsnummer} ist nicht für Check-out bereit. Status: ${booking.status}`
+        );
+        return;
+      }
+      if (processType === 'checkin' && booking.status !== 'ACTIVE') {
+        setSearchError(
+          `Buchung #${booking.buchungsnummer} ist nicht für Check-in bereit. Status: ${booking.status}`
+        );
+        return;
+      }
+
+      setSelectedBooking(booking);
+      // Set initial mileage from vehicle if available
+      if (booking.fahrzeug?.kilometerstand) {
+        setMileage(booking.fahrzeug.kilometerstand.toString());
+      }
+    } catch (err) {
+      setSearchError(err.message || 'Buchung nicht gefunden.');
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [searchTerm, processType]);
+
+  // Handle photo upload
+  const handlePhotoUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    const newPhotos = [];
+
+    for (const file of files) {
+      try {
+        const base64 = await fileToBase64(file);
+        newPhotos.push({
+          name: file.name,
+          data: base64,
+        });
+      } catch (err) {
+        console.error('Fehler beim Hochladen:', err);
+      }
+    }
+
+    setDamagePhotos((prev) => [...prev, ...newPhotos]);
+  };
+
+  // Remove photo
+  const removePhoto = (index) => {
+    setDamagePhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Add damage to list
+  const addDamage = () => {
+    if (!newDamageDescription.trim()) {
+      setValidationErrors(['Bitte geben Sie eine Schadensbeschreibung ein.']);
+      return;
+    }
+
+    const damage = {
+      description: newDamageDescription,
+      estimatedCost: parseFloat(newDamageEstimatedCost) || 0,
+      photos: damagePhotos.map((p) => p.data),
+    };
+
+    const validation = validateDamageReport(damage);
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      return;
+    }
+
+    setExistingDamages((prev) => [...prev, damage]);
+    setNewDamageDescription('');
+    setNewDamageEstimatedCost('');
+    setDamagePhotos([]);
+    setValidationErrors([]);
+  };
+
+  // Remove damage from list
+  const removeDamage = (index) => {
+    setExistingDamages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Submit check-out or check-in
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    setValidationErrors([]);
+
+    const fuelLevel = sliderValueToFuelLevel(fuelSliderValue);
+    const formData = {
+      mileage: parseInt(mileage, 10),
+      fuelLevel,
+      cleanliness,
+      damagesDescription: damagesDescription || null,
+    };
+
+    // Validate
+    const validation =
+      processType === 'checkout'
+        ? validateCheckoutData(formData, selectedBooking?.fahrzeug?.kilometerstand || 0)
+        : validateCheckinData(formData, selectedBooking?.checkoutMileage || 0);
+
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (processType === 'checkout') {
+        await rentalService.performCheckOut(selectedBooking.buchungsnummer, formData);
+        setSuccessMessage(
+          `Check-out für Buchung #${selectedBooking.buchungsnummer} erfolgreich durchgeführt!`
+        );
+      } else {
+        // First perform check-in
+        await rentalService.performCheckIn(selectedBooking.buchungsnummer, formData);
+
+        // Then create damage reports if any
+        for (const damage of existingDamages) {
+          try {
+            await createDamageReport(selectedBooking.buchungsnummer, damage);
+          } catch (dmgErr) {
+            console.error('Fehler beim Erstellen des Schadensberichts:', dmgErr);
+          }
+        }
+
+        setSuccessMessage(
+          `Check-in für Buchung #${selectedBooking.buchungsnummer} erfolgreich durchgeführt!`
+        );
+      }
+
+      // Reset form
+      setSelectedBooking(null);
+      setSearchTerm('');
+      setMileage('');
+      setFuelSliderValue(4);
+      setCleanliness('CLEAN');
+      setDamagesDescription('');
+      setExistingDamages([]);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calculate driven kilometers (for check-in)
+  const drivenKm =
+    selectedBooking?.checkoutMileage && mileage
+      ? parseInt(mileage, 10) - selectedBooking.checkoutMileage
+      : null;
+
+  // Format date
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <aside className="flex-shrink-0 w-64 bg-gray-50 border-r border-gray-200 p-4 flex flex-col justify-between">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div
-              className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-              style={{
-                backgroundImage:
-                  'url("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100")',
-              }}
-            />
-            <div className="flex flex-col">
-              <h1 className="text-base font-medium text-gray-900">Max Mustermann</h1>
-              <p className="text-primary text-sm font-normal">Rental Agent</p>
-            </div>
-          </div>
-
-          <nav className="flex flex-col gap-2 mt-4">
-            <button className="flex items-center gap-3 px-3 py-2 text-gray-900 hover:bg-primary/10 rounded-lg">
-              <span className="material-symbols-outlined">dashboard</span>
-              <p className="text-sm font-medium">Dashboard</p>
-            </button>
-            <button className="flex items-center gap-3 px-3 py-2 text-gray-900 hover:bg-primary/10 rounded-lg">
-              <span className="material-symbols-outlined">book_online</span>
-              <p className="text-sm font-medium">Bookings</p>
-            </button>
-            <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary">
-              <span className="material-symbols-outlined">directions_car</span>
-              <p className="text-sm font-medium">Vehicles</p>
-            </button>
-            <button className="flex items-center gap-3 px-3 py-2 text-gray-900 hover:bg-primary/10 rounded-lg">
-              <span className="material-symbols-outlined">group</span>
-              <p className="text-sm font-medium">Customers</p>
-            </button>
-            <button className="flex items-center gap-3 px-3 py-2 text-gray-900 hover:bg-primary/10 rounded-lg">
-              <span className="material-symbols-outlined">monitoring</span>
-              <p className="text-sm font-medium">Reports</p>
-            </button>
-          </nav>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:opacity-90">
-            <span>New Booking</span>
-          </button>
-          <div className="flex flex-col gap-1">
-            <button className="flex items-center gap-3 px-3 py-2 text-gray-900 hover:bg-primary/10 rounded-lg">
-              <span className="material-symbols-outlined">settings</span>
-              <p className="text-sm font-medium">Settings</p>
-            </button>
-            <button className="flex items-center gap-3 px-3 py-2 text-gray-900 hover:bg-primary/10 rounded-lg">
-              <span className="material-symbols-outlined">logout</span>
-              <p className="text-sm font-medium">Log out</p>
-            </button>
-          </div>
-        </div>
-      </aside>
-
+    <div className="min-h-screen w-full bg-background-light">
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto bg-background-light">
-        <div className="max-w-7xl mx-auto">
-          {/* Page Heading */}
-          <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
-            <div className="flex flex-col gap-2">
-              <p className="text-4xl font-black tracking-tight">
-                Fahrzeug-Protokoll: Check-in / Check-out
-              </p>
-              <p className="text-primary text-base font-normal">
-                Verwalten Sie den Fahrzeugzustand bei Übergabe und Rücknahme.
-              </p>
-            </div>
+      <main className="container mx-auto p-8">
+        {/* Error/Success Messages */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex justify-between items-center">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="text-red-700 hover:text-red-900">
+              <span className="material-symbols-outlined">close</span>
+            </button>
           </div>
+        )}
 
-          {/* Segmented Buttons */}
-          <div className="flex mb-8">
-            <div className="flex h-10 w-full max-w-sm items-center justify-center rounded-lg bg-gray-200 p-1 border border-gray-300">
-              <label className="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white has-[:checked]:shadow-sm has-[:checked]:text-gray-900 text-primary text-sm font-medium transition-colors">
-                <span>Check-out</span>
-                <input
-                  defaultChecked
-                  className="invisible w-0"
-                  name="process_type"
-                  type="radio"
-                  value="Check-out"
-                />
-              </label>
-              <label className="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white has-[:checked]:shadow-sm has-[:checked]:text-gray-900 text-primary text-sm font-medium transition-colors">
-                <span>Check-in</span>
-                <input
-                  className="invisible w-0"
-                  name="process_type"
-                  type="radio"
-                  value="Check-in"
-                />
-              </label>
-            </div>
+        {successMessage && (
+          <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg flex justify-between items-center">
+            <span>{successMessage}</span>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="text-green-700 hover:text-green-900"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
           </div>
+        )}
 
-          {/* Form Grid */}
+        {validationErrors.length > 0 && (
+          <div className="mb-4 p-4 bg-yellow-100 text-yellow-700 rounded-lg">
+            <ul className="list-disc list-inside">
+              {validationErrors.map((err, i) => (
+                <li key={i}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Page Heading */}
+        <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col">
+            <h1 className="text-4xl font-black tracking-tighter">
+              Fahrzeug-Protokoll: Check-in / Check-out
+            </h1>
+            <p className="text-gray-600 text-base">
+              Verwalten Sie den Fahrzeugzustand bei Übergabe und Rücknahme.
+            </p>
+          </div>
+        </header>
+
+        {/* Process Type Toggle */}
+        <div className="flex mb-8">
+          <div className="flex h-10 w-full max-w-sm items-center justify-center rounded-lg bg-gray-200 p-1 border border-gray-300">
+            <label
+              className={`flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 transition-colors ${processType === 'checkout' ? 'bg-white shadow-sm text-gray-900' : 'text-primary'}`}
+            >
+              <span className="truncate">Check-out</span>
+              <input
+                checked={processType === 'checkout'}
+                onChange={() => {
+                  setProcessType('checkout');
+                  setSelectedBooking(null);
+                  setSearchTerm('');
+                }}
+                className="invisible w-0"
+                name="process_type"
+                type="radio"
+                value="checkout"
+              />
+            </label>
+            <label
+              className={`flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 transition-colors ${processType === 'checkin' ? 'bg-white shadow-sm text-gray-900' : 'text-primary'}`}
+            >
+              <span className="truncate">Check-in</span>
+              <input
+                checked={processType === 'checkin'}
+                onChange={() => {
+                  setProcessType('checkin');
+                  setSelectedBooking(null);
+                  setSearchTerm('');
+                }}
+                className="invisible w-0"
+                name="process_type"
+                type="radio"
+                value="checkin"
+              />
+            </label>
+          </div>
+        </div>
+
+        {/* Booking Search */}
+        {!selectedBooking && (
+          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
+            <h2 className="text-gray-900 text-xl font-bold mb-4">Buchung suchen</h2>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="Buchungsnummer eingeben..."
+                  className="w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-primary focus:border-primary"
+                />
+              </div>
+              <button
+                onClick={handleSearch}
+                disabled={searchLoading}
+                className="flex items-center justify-center px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
+              >
+                {searchLoading ? (
+                  <span className="material-symbols-outlined animate-spin">refresh</span>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined mr-2">search</span>
+                    Suchen
+                  </>
+                )}
+              </button>
+            </div>
+            {searchError && <p className="mt-2 text-red-600 text-sm">{searchError}</p>}
+          </div>
+        )}
+
+        {/* Main Form - Only shown when booking is selected */}
+        {selectedBooking && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column */}
             <div className="lg:col-span-2 flex flex-col gap-8">
               {/* Booking Information */}
               <div>
-                <h2 className="text-gray-900 text-[22px] font-bold mb-3">Booking Information</h2>
+                <h2 className="text-gray-900 text-[22px] font-bold mb-3">Buchungsinformationen</h2>
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
                     <div className="flex flex-col gap-4 flex-[2_2_0px]">
                       <div className="flex flex-col gap-1">
-                        <p className="text-sm text-primary">Booking ID: #789123</p>
-                        <p className="text-xl font-bold text-gray-900">Volkswagen Golf VIII</p>
-                        <p className="text-gray-500 text-sm">License Plate: B-VG 1234</p>
+                        <p className="text-sm text-primary">
+                          Buchung #{selectedBooking.buchungsnummer}
+                        </p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {selectedBooking.fahrzeug?.marke} {selectedBooking.fahrzeug?.modell}
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                          Kennzeichen: {selectedBooking.fahrzeug?.kennzeichen}
+                        </p>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <p className="font-semibold text-gray-900">Jane Doe</p>
-                        <p className="text-gray-500 text-sm">24.07.2024 - 28.07.2024</p>
+                        <p className="font-semibold text-gray-900">
+                          {selectedBooking.kundenName || 'Kunde'}
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                          {formatDateTime(selectedBooking.abholdatum)} -{' '}
+                          {formatDateTime(selectedBooking.rueckgabedatum)}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <span
+                          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium ${
+                            selectedBooking.status === 'CONFIRMED'
+                              ? 'bg-green-100 text-green-800'
+                              : selectedBooking.status === 'ACTIVE'
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {selectedBooking.status}
+                        </span>
                       </div>
                     </div>
-                    <div
-                      className="w-full sm:w-48 bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
-                      style={{
-                        backgroundImage:
-                          'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDKtaOsLH9mUzxVC_t20ycK7AD4-4mUqXTU8dZO7xdKSxOYmzLQCtpoIRg7o6vmQlA2eY5Gn_vVRGaoBfMg34co32qrAptGsKtqM31Gw7pgroHrO9rIpzJfuU5uwtxmgAYNepB0Fa8lfHXv6mcldDaS10vlXVrK3M-js8KEfifIPaUL6nVmosU9yliTAPSZEtYY4uu4DQhTPyx9CZn22-dIgRYn_1C9yERlNgUWYNI3hdboFKxfR76bbEcrl8o_nsa6Qn6Xv20wiQpF")',
-                      }}
-                    />
+                    {selectedBooking.fahrzeug?.bildUrl && (
+                      <div
+                        className="w-full sm:w-48 bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
+                        style={{
+                          backgroundImage: `url("${selectedBooking.fahrzeug.bildUrl}")`,
+                        }}
+                      />
+                    )}
                   </div>
+                  <button
+                    onClick={() => setSelectedBooking(null)}
+                    className="mt-4 text-sm text-primary hover:underline"
+                  >
+                    Andere Buchung suchen
+                  </button>
                 </div>
               </div>
 
-              {/* Vehicle Status */}
+              {/* Vehicle Status Form */}
               <div>
                 <h2 className="text-gray-900 text-[22px] font-bold mb-3">
-                  Vehicle Status (Check-out)
+                  Fahrzeugzustand ({processType === 'checkout' ? 'Check-out' : 'Check-in'})
                 </h2>
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -148,25 +432,36 @@ const CheckInOutPage = () => {
                       className="block text-sm font-medium text-gray-700 mb-1"
                       htmlFor="mileage"
                     >
-                      Kilometerstand
+                      Kilometerstand *
                     </label>
                     <input
                       className="w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-primary focus:border-primary"
                       id="mileage"
                       type="number"
-                      defaultValue="12540"
+                      min="0"
+                      value={mileage}
+                      onChange={(e) => setMileage(e.target.value)}
+                      required
                     />
+                    {selectedBooking.fahrzeug?.kilometerstand && processType === 'checkout' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Aktueller Fahrzeugstand: {selectedBooking.fahrzeug.kilometerstand} km
+                      </p>
+                    )}
+                    {selectedBooking.checkoutMileage && processType === 'checkin' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Kilometerstand bei Check-out: {selectedBooking.checkoutMileage} km
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tankfüllstand
+                      Tankfüllstand *
                     </label>
                     <div className="flex items-center justify-between text-xs text-gray-500 px-1">
-                      <span>E</span>
-                      <span>1/4</span>
-                      <span>1/2</span>
-                      <span>3/4</span>
-                      <span>F</span>
+                      {FUEL_LEVELS.map((level) => (
+                        <span key={level.value}>{level.label}</span>
+                      ))}
                     </div>
                     <input
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
@@ -174,126 +469,262 @@ const CheckInOutPage = () => {
                       min="0"
                       step="1"
                       type="range"
-                      defaultValue="4"
+                      value={fuelSliderValue}
+                      onChange={(e) => setFuelSliderValue(parseInt(e.target.value, 10))}
                     />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Sauberkeit
+                      Sauberkeit *
                     </label>
                     <div className="flex flex-wrap gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          className="form-radio text-primary focus:ring-primary"
-                          name="cleanliness"
-                          type="radio"
-                        />
-                        <span className="text-sm">Verschmutzt</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          className="form-radio text-primary focus:ring-primary"
-                          name="cleanliness"
-                          type="radio"
-                        />
-                        <span className="text-sm">Normal</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          defaultChecked
-                          className="form-radio text-primary focus:ring-primary"
-                          name="cleanliness"
-                          type="radio"
-                        />
-                        <span className="text-sm">Sauber</span>
-                      </label>
+                      {CLEANLINESS_OPTIONS.map((option) => (
+                        <label
+                          key={option.value}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <input
+                            className="form-radio text-primary focus:ring-primary"
+                            name="cleanliness"
+                            type="radio"
+                            value={option.value}
+                            checked={cleanliness === option.value}
+                            onChange={(e) => setCleanliness(e.target.value)}
+                          />
+                          <span className="text-sm">{option.label}</span>
+                        </label>
+                      ))}
                     </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                      htmlFor="damagesDescription"
+                    >
+                      Allgemeine Anmerkungen zu Schäden
+                    </label>
+                    <textarea
+                      className="w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-primary focus:border-primary"
+                      id="damagesDescription"
+                      rows="2"
+                      value={damagesDescription}
+                      onChange={(e) => setDamagesDescription(e.target.value)}
+                      placeholder="Kurze Beschreibung vorhandener Schäden..."
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Damage Report */}
-              <div>
-                <h2 className="text-gray-900 text-[22px] font-bold mb-3">Schadensprotokoll</h2>
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col lg:flex-row gap-6">
-                  <div className="relative flex-shrink-0">
-                    <img
-                      alt="Vehicle schematic for damage marking"
-                      className="w-64 h-auto mx-auto"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2D0T4enaMVlqwYln9K_udeBlRJCnBLV5PvcrEYOO6nDB679eqQkG2ftvwdjBqx6nDEdluG1QPaBA5pGjdU0C4pf7KRnctuVaIHLaNnmtmkqClTANi7Zc2XBK2PjWrWmPb_JHCiGfFDtVL53-8JSF6ISxITRMR9hAtWVBJr8PFOdmae9-jnwIh6x4L69g6jv4-mIzJYoJOnzIB3_eMSFZa9yoI86udMljf5VNJinqHDYldEW_Ko2iZGKPIijE9Szo__W5b3oKmHu_9"
-                    />
-                    <button className="absolute top-[25%] left-[15%] w-4 h-4 bg-red-600 rounded-full ring-2 ring-white animate-pulse" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold mb-2 text-gray-900">Neue Schäden hinzufügen</h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Klicken Sie auf das Schema, um neue Schäden zu markieren.
-                    </p>
-                    <textarea
-                      className="w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-primary focus:border-primary mb-3"
-                      placeholder="Beschreibung des neuen Schadens..."
-                      rows="3"
-                    />
-                    <div className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-lg border-gray-300 text-center cursor-pointer hover:bg-gray-50">
-                      <div className="text-sm text-gray-600">
-                        <span className="material-symbols-outlined text-3xl text-primary">
-                          upload_file
-                        </span>
-                        <p>
-                          <span className="font-semibold">Fotos hochladen</span> oder hierher ziehen
-                        </p>
+              {/* Damage Report Section (for Check-in) */}
+              {processType === 'checkin' && (
+                <div>
+                  <h2 className="text-gray-900 text-[22px] font-bold mb-3">Schadensprotokoll</h2>
+                  <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    {/* Existing damages list */}
+                    {existingDamages.length > 0 && (
+                      <div className="mb-6">
+                        <h3 className="font-semibold mb-3 text-gray-900">Erfasste Schäden</h3>
+                        <div className="space-y-3">
+                          {existingDamages.map((damage, index) => (
+                            <div
+                              key={index}
+                              className="flex items-start justify-between p-3 bg-red-50 rounded-lg border border-red-200"
+                            >
+                              <div>
+                                <p className="font-medium text-gray-900">{damage.description}</p>
+                                {damage.estimatedCost > 0 && (
+                                  <p className="text-sm text-red-600">
+                                    Geschätzte Kosten: {damage.estimatedCost.toFixed(2)} EUR
+                                  </p>
+                                )}
+                                {damage.photos?.length > 0 && (
+                                  <p className="text-xs text-gray-500">
+                                    {damage.photos.length} Foto(s)
+                                  </p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => removeDamage(index)}
+                                className="text-red-600 hover:text-red-800"
+                              >
+                                <span className="material-symbols-outlined">delete</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Add new damage */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-gray-900">Neuen Schaden hinzufügen</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Schadensbeschreibung
+                          </label>
+                          <textarea
+                            className="w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-primary focus:border-primary"
+                            placeholder="Beschreibung des Schadens..."
+                            rows="3"
+                            value={newDamageDescription}
+                            onChange={(e) => setNewDamageDescription(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Geschätzte Kosten (EUR)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            className="w-full rounded-lg border-gray-300 bg-gray-50 focus:ring-primary focus:border-primary"
+                            placeholder="0.00"
+                            value={newDamageEstimatedCost}
+                            onChange={(e) => setNewDamageEstimatedCost(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Fotos
+                          </label>
+                          <div className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-lg border-gray-300 text-center cursor-pointer hover:bg-gray-50">
+                            <label className="cursor-pointer">
+                              <div className="text-sm text-gray-600">
+                                <span className="material-symbols-outlined text-3xl text-primary">
+                                  upload_file
+                                </span>
+                                <p>
+                                  <span className="font-semibold">Fotos hochladen</span> oder
+                                  hierher ziehen
+                                </p>
+                              </div>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                multiple
+                                onChange={handlePhotoUpload}
+                              />
+                            </label>
+                          </div>
+                          {damagePhotos.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {damagePhotos.map((photo, index) => (
+                                <div key={index} className="relative">
+                                  <img
+                                    src={photo.data}
+                                    alt={photo.name}
+                                    className="w-20 h-20 object-cover rounded-lg"
+                                  />
+                                  <button
+                                    onClick={() => removePhoto(index)}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                                  >
+                                    x
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={addDamage}
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                        >
+                          <span className="material-symbols-outlined">add</span>
+                          Schaden hinzufügen
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Right Column (Summary) */}
             <div className="lg:col-span-1">
               <div className="sticky top-8 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <h2 className="text-gray-900 text-[22px] font-bold mb-4">
-                  Zusammenfassung & Kosten
-                </h2>
+                <h2 className="text-gray-900 text-[22px] font-bold mb-4">Zusammenfassung</h2>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center text-sm">
-                    <p className="text-gray-600">Gefahrene Kilometer</p>
-                    <p className="font-medium text-gray-900">-</p>
+                    <p className="text-gray-600">Prozess</p>
+                    <p className="font-medium text-gray-900">
+                      {processType === 'checkout' ? 'Check-out' : 'Check-in'}
+                    </p>
                   </div>
-                  <hr className="border-gray-200" />
-                  <h3 className="font-semibold text-base text-gray-900">Zusatzkosten</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-sm">
-                      <p className="text-gray-600">Auftankgebühr</p>
-                      <p className="font-medium text-gray-900">€ 0.00</p>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <p className="text-gray-600">Reinigungsgebühr</p>
-                      <p className="font-medium text-gray-900">€ 0.00</p>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <p className="text-gray-600">Schadenskosten</p>
-                      <p className="font-medium text-red-600">€ 0.00</p>
-                    </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <p className="text-gray-600">Kilometerstand</p>
+                    <p className="font-medium text-gray-900">{mileage || '-'} km</p>
                   </div>
-                  <hr className="border-gray-200" />
-                  <div className="flex justify-between items-center">
-                    <p className="text-lg font-bold text-gray-900">Gesamtsumme</p>
-                    <p className="text-xl font-black text-gray-900">€ 0.00</p>
+                  {processType === 'checkin' && drivenKm !== null && drivenKm >= 0 && (
+                    <div className="flex justify-between items-center text-sm">
+                      <p className="text-gray-600">Gefahrene Kilometer</p>
+                      <p className="font-medium text-gray-900">{drivenKm} km</p>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-sm">
+                    <p className="text-gray-600">Tankfüllstand</p>
+                    <p className="font-medium text-gray-900">
+                      {FUEL_LEVELS.find((l) => l.numericValue === fuelSliderValue)?.label || '-'}
+                    </p>
                   </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <p className="text-gray-600">Sauberkeit</p>
+                    <p className="font-medium text-gray-900">
+                      {CLEANLINESS_OPTIONS.find((o) => o.value === cleanliness)?.label || '-'}
+                    </p>
+                  </div>
+
+                  {processType === 'checkin' && existingDamages.length > 0 && (
+                    <>
+                      <hr className="border-gray-200" />
+                      <div className="flex justify-between items-center text-sm">
+                        <p className="text-gray-600">Erfasste Schäden</p>
+                        <p className="font-medium text-red-600">{existingDamages.length}</p>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <p className="text-gray-600">Geschätzte Schadenskosten</p>
+                        <p className="font-medium text-red-600">
+                          {existingDamages
+                            .reduce((sum, d) => sum + (d.estimatedCost || 0), 0)
+                            .toFixed(2)}{' '}
+                          EUR
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
+
                 <div className="mt-8 flex flex-col gap-3">
-                  <button className="w-full flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-4 bg-primary text-white text-base font-bold hover:opacity-90">
-                    <span>Check-out abschließen</span>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center rounded-lg h-11 px-4 bg-primary text-white text-base font-bold hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <span className="material-symbols-outlined animate-spin">refresh</span>
+                    ) : (
+                      <span>
+                        {processType === 'checkout'
+                          ? 'Check-out abschließen'
+                          : 'Check-in abschließen'}
+                      </span>
+                    )}
                   </button>
-                  <button className="w-full flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-4 bg-gray-200 text-gray-700 text-base font-bold hover:bg-gray-300">
+                  <button
+                    onClick={() => setSelectedBooking(null)}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center rounded-lg h-11 px-4 bg-gray-200 text-gray-700 text-base font-bold hover:bg-gray-300 disabled:opacity-50"
+                  >
                     <span>Abbrechen</span>
                   </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

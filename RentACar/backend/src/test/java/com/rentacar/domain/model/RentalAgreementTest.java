@@ -48,7 +48,7 @@ class RentalAgreementTest {
         assertThatThrownBy(() -> agreement.checkIn(checkinMileage, LocalDateTime.now(), 
             new VehicleCondition("FULL", "CLEAN", null)))
             .isInstanceOf(InvalidMileageException.class)
-            .hasMessageContaining("Rückgabe-Kilometerstand darf nicht kleiner als Ausgabe-Kilometerstand sein");
+            .hasMessageContaining("darf nicht kleiner als Ausgabe-Kilometerstand");
     }
 
     @Test

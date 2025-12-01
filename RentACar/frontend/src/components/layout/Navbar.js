@@ -21,7 +21,6 @@ const Navbar = () => {
           <span className="material-symbols-outlined text-primary text-3xl">directions_car</span>
           <h2 className="text-xl font-bold tracking-tight">RENTACAR</h2>
         </Link>
-
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 md:flex">
           <Link
@@ -90,16 +89,7 @@ const Navbar = () => {
               </Link>
             </>
           )}
-          <Link
-            to="/help"
-            className={`text-sm font-medium transition-colors ${
-              isActive('/help') ? 'text-primary' : 'hover:text-primary'
-            }`}
-          >
-            Hilfe
-          </Link>
-        </div>
-
+        </div>{' '}
         {/* Auth Buttons */}
         <div className="flex gap-2 items-center">
           {isAuthenticated && user ? (

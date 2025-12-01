@@ -50,6 +50,7 @@ class RentalApplicationServiceTest {
         when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(booking));
         when(booking.getStatus()).thenReturn(BookingStatus.CONFIRMED);
         when(booking.getVehicle()).thenReturn(vehicle);
+        when(vehicle.getMileage()).thenReturn(Mileage.of(500));
         
         // Act
         rentalApplicationService.performCheckOut(bookingId, 1000, "1/1", "CLEAN", "None");
