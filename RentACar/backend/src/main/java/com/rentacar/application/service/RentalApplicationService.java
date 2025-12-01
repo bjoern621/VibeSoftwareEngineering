@@ -93,14 +93,20 @@ public class RentalApplicationService {
                 new VehicleCondition(fuelLevel, cleanliness, damagesDescription)
         );
 
-        // 2. Calculate Additional Costs
+        // 2. Create DamageReport if damages are reported
+        if (damagesDescription != null && !damagesDescription.isBlank()) {
+            DamageReport damageReport = new DamageReport(agreement, damagesDescription, null, null);
+            damageReportRepository.save(damageReport);
+        }
+
+        // 3. Calculate Additional Costs
         List<DamageReport> damageReports = damageReportRepository.findByRentalAgreementId(agreement.getId());
         AdditionalCosts costs = additionalCostService.calculateAdditionalCosts(booking, agreement, damageReports);
         agreement.updateAdditionalCosts(costs);
 
         rentalAgreementRepository.save(agreement);
 
-        // 3. Update Vehicle Status
+        // 4. Update Vehicle Status
         vehicle.markAsAvailable(Mileage.of(mileage));
         
         if (damagesDescription != null && !damagesDescription.isBlank()) {
@@ -108,11 +114,11 @@ public class RentalApplicationService {
         }
         vehicleRepository.save(vehicle);
 
-        // 4. Complete Booking
+        // 5. Complete Booking
         booking.complete();
         bookingRepository.save(booking);
 
-        // 5. Send Invoice Email
+        // 6. Send Invoice Email
         Customer customer = booking.getCustomer();
         emailService.sendInvoiceEmail(customer.getEmail(), customer.getFirstName() + " " + customer.getLastName(), booking, agreement);
     }
