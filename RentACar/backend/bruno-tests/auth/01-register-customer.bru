@@ -12,8 +12,8 @@ post {
 
 body:json {
   {
-    "email": "bruno.test@example.com",
-    "password": "SecurePass123!",
+    "email": "test.customer@example.com",
+    "password": "Test1234!",
     "firstName": "Bruno",
     "lastName": "Testuser",
     "phoneNumber": "+49 30 12345678",
@@ -38,7 +38,7 @@ tests {
 
   test("Response contains customer data if created", function() {
     if (res.status === 201) {
-      expect(res.body.email).to.equal("bruno.test@example.com");
+      expect(res.body.email).to.equal("test.customer@example.com");
     }
   });
 }

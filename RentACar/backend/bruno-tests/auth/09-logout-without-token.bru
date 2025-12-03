@@ -1,0 +1,29 @@
+meta {
+  name: 09-logout-without-token
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/kunden/logout
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 403
+}
+
+docs {
+  # Logout ohne Token - Forbidden
+
+  Testet, dass ein Logout ohne Authorization-Header fehlschlägt.
+
+  ## Erwartetes Ergebnis
+  - Status: 403 Forbidden (Spring Security blockiert unauthentifizierte Requests)
+  - Kein Token wird zur Blacklist hinzugefügt
+
+  ## Hinweis
+  - Spring Security gibt 403 statt 400/401 für fehlende Authentifizierung zurück
+}
+

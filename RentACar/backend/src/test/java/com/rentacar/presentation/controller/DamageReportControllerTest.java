@@ -1,6 +1,7 @@
 package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.DamageReportApplicationService;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.infrastructure.security.CustomerUserDetailsService;
 import com.rentacar.infrastructure.security.JwtAuthenticationFilter;
 import com.rentacar.infrastructure.security.JwtUtil;
@@ -47,6 +48,9 @@ class DamageReportControllerTest {
 
     @MockBean
     private JwtUtil jwtUtil;
+
+    @MockBean
+    private TokenBlacklistService tokenBlacklistService;
 
     @Autowired
     private ObjectMapper objectMapper;

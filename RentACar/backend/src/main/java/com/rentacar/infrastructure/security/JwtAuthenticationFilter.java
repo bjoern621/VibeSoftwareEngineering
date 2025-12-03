@@ -1,5 +1,6 @@
 package com.rentacar.infrastructure.security;
 
+import com.rentacar.domain.service.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,16 +17,21 @@ import java.io.IOException;
 /**
  * JWT Authentication Filter.
  * Interceptiert HTTP-Requests und validiert JWT-Token im Authorization-Header.
+ * Prüft zusätzlich die Token-Blacklist für ausgeloggte Tokens.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomerUserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomerUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil,
+                                   CustomerUserDetailsService userDetailsService,
+                                   TokenBlacklistService tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -40,6 +46,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Extrahiere JWT-Token aus Authorization-Header
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
+
+            // Prüfe ob Token auf Blacklist steht (ausgeloggt)
+            if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
+                logger.warn("Token ist auf der Blacklist (Benutzer wurde ausgeloggt)");
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             try {
                 email = jwtUtil.extractEmail(jwt);
             } catch (Exception e) {
@@ -51,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-            if (jwtUtil.validateToken(jwt, userDetails)) {
+            if (Boolean.TRUE.equals(jwtUtil.validateToken(jwt, userDetails))) {
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,

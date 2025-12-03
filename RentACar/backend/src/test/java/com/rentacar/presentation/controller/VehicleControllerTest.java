@@ -8,6 +8,7 @@ import com.rentacar.domain.exception.VehicleNotFoundException;
 import com.rentacar.domain.exception.VehicleStatusTransitionException;
 import com.rentacar.domain.model.VehicleStatus;
 import com.rentacar.domain.model.VehicleType;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.presentation.dto.CreateVehicleRequestDTO;
 import com.rentacar.presentation.dto.UpdateVehicleRequestDTO;
 import com.rentacar.presentation.dto.VehicleResponseDTO;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,7 +52,10 @@ class VehicleControllerTest {
     
     @MockBean
     private VehicleApplicationService vehicleApplicationService;
-    
+
+    @MockBean
+    private TokenBlacklistService tokenBlacklistService;
+
     private VehicleResponseDTO testVehicleResponse;
     private CreateVehicleRequestDTO createRequest;
     private UpdateVehicleRequestDTO updateRequest;

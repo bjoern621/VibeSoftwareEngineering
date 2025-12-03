@@ -1,11 +1,12 @@
 package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.VehicleTypeApplicationService;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,7 +29,10 @@ class VehicleTypeControllerTest {
     
     @Autowired
     private MockMvc mockMvc;
-    
+
+    @MockBean
+    private TokenBlacklistService tokenBlacklistService;
+
     @Test
     void getAllVehicleTypesShouldReturnAllTypes() throws Exception {
         // When & Then
