@@ -1,5 +1,6 @@
 package com.rentacar.presentation.dto;
 
+import com.rentacar.infrastructure.validation.ValidPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -11,8 +12,6 @@ public class RegisterCustomerRequestDTO {
 
     private static final int MIN_NAME_LENGTH = 2;
     private static final int MAX_NAME_LENGTH = 100;
-    private static final int MIN_PASSWORD_LENGTH = 8;
-    private static final int MAX_PASSWORD_LENGTH = 100;
 
     @NotBlank(message = "Vorname darf nicht leer sein")
     @Size(min = MIN_NAME_LENGTH, max = MAX_NAME_LENGTH, message = "Vorname muss zwischen 2 und 100 Zeichen lang sein")
@@ -41,27 +40,18 @@ public class RegisterCustomerRequestDTO {
     private String phoneNumber;
 
     @NotBlank(message = "Passwort darf nicht leer sein")
-    @Size(min = MIN_PASSWORD_LENGTH, max = MAX_PASSWORD_LENGTH, message = "Passwort muss mindestens 8 Zeichen lang sein")
+    @ValidPassword
     private String password;
 
-    // Constructors
+    /**
+     * Default Constructor für Jackson Deserialisierung und Bean Validation.
+     * Felder werden via Setter befüllt.
+     */
     public RegisterCustomerRequestDTO() {
+        // No-args constructor für Jackson/JPA
     }
 
-    public RegisterCustomerRequestDTO(String firstName, String lastName, String street,
-                                     String postalCode, String city, String driverLicenseNumber,
-                                     String email, String phoneNumber, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.street = street;
-        this.postalCode = postalCode;
-        this.city = city;
-        this.driverLicenseNumber = driverLicenseNumber;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.password = password;
-    }
-
+    // Getters and Setters
     // Getters and Setters
     public String getFirstName() {
         return firstName;
