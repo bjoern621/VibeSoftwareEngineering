@@ -7,6 +7,7 @@ import com.rentacar.domain.model.DriverLicenseNumber;
 import com.rentacar.domain.repository.CustomerRepository;
 import com.rentacar.domain.service.EmailService;
 import com.rentacar.infrastructure.security.JwtUtil;
+import com.rentacar.infrastructure.security.LoginRateLimiterService;
 import com.rentacar.presentation.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,8 @@ class CustomerApplicationServiceTest {
     private JwtUtil jwtUtil;
     @Mock
     private EmailService emailService;
+    @Mock
+    private LoginRateLimiterService loginRateLimiterService;
 
     private CustomerApplicationService customerApplicationService;
 
@@ -49,6 +52,7 @@ class CustomerApplicationServiceTest {
                 authenticationManager,
                 jwtUtil,
                 emailService,
+                loginRateLimiterService,
                 false // autoVerifyEmail
         );
     }

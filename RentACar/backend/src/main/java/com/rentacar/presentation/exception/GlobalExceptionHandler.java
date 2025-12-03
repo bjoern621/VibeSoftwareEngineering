@@ -12,6 +12,7 @@ import com.rentacar.domain.exception.InvalidLicensePlateException;
 import com.rentacar.domain.exception.InvalidMileageException;
 import com.rentacar.domain.exception.InvalidVehicleDataException;
 import com.rentacar.domain.exception.InvalidVerificationTokenException;
+import com.rentacar.domain.exception.TooManyLoginAttemptsException;
 import com.rentacar.domain.exception.VehicleNotAvailableException;
 import com.rentacar.domain.exception.VehicleNotFoundException;
 import com.rentacar.domain.exception.VehicleStatusTransitionException;
@@ -27,7 +28,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Globaler Exception Handler für die REST API.
@@ -166,7 +166,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+        ex.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
@@ -312,7 +312,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<VehicleNotAvailableErrorResponse> handleVehicleNotAvailableException(VehicleNotAvailableException ex) {
         List<VehicleResponseDTO> alternatives = ex.getAlternativeVehicles().stream()
             .map(VehicleResponseDTO::fromEntity)
-            .collect(Collectors.toList());
+            .toList();
 
         VehicleNotAvailableErrorResponse error = new VehicleNotAvailableErrorResponse(
             LocalDateTime.now(),
@@ -322,6 +322,27 @@ public class GlobalExceptionHandler {
             alternatives
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /**
+     * Behandelt TooManyLoginAttemptsException.
+     *
+     * @param ex die Exception
+     * @return HTTP 429 Too Many Requests mit Retry-After Header
+     */
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<ErrorResponse> handleTooManyLoginAttemptsException(TooManyLoginAttemptsException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.TOO_MANY_REQUESTS.value(),
+            "Zu viele Login-Versuche",
+            ex.getMessage()
+        );
+
+        return ResponseEntity
+            .status(HttpStatus.TOO_MANY_REQUESTS)
+            .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+            .body(error);
     }
 
     /**
