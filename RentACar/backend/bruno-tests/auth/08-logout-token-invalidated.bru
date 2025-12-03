@@ -1,0 +1,40 @@
+meta {
+  name: 08-logout-token-invalidated
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/kunden/profil
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+assert {
+  res.status: eq 403
+}
+
+docs {
+  # Nach Logout - Token ist ungültig
+
+  Testet, dass ein ausgeloggter Token nicht mehr verwendet werden kann.
+
+  ## Vorbedingungen
+  - Test 07-logout-success wurde ausgeführt
+  - authToken wurde durch Logout invalidiert
+
+  ## Erwartetes Ergebnis
+  - Status: 403 Forbidden (Spring Security blockiert blacklisted tokens)
+  - Token ist auf der Blacklist
+  - Zugriff auf geschützte Ressourcen wird verweigert
+
+  ## Wichtig
+  - Dieser Test muss NACH dem Logout-Test (07) ausgeführt werden
+  - Er verwendet denselben Token, der vorher ausgeloggt wurde
+  - Spring Security gibt 403 statt 401 für blacklisted tokens zurück
+}
+

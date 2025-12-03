@@ -96,4 +96,24 @@ public class CustomerController {
         customerApplicationService.verifyEmail(token);
         return ResponseEntity.ok("E-Mail-Adresse erfolgreich verifiziert");
     }
+
+    /**
+     * Loggt einen Kunden aus und invalidiert den JWT-Token.
+     * Erfordert Authentifizierung (JWT-Token).
+     * Der Token wird auf die Blacklist gesetzt und ist ab sofort ungültig.
+     *
+     * @param authHeader Authorization-Header mit JWT-Token
+     * @return Erfolgsmeldung
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Ungültiger Authorization-Header");
+        }
+
+        String token = authHeader.substring(7);
+        customerApplicationService.logoutCustomer(token);
+
+        return ResponseEntity.ok("Erfolgreich ausgeloggt");
+    }
 }

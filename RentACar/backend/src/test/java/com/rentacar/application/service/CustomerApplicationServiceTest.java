@@ -6,6 +6,7 @@ import com.rentacar.domain.model.Customer;
 import com.rentacar.domain.model.DriverLicenseNumber;
 import com.rentacar.domain.repository.CustomerRepository;
 import com.rentacar.domain.service.EmailService;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.infrastructure.security.LoginRateLimiterService;
 import com.rentacar.presentation.dto.*;
@@ -41,6 +42,8 @@ class CustomerApplicationServiceTest {
     private EmailService emailService;
     @Mock
     private LoginRateLimiterService loginRateLimiterService;
+    @Mock
+    private TokenBlacklistService tokenBlacklistService;
 
     private CustomerApplicationService customerApplicationService;
 
@@ -53,6 +56,7 @@ class CustomerApplicationServiceTest {
                 jwtUtil,
                 emailService,
                 loginRateLimiterService,
+                tokenBlacklistService,
                 false // autoVerifyEmail
         );
     }

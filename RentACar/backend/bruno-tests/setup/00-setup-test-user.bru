@@ -12,8 +12,8 @@ post {
 
 body:json {
   {
-    "email": "bruno.test@example.com",
-    "password": "SecurePass123!",
+    "email": "test.customer@example.com",
+    "password": "Test1234!",
     "firstName": "Bruno",
     "lastName": "Testuser",
     "phoneNumber": "+49 30 12345678",
@@ -37,8 +37,8 @@ script:post-response {
   
   try {
     const loginRes = await axios.post(`${baseUrl}/api/kunden/login`, {
-      email: "bruno.test@example.com",
-      password: "SecurePass123!"
+      email: "test.customer@example.com",
+      password: "Test1234!"
     });
     
     if (loginRes.data && loginRes.data.token) {

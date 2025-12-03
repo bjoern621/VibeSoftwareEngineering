@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentacar.TestSecurityConfig;
 import com.rentacar.application.service.BookingApplicationService;
 import com.rentacar.domain.model.*;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.infrastructure.security.JwtAuthenticationFilter;
 import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.infrastructure.security.CustomerUserDetailsService;
@@ -23,7 +24,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -59,7 +59,10 @@ class BookingHistoryControllerTest {
     
     @MockBean
     private CustomerUserDetailsService customerUserDetailsService;
-    
+
+    @MockBean
+    private TokenBlacklistService tokenBlacklistService;
+
     @MockBean
     private com.rentacar.domain.repository.BookingRepository bookingRepository;
     

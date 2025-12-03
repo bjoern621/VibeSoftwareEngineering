@@ -22,8 +22,8 @@ script:pre-request {
   if (!token || token === "") {
     try {
       const loginRes = await axios.post(`${baseUrl}/api/kunden/login`, {
-        email: "bruno.test@example.com",
-        password: "SecurePass123!"
+        email: "test.customer@example.com",
+        password: "Test1234!"
       });
       if (loginRes.data && loginRes.data.token) {
         bru.setEnvVar("authToken", loginRes.data.token);
@@ -40,7 +40,7 @@ tests {
   });
 
   test("Response contains customer data", function() {
-    expect(res.body.email).to.equal("bruno.test@example.com");
+    expect(res.body.email).to.equal("test.customer@example.com");
     expect(res.body.firstName).to.be.a("string");
     expect(res.body.lastName).to.be.a("string");
   });

@@ -2,6 +2,7 @@ package com.rentacar.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rentacar.application.service.CustomerApplicationService;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.infrastructure.security.LoginRateLimiterService;
 import com.rentacar.presentation.exception.GlobalExceptionHandler;
 import com.rentacar.TestSecurityConfig;
@@ -29,6 +30,9 @@ class CustomerControllerRateLimitingTest {
 
     @MockBean
     private CustomerApplicationService customerApplicationService;
+
+    @MockBean
+    private TokenBlacklistService tokenBlacklistService;
 
     private LoginRateLimiterService rateLimiterService;
 

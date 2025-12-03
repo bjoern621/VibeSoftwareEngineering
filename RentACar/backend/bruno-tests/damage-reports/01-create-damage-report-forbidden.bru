@@ -21,8 +21,8 @@ script:pre-request {
   // Customer role - should be forbidden (only EMPLOYEE/ADMIN allowed)
   try {
     await axios.post(`${baseUrl}/api/kunden/registrierung`, {
-      email: "bruno.test@example.com",
-      password: "SecurePass123!",
+      email: "test.customer@example.com",
+      password: "Test1234!",
       firstName: "Bruno",
       lastName: "Testuser",
       phoneNumber: "+49 30 12345678",
@@ -35,8 +35,8 @@ script:pre-request {
   
   try {
     const loginRes = await axios.post(`${baseUrl}/api/kunden/login`, {
-      email: "bruno.test@example.com",
-      password: "SecurePass123!"
+      email: "test.customer@example.com",
+      password: "Test1234!"
     });
     if (loginRes.data && loginRes.data.token) {
       bru.setEnvVar("authToken", loginRes.data.token);

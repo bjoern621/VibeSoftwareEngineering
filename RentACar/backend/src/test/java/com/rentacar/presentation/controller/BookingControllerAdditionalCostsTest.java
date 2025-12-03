@@ -1,6 +1,7 @@
 package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.BookingApplicationService;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.infrastructure.security.CustomerUserDetailsService;
 import com.rentacar.presentation.dto.AdditionalCostsDTO;
@@ -31,7 +32,10 @@ class BookingControllerAdditionalCostsTest {
     private JwtUtil jwtUtil;
 
     @MockBean
-    private com.rentacar.infrastructure.security.CustomerUserDetailsService customerUserDetailsService;
+    private CustomerUserDetailsService customerUserDetailsService;
+
+    @MockBean
+    private TokenBlacklistService tokenBlacklistService;
 
     @Test
     @WithMockUser(roles = "CUSTOMER")

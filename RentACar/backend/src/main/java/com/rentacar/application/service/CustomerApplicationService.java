@@ -10,6 +10,7 @@ import com.rentacar.domain.model.Customer;
 import com.rentacar.domain.model.DriverLicenseNumber;
 import com.rentacar.domain.repository.CustomerRepository;
 import com.rentacar.domain.service.EmailService;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.infrastructure.security.LoginRateLimiterService;
 import com.rentacar.presentation.dto.*;
@@ -35,6 +36,7 @@ public class CustomerApplicationService {
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
     private final LoginRateLimiterService loginRateLimiterService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     private final boolean autoVerifyEmail;
 
@@ -44,6 +46,7 @@ public class CustomerApplicationService {
                                      JwtUtil jwtUtil,
                                      EmailService emailService,
                                      LoginRateLimiterService loginRateLimiterService,
+                                     TokenBlacklistService tokenBlacklistService,
                                      @org.springframework.beans.factory.annotation.Value("${customer.auto-verify-email:false}") boolean autoVerifyEmail) {
         this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
@@ -51,6 +54,7 @@ public class CustomerApplicationService {
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
         this.loginRateLimiterService = loginRateLimiterService;
+        this.tokenBlacklistService = tokenBlacklistService;
         this.autoVerifyEmail = autoVerifyEmail;
     }
 
@@ -236,6 +240,22 @@ public class CustomerApplicationService {
 
         // Willkommens-E-Mail senden
         emailService.sendWelcomeEmail(customer.getEmail(), customer.getFullName());
+    }
+
+    /**
+     * Loggt einen Kunden aus, indem der JWT-Token auf die Blacklist gesetzt wird.
+     * Der Token ist ab diesem Zeitpunkt ungültig, auch wenn er noch nicht abgelaufen ist.
+     *
+     * @param token JWT-Token der invalidiert werden soll
+     */
+    public void logoutCustomer(String token) {
+        // Berechne verbleibende Token-Gültigkeit
+        var expiration = jwtUtil.extractExpiration(token);
+        var now = new java.util.Date();
+        var remainingValidity = java.time.Duration.ofMillis(expiration.getTime() - now.getTime());
+
+        // Token zur Blacklist hinzufügen
+        tokenBlacklistService.blacklistToken(token, remainingValidity);
     }
 
     private CustomerProfileResponseDTO mapToProfileResponse(Customer customer) {

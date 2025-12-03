@@ -2,6 +2,7 @@ package com.rentacar.presentation.controller;
 
 import com.rentacar.domain.exception.VehicleNotAvailableException;
 import com.rentacar.domain.model.*;
+import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.presentation.dto.CreateBookingRequestDTO;
 import java.util.Collections;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +55,10 @@ class BookingControllerTest {
     
     @MockBean
     private CustomerUserDetailsService customerUserDetailsService;
-    
+
+    @MockBean
+    private TokenBlacklistService tokenBlacklistService;
+
     @MockBean
     private com.rentacar.domain.repository.BookingRepository bookingRepository;
     

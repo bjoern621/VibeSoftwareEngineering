@@ -321,7 +321,7 @@ public class DataInitializer {
                 customerRepository.save(testCustomer3);
                 
                 // ========== UI TEST ACCOUNTS (EINFACH) ==========
-                logger.info("🧪 Erstelle einfache Test-Accounts für UI-Tests (E-Mail/Passwort: 12345678)");
+                logger.info("🧪 Erstelle einfache Test-Accounts für UI-Tests (E-Mail/Passwort: Test1234!)");
                 Customer uiCustomer = customerRepository.save(new Customer(
                     "UI",
                     "Customer",
@@ -329,7 +329,7 @@ public class DataInitializer {
                     new DriverLicenseNumber("B2000000000"),
                     "test.customer@example.com",
                     "+49 30 00000000",
-                    passwordEncoder.encode("12345678"),
+                    passwordEncoder.encode("Test1234!"),
                     Role.CUSTOMER
                 ));
                 uiCustomer.verifyEmail(uiCustomer.generateVerificationToken());
@@ -342,7 +342,7 @@ public class DataInitializer {
                     new DriverLicenseNumber("B2000000001"),
                     "test.employee@example.com",
                     "+49 30 00000001",
-                    passwordEncoder.encode("12345678"),
+                    passwordEncoder.encode("Test1234!"),
                     Role.EMPLOYEE
                 ));
                 uiEmployee.verifyEmail(uiEmployee.generateVerificationToken());
@@ -355,7 +355,7 @@ public class DataInitializer {
                     new DriverLicenseNumber("B2000000002"),
                     "test.admin@example.com",
                     "+49 30 00000002",
-                    passwordEncoder.encode("12345678"),
+                    passwordEncoder.encode("Test1234!"),
                     Role.ADMIN
                 ));
                 uiAdmin.verifyEmail(uiAdmin.generateVerificationToken());
