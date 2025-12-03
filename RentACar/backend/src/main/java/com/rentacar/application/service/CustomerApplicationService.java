@@ -11,6 +11,7 @@ import com.rentacar.domain.model.DriverLicenseNumber;
 import com.rentacar.domain.repository.CustomerRepository;
 import com.rentacar.domain.service.EmailService;
 import com.rentacar.infrastructure.security.JwtUtil;
+import com.rentacar.infrastructure.security.LoginRateLimiterService;
 import com.rentacar.presentation.dto.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,7 +34,8 @@ public class CustomerApplicationService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
-    
+    private final LoginRateLimiterService loginRateLimiterService;
+
     private final boolean autoVerifyEmail;
 
     public CustomerApplicationService(CustomerRepository customerRepository,
@@ -41,12 +43,14 @@ public class CustomerApplicationService {
                                      AuthenticationManager authenticationManager,
                                      JwtUtil jwtUtil,
                                      EmailService emailService,
+                                     LoginRateLimiterService loginRateLimiterService,
                                      @org.springframework.beans.factory.annotation.Value("${customer.auto-verify-email:false}") boolean autoVerifyEmail) {
         this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.emailService = emailService;
+        this.loginRateLimiterService = loginRateLimiterService;
         this.autoVerifyEmail = autoVerifyEmail;
     }
 
@@ -118,9 +122,13 @@ public class CustomerApplicationService {
      *
      * @param request Login-Daten
      * @return JWT-Token und Kundendaten
-     * @throws AuthenticationException wenn Authentifizierung fehlschlägt
+     * @throws org.springframework.security.core.AuthenticationException wenn Authentifizierung fehlschlägt
+     * @throws com.rentacar.domain.exception.TooManyLoginAttemptsException wenn zu viele fehlgeschlagene Versuche
      */
     public AuthenticationResponseDTO authenticateCustomer(LoginRequestDTO request) {
+        // Rate Limiting prüfen (wirft TooManyLoginAttemptsException bei Überschreitung)
+        loginRateLimiterService.checkLoginAttempt(request.getEmail());
+
         // Authentifizierung mit Spring Security
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -135,6 +143,9 @@ public class CustomerApplicationService {
 
         // JWT-Token generieren
         String jwtToken = jwtUtil.generateToken(customer.getEmail(), customer.getId());
+
+        // Bei erfolgreichem Login: Counter zurücksetzen
+        loginRateLimiterService.resetLoginAttempts(request.getEmail());
 
         return new AuthenticationResponseDTO(jwtToken, customer.getId(), customer.getEmail());
     }
