@@ -55,7 +55,7 @@ class CustomerApplicationServiceTest {
 
     @Test
     void registerCustomer_Success() {
-        RegisterCustomerRequestDTO request = new RegisterCustomerRequestDTO(
+        RegisterCustomerRequestDTO request = createRegisterRequest(
                 "John", "Doe", "Street 1", "12345", "City",
                 "DL123456789", "john@example.com", "123456789", "password"
         );
@@ -95,7 +95,7 @@ class CustomerApplicationServiceTest {
 
     @Test
     void registerCustomer_DuplicateEmail() {
-        RegisterCustomerRequestDTO request = new RegisterCustomerRequestDTO(
+        RegisterCustomerRequestDTO request = createRegisterRequest(
                 "John", "Doe", "Street 1", "12345", "City",
                 "DL123456789", "john@example.com", "123456789", "password"
         );
@@ -108,7 +108,7 @@ class CustomerApplicationServiceTest {
 
     @Test
     void registerCustomer_DuplicateDriverLicense() {
-        RegisterCustomerRequestDTO request = new RegisterCustomerRequestDTO(
+        RegisterCustomerRequestDTO request = createRegisterRequest(
                 "John", "Doe", "Street 1", "12345", "City",
                 "DL123456789", "john@example.com", "123456789", "password"
         );
@@ -118,6 +118,23 @@ class CustomerApplicationServiceTest {
 
         assertThrows(DuplicateDriverLicenseException.class, () -> customerApplicationService.registerCustomer(request));
         verify(customerRepository, never()).save(any());
+    }
+
+    // Helper-Methode zum Erstellen von RegisterCustomerRequestDTO
+    private RegisterCustomerRequestDTO createRegisterRequest(
+            String firstName, String lastName, String street, String postalCode, String city,
+            String driverLicenseNumber, String email, String phoneNumber, String password) {
+        RegisterCustomerRequestDTO dto = new RegisterCustomerRequestDTO();
+        dto.setFirstName(firstName);
+        dto.setLastName(lastName);
+        dto.setStreet(street);
+        dto.setPostalCode(postalCode);
+        dto.setCity(city);
+        dto.setDriverLicenseNumber(driverLicenseNumber);
+        dto.setEmail(email);
+        dto.setPhoneNumber(phoneNumber);
+        dto.setPassword(password);
+        return dto;
     }
 
     @Test
