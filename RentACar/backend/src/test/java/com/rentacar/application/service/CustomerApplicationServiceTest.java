@@ -4,8 +4,10 @@ import com.rentacar.domain.exception.*;
 import com.rentacar.domain.model.Address;
 import com.rentacar.domain.model.Customer;
 import com.rentacar.domain.model.DriverLicenseNumber;
+import com.rentacar.domain.model.RefreshToken;
 import com.rentacar.domain.repository.CustomerRepository;
 import com.rentacar.domain.service.EmailService;
+import com.rentacar.domain.service.RefreshTokenService;
 import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.infrastructure.security.LoginRateLimiterService;
@@ -44,6 +46,8 @@ class CustomerApplicationServiceTest {
     private LoginRateLimiterService loginRateLimiterService;
     @Mock
     private TokenBlacklistService tokenBlacklistService;
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     private CustomerApplicationService customerApplicationService;
 
@@ -57,6 +61,7 @@ class CustomerApplicationServiceTest {
                 emailService,
                 loginRateLimiterService,
                 tokenBlacklistService,
+                refreshTokenService,
                 false // autoVerifyEmail
         );
     }
@@ -91,14 +96,21 @@ class CustomerApplicationServiceTest {
         when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
         when(jwtUtil.generateToken(anyString(), anyLong())).thenReturn("jwt-token");
 
+        // Mock RefreshToken creation
+        RefreshToken mockRefreshToken = mock(RefreshToken.class);
+        when(mockRefreshToken.getToken()).thenReturn("refresh-token-uuid");
+        when(refreshTokenService.createRefreshToken(any(Customer.class))).thenReturn(mockRefreshToken);
+
         AuthenticationResponseDTO response = customerApplicationService.registerCustomer(request);
 
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
+        assertEquals("refresh-token-uuid", response.getRefreshToken());
         assertEquals(1L, response.getCustomerId());
         assertEquals("john@example.com", response.getEmail());
 
         verify(emailService).sendVerificationEmail(eq("john@example.com"), eq("John Doe"), anyString());
+        verify(refreshTokenService).createRefreshToken(any(Customer.class));
     }
 
     @Test
@@ -155,11 +167,18 @@ class CustomerApplicationServiceTest {
         when(customerRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(customer));
         when(jwtUtil.generateToken("john@example.com", 1L)).thenReturn("jwt-token");
 
+        // Mock RefreshToken creation
+        RefreshToken mockRefreshToken = mock(RefreshToken.class);
+        when(mockRefreshToken.getToken()).thenReturn("refresh-token-uuid");
+        when(refreshTokenService.createRefreshToken(any(Customer.class))).thenReturn(mockRefreshToken);
+
         AuthenticationResponseDTO response = customerApplicationService.authenticateCustomer(request);
 
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
+        assertEquals("refresh-token-uuid", response.getRefreshToken());
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(refreshTokenService).createRefreshToken(any(Customer.class));
     }
 
     @Test

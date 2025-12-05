@@ -8,8 +8,10 @@ import com.rentacar.domain.exception.InvalidVerificationTokenException;
 import com.rentacar.domain.model.Address;
 import com.rentacar.domain.model.Customer;
 import com.rentacar.domain.model.DriverLicenseNumber;
+import com.rentacar.domain.model.RefreshToken;
 import com.rentacar.domain.repository.CustomerRepository;
 import com.rentacar.domain.service.EmailService;
+import com.rentacar.domain.service.RefreshTokenService;
 import com.rentacar.domain.service.TokenBlacklistService;
 import com.rentacar.infrastructure.security.JwtUtil;
 import com.rentacar.infrastructure.security.LoginRateLimiterService;
@@ -37,6 +39,7 @@ public class CustomerApplicationService {
     private final EmailService emailService;
     private final LoginRateLimiterService loginRateLimiterService;
     private final TokenBlacklistService tokenBlacklistService;
+    private final RefreshTokenService refreshTokenService;
 
     private final boolean autoVerifyEmail;
 
@@ -47,6 +50,7 @@ public class CustomerApplicationService {
                                      EmailService emailService,
                                      LoginRateLimiterService loginRateLimiterService,
                                      TokenBlacklistService tokenBlacklistService,
+                                     RefreshTokenService refreshTokenService,
                                      @org.springframework.beans.factory.annotation.Value("${customer.auto-verify-email:false}") boolean autoVerifyEmail) {
         this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
@@ -55,6 +59,7 @@ public class CustomerApplicationService {
         this.emailService = emailService;
         this.loginRateLimiterService = loginRateLimiterService;
         this.tokenBlacklistService = tokenBlacklistService;
+        this.refreshTokenService = refreshTokenService;
         this.autoVerifyEmail = autoVerifyEmail;
     }
 
@@ -115,10 +120,11 @@ public class CustomerApplicationService {
                 verificationToken
         );
 
-        // JWT-Token generieren
+        // JWT-Token und Refresh-Token generieren
         String jwtToken = jwtUtil.generateToken(customer.getEmail(), customer.getId());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(customer);
 
-        return new AuthenticationResponseDTO(jwtToken, customer.getId(), customer.getEmail());
+        return new AuthenticationResponseDTO(jwtToken, refreshToken.getToken(), customer.getId(), customer.getEmail());
     }
 
     /**
@@ -145,13 +151,14 @@ public class CustomerApplicationService {
         Customer customer = customerRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new CustomerNotFoundException(request.getEmail()));
 
-        // JWT-Token generieren
+        // JWT-Token und Refresh-Token generieren
         String jwtToken = jwtUtil.generateToken(customer.getEmail(), customer.getId());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(customer);
 
         // Bei erfolgreichem Login: Counter zurücksetzen
         loginRateLimiterService.resetLoginAttempts(request.getEmail());
 
-        return new AuthenticationResponseDTO(jwtToken, customer.getId(), customer.getEmail());
+        return new AuthenticationResponseDTO(jwtToken, refreshToken.getToken(), customer.getId(), customer.getEmail());
     }
 
     /**
@@ -243,8 +250,9 @@ public class CustomerApplicationService {
     }
 
     /**
-     * Loggt einen Kunden aus, indem der JWT-Token auf die Blacklist gesetzt wird.
-     * Der Token ist ab diesem Zeitpunkt ungültig, auch wenn er noch nicht abgelaufen ist.
+     * Loggt einen Kunden aus, indem der JWT-Token auf die Blacklist gesetzt wird
+     * und alle Refresh-Tokens widerrufen werden.
+     * Die Tokens sind ab diesem Zeitpunkt ungültig, auch wenn sie noch nicht abgelaufen sind.
      *
      * @param token JWT-Token der invalidiert werden soll
      */
@@ -256,6 +264,34 @@ public class CustomerApplicationService {
 
         // Token zur Blacklist hinzufügen
         tokenBlacklistService.blacklistToken(token, remainingValidity);
+
+        // Alle Refresh-Tokens des Kunden widerrufen
+        Long customerId = jwtUtil.extractCustomerId(token);
+        refreshTokenService.revokeAllTokensByCustomerId(customerId);
+    }
+
+    /**
+     * Erneuert den Access-Token mittels eines gültigen Refresh-Tokens.
+     *
+     * @param refreshTokenString Refresh-Token
+     * @return Neuer Access-Token und neuer Refresh-Token
+     * @throws RefreshTokenService.RefreshTokenException wenn Refresh-Token ungültig ist
+     */
+    public AuthenticationResponseDTO refreshAccessToken(String refreshTokenString) {
+        // Refresh-Token validieren
+        RefreshToken refreshToken = refreshTokenService.validateRefreshToken(refreshTokenString);
+
+        // Customer laden
+        Customer customer = refreshToken.getCustomer();
+
+        // Alten Refresh-Token widerrufen
+        refreshTokenService.revokeRefreshToken(refreshTokenString);
+
+        // Neuen JWT-Token und Refresh-Token generieren
+        String newJwtToken = jwtUtil.generateToken(customer.getEmail(), customer.getId());
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(customer);
+
+        return new AuthenticationResponseDTO(newJwtToken, newRefreshToken.getToken(), customer.getId(), customer.getEmail());
     }
 
     private CustomerProfileResponseDTO mapToProfileResponse(Customer customer) {
