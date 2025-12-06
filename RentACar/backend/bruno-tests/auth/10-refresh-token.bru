@@ -1,7 +1,7 @@
 meta {
   name: Refresh Access Token
   type: http
-  seq: 11
+  seq: 4
 }
 
 post {
@@ -30,8 +30,12 @@ assert {
 
 script:post-response {
   if (res.status === 200) {
-    bru.setVar("token", res.body.token);
-    bru.setVar("refreshToken", res.body.refreshToken);
+    // Update both the generic token and authToken for subsequent tests
+    bru.setEnvVar("authToken", res.body.token);
+    bru.setEnvVar("refreshToken", res.body.refreshToken);
+    console.log("✅ Token refreshed successfully");
+  } else {
+    console.log("❌ Refresh failed with status:", res.status);
   }
 }
 
