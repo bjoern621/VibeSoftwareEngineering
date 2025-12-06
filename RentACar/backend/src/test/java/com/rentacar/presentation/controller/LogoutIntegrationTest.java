@@ -111,25 +111,25 @@ class LogoutIntegrationTest {
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk());
 
-        // Then: Token funktioniert nicht mehr (403 Forbidden von Spring Security)
+        // Then: Token funktioniert nicht mehr (401 Unauthorized nach neuer Security-Policy)
         mockMvc.perform(get("/api/kunden/profil")
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testLogout_WithoutToken_BadRequest() throws Exception {
-        // When: Logout ohne Token -> Spring Security blockiert (403)
+        // When: Logout ohne Token -> Spring Security blockiert (401)
         mockMvc.perform(post("/api/kunden/logout"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testLogout_WithInvalidAuthorizationHeader_BadRequest() throws Exception {
-        // When: Logout mit ungültigem Authorization-Header -> Spring Security blockiert (403)
+        // When: Logout mit ungültigem Authorization-Header -> Spring Security blockiert (401)
         mockMvc.perform(post("/api/kunden/logout")
                         .header("Authorization", "InvalidHeader"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -142,10 +142,10 @@ class LogoutIntegrationTest {
                 .andExpect(status().isOk());
 
         // When: Benutzer versucht sich nochmal auszuloggen (Token ist bereits auf Blacklist)
-        // Then: Spring Security blockiert wegen bereits ausgeloggtem Token (403)
+        // Then: Spring Security blockiert wegen bereits ausgeloggtem Token (401)
         mockMvc.perform(post("/api/kunden/logout")
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         // Then: Token ist immer noch auf der Blacklist
         assertTrue(tokenBlacklistService.isTokenBlacklisted(jwtToken));
@@ -160,10 +160,10 @@ class LogoutIntegrationTest {
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk());
 
-        // Then: Alter Token funktioniert nicht mehr (403 Forbidden)
+        // Then: Alter Token funktioniert nicht mehr (401 Unauthorized nach neuer Security-Policy)
         mockMvc.perform(get("/api/kunden/profil")
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         // And: Neuer Login funktioniert und generiert neuen Token
         String loginRequest = """
@@ -198,10 +198,10 @@ class LogoutIntegrationTest {
         tokenBlacklistService.blacklistToken(jwtToken, java.time.Duration.ofMinutes(30));
 
         // When: Benutzer versucht, mit ausgeloggtem Token auf geschützte Resource zuzugreifen
-        // Then: Sollte 403 Forbidden zurückgeben (Spring Security Standard-Verhalten)
+        // Then: Sollte 401 Unauthorized zurückgeben (Blacklist -> unauthenticated)
         mockMvc.perform(get("/api/kunden/profil")
                         .header("Authorization", "Bearer " + jwtToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
 
