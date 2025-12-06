@@ -31,11 +31,14 @@ public class SecurityConfig {
 
     private final CustomerUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     public SecurityConfig(CustomerUserDetailsService userDetailsService,
-                         JwtAuthenticationFilter jwtAuthenticationFilter) {
+                         JwtAuthenticationFilter jwtAuthenticationFilter,
+                         JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.userDetailsService = userDetailsService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Bean
@@ -75,6 +78,9 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless JWT
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 401 für fehlende Authentication
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

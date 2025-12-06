@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         // Token ungültig/abgelaufen → Logout
-        authService.logout();
+        await authService.logout();
         setIsAuthenticated(false);
         setUser(null);
       } finally {
@@ -71,8 +71,8 @@ export const AuthProvider = ({ children }) => {
   /**
    * Logout-Funktion
    */
-  const logout = () => {
-    authService.logout();
+  const logout = async () => {
+    await authService.logout();
     setIsAuthenticated(false);
     setUser(null);
   };
