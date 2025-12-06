@@ -55,8 +55,18 @@ tests {
 }
 
 script:post-response {
+  // Debug: Log response body to verify refreshToken is present
+  console.log("Login response body:", JSON.stringify(res.body));
+  
   if (res.status === 200 && res.body.token) {
     bru.setEnvVar("authToken", res.body.token);
     bru.setEnvVar("customerId", res.body.customerId);
+    // Capture refresh token for refresh-token tests
+    if (res.body.refreshToken) {
+      bru.setEnvVar("refreshToken", res.body.refreshToken);
+      console.log("✅ Refresh token captured:", res.body.refreshToken.substring(0, 20) + "...");
+    } else {
+      console.log("❌ WARNING: No refreshToken in login response!");
+    }
   }
 }

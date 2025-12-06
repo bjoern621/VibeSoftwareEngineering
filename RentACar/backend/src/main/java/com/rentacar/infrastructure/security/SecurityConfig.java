@@ -31,11 +31,14 @@ public class SecurityConfig {
 
     private final CustomerUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     public SecurityConfig(CustomerUserDetailsService userDetailsService,
-                         JwtAuthenticationFilter jwtAuthenticationFilter) {
+                         JwtAuthenticationFilter jwtAuthenticationFilter,
+                         JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.userDetailsService = userDetailsService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Bean
@@ -51,6 +54,10 @@ public class SecurityConfig {
                                 "/api/kunden/login",
                                 "/api/kunden/verify-email",
                                 "/api/buchungen/preis-berechnen" // Preiskalkulator öffentlich verfügbar
+                        ).permitAll()
+                        // Öffentliche Endpoints - Authentifizierung
+                        .requestMatchers(
+                                "/api/auth/refresh"
                         ).permitAll()
                         // Öffentliche Endpoints - Fahrzeuge (für Suche/Browse)
                         .requestMatchers(
@@ -71,6 +78,9 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Stateless JWT
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 401 für fehlende Authentication
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

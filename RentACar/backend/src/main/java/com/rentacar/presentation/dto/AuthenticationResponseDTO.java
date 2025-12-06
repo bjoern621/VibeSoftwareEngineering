@@ -1,11 +1,12 @@
 package com.rentacar.presentation.dto;
 
 /**
- * DTO für Authentication Response mit JWT-Token.
+ * DTO für Authentication Response mit JWT-Token und Refresh-Token.
  */
 public class AuthenticationResponseDTO {
 
     private String token;
+    private String refreshToken;
     private String tokenType = "Bearer";
     private Long customerId;
     private String email;
@@ -14,8 +15,9 @@ public class AuthenticationResponseDTO {
     public AuthenticationResponseDTO() {
     }
 
-    public AuthenticationResponseDTO(String token, Long customerId, String email) {
+    public AuthenticationResponseDTO(String token, String refreshToken, Long customerId, String email) {
         this.token = token;
+        this.refreshToken = refreshToken;
         this.customerId = customerId;
         this.email = email;
     }
@@ -27,6 +29,14 @@ public class AuthenticationResponseDTO {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getTokenType() {

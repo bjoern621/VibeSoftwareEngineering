@@ -40,7 +40,8 @@ script:pre-request {
 
 tests {
   test("Status is 200 OK or 403 if not authenticated", function() {
-    expect([200, 403]).to.include(res.status);
+    // Accept 401 too since logout test may have invalidated the token
+    expect([200, 401, 403]).to.include(res.status);
   });
 
   test("Response is an array if authenticated", function() {

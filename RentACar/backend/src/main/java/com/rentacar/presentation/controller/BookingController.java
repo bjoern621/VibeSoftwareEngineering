@@ -189,9 +189,9 @@ public class BookingController {
     public ResponseEntity<BookingHistoryDto> getBookingById(
             @PathVariable Long id,
             Authentication authentication) {
-        
+
         Booking booking = bookingApplicationService.getBookingById(id);
-        
+
         // Kunden dürfen nur ihre eigenen Buchungen sehen
         if (authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_CUSTOMER"))) {
@@ -200,7 +200,7 @@ public class BookingController {
                 throw new UnauthorizedBookingAccessException(id, customerId);
             }
         }
-        
+
         return ResponseEntity.ok(mapToDto(booking));
     }
 

@@ -15,6 +15,9 @@
 
 import apiClient, { TOKEN_STORAGE_KEY } from '../config/axiosConfig';
 
+// Refresh Token Storage Key
+const REFRESH_TOKEN_STORAGE_KEY = 'rentacar_refresh_token';
+
 /**
  * Kundenregistrierung
  *
@@ -56,12 +59,17 @@ const login = async (email, password) => {
       password,
     });
 
-    // JWT-Token aus der Response extrahieren
-    const { token } = response.data;
+    // JWT-Token und Refresh-Token aus der Response extrahieren
+    const { token, refreshToken } = response.data;
 
     if (token) {
-      // Token in localStorage speichern
+      // Access Token in localStorage speichern
       localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    }
+
+    if (refreshToken) {
+      // Refresh Token in localStorage speichern
+      localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken);
     }
 
     return response.data;
@@ -71,10 +79,26 @@ const login = async (email, password) => {
 };
 
 /**
- * Logout (lokaler Logout - Token aus localStorage entfernen)
+ * Logout (Backend-Logout + lokales Token-Cleanup)
+ * 
+ * Ruft den Backend-Logout-Endpoint auf, um:
+ * - Access Token auf Blacklist zu setzen
+ * - Alle Refresh Tokens des Kunden zu widerrufen
+ * 
+ * Anschließend werden beide Tokens aus localStorage entfernt.
  */
-const logout = () => {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
+const logout = async () => {
+  try {
+    // Backend-Logout aufrufen (blacklisted Token, widerruft Refresh Tokens)
+    await apiClient.post('/kunden/logout');
+  } catch (error) {
+    // Fehler loggen, aber trotzdem lokales Cleanup durchführen
+    console.error('Backend-Logout fehlgeschlagen:', error);
+  } finally {
+    // Immer beide Tokens lokal entfernen, auch wenn Backend-Call fehlschlägt
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+  }
 };
 
 /**

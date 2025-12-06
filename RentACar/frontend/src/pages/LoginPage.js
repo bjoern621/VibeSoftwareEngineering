@@ -119,7 +119,8 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
     try {
-      await login(email, '12345678');
+      // Use the same test password as seeded in backend DataInitializer
+      await login(email, 'Test1234!');
       navigate('/');
     } catch (err) {
       setError(err.message);

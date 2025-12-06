@@ -1,7 +1,7 @@
 meta {
   name: 09-logout-without-token
   type: http
-  seq: 9
+  seq: 10
 }
 
 post {
@@ -11,19 +11,19 @@ post {
 }
 
 assert {
-  res.status: eq 403
+  res.status: eq 401
 }
 
 docs {
-  # Logout ohne Token - Forbidden
+  # Logout ohne Token - Unauthorized
 
   Testet, dass ein Logout ohne Authorization-Header fehlschlägt.
 
   ## Erwartetes Ergebnis
-  - Status: 403 Forbidden (Spring Security blockiert unauthentifizierte Requests)
+  - Status: 401 Unauthorized (JwtAuthenticationEntryPoint für fehlende Authentifizierung)
   - Kein Token wird zur Blacklist hinzugefügt
 
   ## Hinweis
-  - Spring Security gibt 403 statt 400/401 für fehlende Authentifizierung zurück
+  - Backend gibt 401 für fehlende/ungültige Authentifizierung zurück (403 nur für Autorisierung)
 }
 
