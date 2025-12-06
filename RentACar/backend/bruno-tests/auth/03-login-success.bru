@@ -58,5 +58,9 @@ script:post-response {
   if (res.status === 200 && res.body.token) {
     bru.setEnvVar("authToken", res.body.token);
     bru.setEnvVar("customerId", res.body.customerId);
+    // Capture refresh token for refresh-token tests
+    if (res.body.refreshToken) {
+      bru.setEnvVar("refreshToken", res.body.refreshToken);
+    }
   }
 }

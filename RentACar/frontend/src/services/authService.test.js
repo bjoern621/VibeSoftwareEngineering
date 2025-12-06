@@ -157,15 +157,33 @@ describe('authService', () => {
   });
 
   describe('logout', () => {
-    it('sollte Token aus localStorage entfernen', () => {
+    it('sollte Token aus localStorage entfernen', async () => {
       // Arrange
       localStorageMock.setItem(TOKEN_STORAGE_KEY, 'test-token');
+      localStorageMock.setItem('rentacar_refresh_token', 'test-refresh-token');
+      apiClient.post.mockResolvedValue({ data: 'Erfolgreich ausgeloggt' });
 
       // Act
-      authService.logout();
+      await authService.logout();
 
       // Assert
+      expect(apiClient.post).toHaveBeenCalledWith('/kunden/logout');
       expect(localStorageMock.removeItem).toHaveBeenCalledWith(TOKEN_STORAGE_KEY);
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('rentacar_refresh_token');
+    });
+
+    it('sollte Token auch entfernen wenn Backend-Logout fehlschlägt', async () => {
+      // Arrange
+      localStorageMock.setItem(TOKEN_STORAGE_KEY, 'test-token');
+      localStorageMock.setItem('rentacar_refresh_token', 'test-refresh-token');
+      apiClient.post.mockRejectedValue(new Error('Network error'));
+
+      // Act
+      await authService.logout();
+
+      // Assert - Tokens should be removed even if backend call fails
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith(TOKEN_STORAGE_KEY);
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('rentacar_refresh_token');
     });
   });
 

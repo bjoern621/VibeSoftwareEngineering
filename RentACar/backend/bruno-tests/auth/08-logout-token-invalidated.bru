@@ -15,7 +15,7 @@ auth:bearer {
 }
 
 assert {
-  res.status: eq 403
+  res.status: eq 401
 }
 
 docs {
@@ -28,13 +28,13 @@ docs {
   - authToken wurde durch Logout invalidiert
 
   ## Erwartetes Ergebnis
-  - Status: 403 Forbidden (Spring Security blockiert blacklisted tokens)
+  - Status: 401 Unauthorized (JwtAuthenticationEntryPoint für blacklisted tokens)
   - Token ist auf der Blacklist
   - Zugriff auf geschützte Ressourcen wird verweigert
 
   ## Wichtig
   - Dieser Test muss NACH dem Logout-Test (07) ausgeführt werden
   - Er verwendet denselben Token, der vorher ausgeloggt wurde
-  - Spring Security gibt 403 statt 401 für blacklisted tokens zurück
+  - Backend gibt 401 für ungültige/blacklisted tokens zurück (403 nur für Autorisierung)
 }
 
