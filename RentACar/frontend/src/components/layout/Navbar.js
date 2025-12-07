@@ -39,7 +39,8 @@ const Navbar = () => {
           >
             Preiskalkulator
           </Link>
-          {isAuthenticated && (
+          {/* Kunden-Navigation (nur für CUSTOMER) */}
+          {isAuthenticated && user && user.role === 'CUSTOMER' && (
             <>
               <Link
                 to="/bookings"
