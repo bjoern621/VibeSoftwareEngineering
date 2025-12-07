@@ -414,4 +414,43 @@ public class GlobalExceptionHandler {
         
         public List<VehicleResponseDTO> getAlternativeVehicles() { return alternativeVehicles; }
     }
+
+    /**
+     * Behandelt AccessDeniedException (403 Forbidden).
+     * Wird geworfen, wenn ein authentifizierter Benutzer versucht, auf eine Ressource zuzugreifen,
+     * für die er keine Berechtigung hat (z.B. CUSTOMER versucht Fahrzeug zu erstellen).
+     * 
+     * @param ex die Exception
+     * @return HTTP 403 Forbidden
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            org.springframework.security.access.AccessDeniedException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.FORBIDDEN.value(),
+            "Zugriff verweigert",
+            "Sie haben nicht die erforderlichen Berechtigungen für diese Aktion."
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    /**
+     * Behandelt AuthenticationException (401 Unauthorized).
+     * Wird geworfen, wenn Authentifizierung fehlschlägt oder Token ungültig ist.
+     * 
+     * @param ex die Exception
+     * @return HTTP 401 Unauthorized
+     */
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            org.springframework.security.core.AuthenticationException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.UNAUTHORIZED.value(),
+            "Authentifizierung fehlgeschlagen",
+            "Bitte melden Sie sich an oder aktualisieren Sie Ihren Token."
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
 }

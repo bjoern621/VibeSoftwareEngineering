@@ -78,7 +78,7 @@ echo ""
 
 echo "TEST 1: Customer tries to create vehicle (should FAIL with 403)"
 CREATE_VEHICLE_PAYLOAD='{
-  "licensePlate": "TEST-123",
+  "licensePlate": "B-TE 1234",
   "brand": "BMW",
   "model": "X5",
   "year": 2024,
@@ -131,12 +131,12 @@ ADMIN_CREATE_VEHICLE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$BASE_UR
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-  "licensePlate": "ADMIN-999",
+  "licensePlate": "M-AD 9999",
   "brand": "Mercedes",
   "model": "S-Class",
   "year": 2024,
   "mileage": 0,
-  "vehicleType": "LIMOUSINE",
+  "vehicleType": "SEDAN",
   "branchId": 1
 }')
 
@@ -159,8 +159,8 @@ CREATE_BOOKING_PAYLOAD='{
   "vehicleId": 1,
   "pickupBranchId": 1,
   "returnBranchId": 1,
-  "pickupDateTime": "2025-06-01T10:00:00",
-  "returnDateTime": "2025-06-05T10:00:00",
+  "pickupDateTime": "2026-06-01T10:00:00",
+  "returnDateTime": "2026-06-05T10:00:00",
   "options": []
 }'
 
