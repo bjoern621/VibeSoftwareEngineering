@@ -43,3 +43,4 @@ build/
 
 # Spring Boot
 application-local.properties
+.vscode/launch.json

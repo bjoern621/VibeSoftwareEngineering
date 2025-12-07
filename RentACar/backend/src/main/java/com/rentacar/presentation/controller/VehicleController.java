@@ -1,6 +1,7 @@
 package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.VehicleApplicationService;
+import com.rentacar.infrastructure.security.RoleConstants;
 import com.rentacar.presentation.dto.CreateVehicleRequestDTO;
 import com.rentacar.presentation.dto.UpdateVehicleRequestDTO;
 import com.rentacar.presentation.dto.VehicleResponseDTO;
@@ -36,7 +37,7 @@ public class VehicleController {
      * @return das erstellte Fahrzeug mit Status 201 Created
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<VehicleResponseDTO> createVehicle(@Valid @RequestBody CreateVehicleRequestDTO request) {
         VehicleResponseDTO response = vehicleApplicationService.createVehicle(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -50,7 +51,7 @@ public class VehicleController {
      * @return das aktualisierte Fahrzeug mit Status 200 OK
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<VehicleResponseDTO> updateVehicle(
             @PathVariable Long id,
             @Valid @RequestBody UpdateVehicleRequestDTO request) {
@@ -65,7 +66,7 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/ausser-betrieb")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<Void> markAsOutOfService(@PathVariable Long id) {
         vehicleApplicationService.markVehicleAsOutOfService(id);
         return ResponseEntity.noContent().build();
@@ -78,7 +79,7 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/vermieten")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<Void> markAsRented(@PathVariable Long id) {
         vehicleApplicationService.markVehicleAsRented(id);
         return ResponseEntity.noContent().build();
@@ -92,7 +93,7 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/zurueckgeben")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<Void> returnVehicle(
             @PathVariable Long id,
             @RequestParam Integer returnMileage) {
@@ -107,7 +108,7 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/wartung")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<Void> markAsInMaintenance(@PathVariable Long id) {
         vehicleApplicationService.markVehicleAsInMaintenance(id);
         return ResponseEntity.noContent().build();
@@ -120,7 +121,7 @@ public class VehicleController {
      * @return Status 204 No Content
      */
     @PatchMapping("/{id}/verfuegbar")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<Void> markAsAvailable(@PathVariable Long id) {
         vehicleApplicationService.reactivateVehicle(id);
         return ResponseEntity.noContent().build();

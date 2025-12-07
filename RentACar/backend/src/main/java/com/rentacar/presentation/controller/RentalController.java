@@ -1,6 +1,7 @@
 package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.RentalApplicationService;
+import com.rentacar.infrastructure.security.RoleConstants;
 import com.rentacar.presentation.dto.CheckOutRequestDTO;
 import com.rentacar.presentation.dto.CheckInRequestDTO;
 import jakarta.validation.Valid;
@@ -29,7 +30,7 @@ public class RentalController {
      * @return 200 OK bei Erfolg
      */
     @PostMapping("/{buchungId}/checkout")
-    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<Void> performCheckOut(
             @PathVariable Long buchungId,
             @Valid @RequestBody CheckOutRequestDTO request) {
@@ -53,7 +54,7 @@ public class RentalController {
      * @return 200 OK bei Erfolg
      */
     @PostMapping("/{buchungId}/checkin")
-    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<Void> performCheckIn(
             @PathVariable Long buchungId,
             @Valid @RequestBody CheckInRequestDTO request) {

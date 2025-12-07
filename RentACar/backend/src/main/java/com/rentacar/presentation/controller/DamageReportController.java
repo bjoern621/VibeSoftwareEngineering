@@ -1,6 +1,7 @@
 package com.rentacar.presentation.controller;
 
 import com.rentacar.application.service.DamageReportApplicationService;
+import com.rentacar.infrastructure.security.RoleConstants;
 import com.rentacar.presentation.dto.CreateDamageReportRequestDTO;
 import com.rentacar.presentation.dto.DamageReportResponseDTO;
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ public class DamageReportController {
     }
 
     @PostMapping("/vermietung/{buchungId}/schadensbericht")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<DamageReportResponseDTO> createDamageReport(
             @PathVariable Long buchungId,
             @Valid @RequestBody CreateDamageReportRequestDTO request) {
@@ -31,14 +32,14 @@ public class DamageReportController {
     }
 
     @GetMapping("/schadensberichte/{id}")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<DamageReportResponseDTO> getDamageReport(@PathVariable Long id) {
         DamageReportResponseDTO response = damageReportApplicationService.getDamageReport(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/buchungen/{buchungId}/schadensberichte")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<List<DamageReportResponseDTO>> getDamageReportsByBooking(@PathVariable Long buchungId) {
         List<DamageReportResponseDTO> reports = damageReportApplicationService.getDamageReportsByBooking(buchungId);
         return ResponseEntity.ok(reports);
