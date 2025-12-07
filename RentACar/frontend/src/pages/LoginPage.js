@@ -1,156 +1,89 @@
 /**
  * LoginPage - Login und Registrierung mit Tabs
  * Basiert auf: stitch_rentacar/login/registrierung_1/code.html
+ * Verwendet React Hook Form mit Yup Validation
  */
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm, FormProvider } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { loginSchema, registrationSchema } from '../utils/validationRules';
+import FormInput from '../components/forms/FormInput';
+import PasswordStrengthIndicator from '../components/forms/PasswordStrengthIndicator';
 import AddressAutocomplete from '../components/AddressAutocomplete';
 
 const LoginPage = () => {
   const [activeTab, setActiveTab] = useState('login');
-  const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phoneNumber: '',
-    driverLicenseNumber: '',
-    street: '',
-    postalCode: '',
-    city: '',
-  });
-  const [error, setError] = useState('');
-  const [validationErrors, setValidationErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
-  /**
-   * Validierungsfunktion für Registrierungsformular
-   * Prüft alle Felder und gibt Fehlermeldungen zurück
-   */
-  const validateRegistrationData = () => {
-    const errors = {};
+  // React Hook Form für Login
+  const loginMethods = useForm({
+    resolver: yupResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
-    // Vorname validieren
-    if (!registerData.firstName.trim()) {
-      errors.firstName = 'Vorname ist erforderlich';
-    } else if (registerData.firstName.trim().length < 2) {
-      errors.firstName = 'Vorname muss mindestens 2 Zeichen lang sein';
-    }
+  // React Hook Form für Registrierung
+  const registerMethods = useForm({
+    resolver: yupResolver(registrationSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      phoneNumber: '',
+      driverLicenseNumber: '',
+      street: '',
+      postalCode: '',
+      city: '',
+    },
+  });
 
-    // Nachname validieren
-    if (!registerData.lastName.trim()) {
-      errors.lastName = 'Nachname ist erforderlich';
-    } else if (registerData.lastName.trim().length < 2) {
-      errors.lastName = 'Nachname muss mindestens 2 Zeichen lang sein';
-    }
-
-    // E-Mail validieren
-    if (!registerData.email.trim()) {
-      errors.email = 'E-Mail ist erforderlich';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerData.email)) {
-      errors.email = 'Ungültige E-Mail-Adresse';
-    }
-
-    // Passwort validieren
-    if (!registerData.password) {
-      errors.password = 'Passwort ist erforderlich';
-    } else if (registerData.password.length < 8) {
-      errors.password = 'Passwort muss mindestens 8 Zeichen lang sein';
-    }
-
-    // Telefonnummer validieren (deutsches Format, flexibel)
-    if (!registerData.phoneNumber.trim()) {
-      errors.phoneNumber = 'Telefonnummer ist erforderlich';
-    } else if (!/^[\d\s\+\-\(\)\/]+$/.test(registerData.phoneNumber)) {
-      errors.phoneNumber = 'Ungültige Telefonnummer';
-    }
-
-    // Führerscheinnummer validieren (deutsches Format: 11 Zeichen alphanumerisch)
-    if (!registerData.driverLicenseNumber.trim()) {
-      errors.driverLicenseNumber = 'Führerscheinnummer ist erforderlich';
-    } else if (!/^[A-Z0-9]{11}$/i.test(registerData.driverLicenseNumber.trim())) {
-      errors.driverLicenseNumber = 'Führerscheinnummer muss 11 alphanumerische Zeichen enthalten';
-    }
-
-    // Straße validieren
-    if (!registerData.street.trim()) {
-      errors.street = 'Straße ist erforderlich';
-    } else if (registerData.street.trim().length < 3) {
-      errors.street = 'Straße muss mindestens 3 Zeichen lang sein';
-    }
-
-    // PLZ validieren (deutsches Format: 5 Ziffern)
-    if (!registerData.postalCode.trim()) {
-      errors.postalCode = 'PLZ ist erforderlich';
-    } else if (!/^\d{5}$/.test(registerData.postalCode.trim())) {
-      errors.postalCode = 'PLZ muss aus genau 5 Ziffern bestehen';
-    }
-
-    // Stadt validieren
-    if (!registerData.city.trim()) {
-      errors.city = 'Stadt ist erforderlich';
-    } else if (registerData.city.trim().length < 2) {
-      errors.city = 'Stadt muss mindestens 2 Zeichen lang sein';
-    }
-
-    return errors;
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
+  const handleLogin = async (data) => {
     setLoading(true);
     try {
-      await login(loginData.email, loginData.password);
+      await login(data.email, data.password);
+      toast.success('Erfolgreich angemeldet!');
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message || 'Anmeldung fehlgeschlagen');
     } finally {
       setLoading(false);
     }
   };
 
   const handleQuickLogin = async (email) => {
-    setError('');
     setLoading(true);
     try {
       // Use the same test password as seeded in backend DataInitializer
       await login(email, 'Test1234!');
+      toast.success('Erfolgreich angemeldet!');
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message || 'Anmeldung fehlgeschlagen');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError('');
-    setValidationErrors({});
-
-    // Client-seitige Validierung durchführen
-    const errors = validateRegistrationData();
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      setError('Bitte korrigieren Sie die markierten Fehler');
-      return;
-    }
-
+  const handleRegister = async (data) => {
     setLoading(true);
     try {
-      await register(registerData);
-      setActiveTab('login');
-      setError(
+      await register(data);
+      toast.success(
         'Registrierung erfolgreich! Bitte bestätigen Sie Ihre E-Mail-Adresse und melden Sie sich dann an.'
       );
+      setActiveTab('login');
+      registerMethods.reset();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message || 'Registrierung fehlgeschlagen');
     } finally {
       setLoading(false);
     }
@@ -160,19 +93,13 @@ const LoginPage = () => {
    * Handler für Adress-Änderungen (für AddressAutocomplete)
    */
   const handleAddressChange = (addressFields) => {
-    setRegisterData({
-      ...registerData,
-      ...addressFields,
+    Object.entries(addressFields).forEach(([key, value]) => {
+      registerMethods.setValue(key, value, { shouldValidate: true });
     });
-    // Entferne Validierungsfehler für geänderte Adressfelder
-    const newValidationErrors = { ...validationErrors };
-    Object.keys(addressFields).forEach((key) => {
-      if (newValidationErrors[key]) {
-        delete newValidationErrors[key];
-      }
-    });
-    setValidationErrors(newValidationErrors);
   };
+
+  // Watch password for strength indicator
+  const watchedPassword = registerMethods.watch('password');
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
@@ -216,225 +143,149 @@ const LoginPage = () => {
             </div>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div
-              className={`p-4 rounded-lg ${error.includes('erfolgreich') ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}
-            >
-              {error}
-            </div>
-          )}
-
           {/* Login Form */}
           {activeTab === 'login' && (
-            <form onSubmit={handleLogin} className="flex flex-col gap-6 px-4">
-              <h1 className="text-4xl font-black">Willkommen zurück!</h1>
-              <label className="flex flex-col w-full">
-                <p className="text-base font-medium pb-2">E-Mail</p>
-                <div className="flex items-stretch rounded-lg">
-                  <input
-                    className="form-input flex-1 rounded-lg border-gray-300 bg-white h-14 px-4"
-                    type="email"
-                    placeholder="ihre-email@beispiel.de"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                    required
-                  />
-                  <div className="flex items-center justify-center px-4 border border-l-0 border-gray-300 rounded-r-lg bg-white">
-                    <span className="material-symbols-outlined text-gray-400">mail</span>
-                  </div>
-                </div>
-              </label>
-              <label className="flex flex-col w-full">
-                <p className="text-base font-medium pb-2">Passwort</p>
-                <div className="flex items-stretch rounded-lg">
-                  <input
-                    className="form-input flex-1 rounded-lg border-gray-300 bg-white h-14 px-4"
-                    type="password"
-                    placeholder="Ihr Passwort"
-                    value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                    required
-                  />
-                  <div className="flex items-center justify-center px-4 border border-l-0 border-gray-300 rounded-r-lg bg-white">
-                    <span className="material-symbols-outlined text-gray-400">lock</span>
-                  </div>
-                </div>
-              </label>
-              <button
-                type="submit"
-                disabled={loading}
-                className="h-12 rounded-lg bg-primary text-white font-bold hover:opacity-90 disabled:opacity-50"
-              >
-                {loading ? 'Wird geladen...' : 'Anmelden'}
-              </button>
+            <FormProvider {...loginMethods}>
+              <form onSubmit={loginMethods.handleSubmit(handleLogin)} className="flex flex-col gap-6 px-4">
+                <h1 className="text-4xl font-black">Willkommen zurück!</h1>
+                
+                <FormInput
+                  name="email"
+                  label="E-Mail"
+                  type="email"
+                  placeholder="ihre-email@beispiel.de"
+                  icon="mail"
+                  required
+                />
 
-              {/* Schnelllogin Test-Accounts */}
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-500 mb-3 text-center">
-                  Schnelllogin (Test-Accounts)
-                </p>
-                <div className="flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('test.customer@example.com')}
-                    disabled={loading}
-                    className="h-10 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"
-                  >
-                    Kunde
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('test.employee@example.com')}
-                    disabled={loading}
-                    className="h-10 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    Mitarbeiter
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('test.admin@example.com')}
-                    disabled={loading}
-                    className="h-10 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    Admin
-                  </button>
+                <FormInput
+                  name="password"
+                  label="Passwort"
+                  type="password"
+                  placeholder="Ihr Passwort"
+                  icon="lock"
+                  required
+                />
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="h-12 rounded-lg bg-primary text-white font-bold hover:opacity-90 disabled:opacity-50"
+                >
+                  {loading ? 'Wird geladen...' : 'Anmelden'}
+                </button>
+
+                {/* Schnelllogin Test-Accounts */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-500 mb-3 text-center">
+                    Schnelllogin (Test-Accounts)
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleQuickLogin('test.customer@example.com')}
+                      disabled={loading}
+                      className="h-10 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+                    >
+                      Kunde
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickLogin('test.employee@example.com')}
+                      disabled={loading}
+                      className="h-10 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      Mitarbeiter
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickLogin('test.admin@example.com')}
+                      disabled={loading}
+                      className="h-10 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      Admin
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </form>
+              </form>
+            </FormProvider>
           )}
 
           {/* Register Form */}
           {activeTab === 'register' && (
-            <form onSubmit={handleRegister} className="flex flex-col gap-4 px-4">
-              <h1 className="text-4xl font-black">Konto erstellen</h1>
-              <div className="grid grid-cols-2 gap-4">
-                <label className="flex flex-col">
-                  <p className="text-sm font-medium pb-2">Vorname</p>
-                  <input
-                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.firstName ? 'border-red-500' : ''}`}
+            <FormProvider {...registerMethods}>
+              <form onSubmit={registerMethods.handleSubmit(handleRegister)} className="flex flex-col gap-4 px-4">
+                <h1 className="text-4xl font-black">Konto erstellen</h1>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <FormInput
+                    name="firstName"
+                    label="Vorname"
                     type="text"
-                    value={registerData.firstName}
-                    onChange={(e) => {
-                      setRegisterData({ ...registerData, firstName: e.target.value });
-                      if (validationErrors.firstName) {
-                        setValidationErrors({ ...validationErrors, firstName: undefined });
-                      }
-                    }}
                     required
+                    className="mb-0"
                   />
-                  {validationErrors.firstName && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors.firstName}</p>
-                  )}
-                </label>
-                <label className="flex flex-col">
-                  <p className="text-sm font-medium pb-2">Nachname</p>
-                  <input
-                    className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.lastName ? 'border-red-500' : ''}`}
+                  <FormInput
+                    name="lastName"
+                    label="Nachname"
                     type="text"
-                    value={registerData.lastName}
-                    onChange={(e) => {
-                      setRegisterData({ ...registerData, lastName: e.target.value });
-                      if (validationErrors.lastName) {
-                        setValidationErrors({ ...validationErrors, lastName: undefined });
-                      }
-                    }}
                     required
+                    className="mb-0"
                   />
-                  {validationErrors.lastName && (
-                    <p className="text-red-500 text-xs mt-1">{validationErrors.lastName}</p>
-                  )}
-                </label>
-              </div>
-              <label className="flex flex-col">
-                <p className="text-sm font-medium pb-2">E-Mail</p>
-                <input
-                  className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.email ? 'border-red-500' : ''}`}
+                </div>
+
+                <FormInput
+                  name="email"
+                  label="E-Mail"
                   type="email"
-                  value={registerData.email}
-                  onChange={(e) => {
-                    setRegisterData({ ...registerData, email: e.target.value });
-                    if (validationErrors.email) {
-                      setValidationErrors({ ...validationErrors, email: undefined });
-                    }
-                  }}
                   required
+                  className="mb-0"
                 />
-                {validationErrors.email && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>
-                )}
-              </label>
-              <label className="flex flex-col">
-                <p className="text-sm font-medium pb-2">Passwort</p>
-                <input
-                  className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.password ? 'border-red-500' : ''}`}
-                  type="password"
-                  value={registerData.password}
-                  onChange={(e) => {
-                    setRegisterData({ ...registerData, password: e.target.value });
-                    if (validationErrors.password) {
-                      setValidationErrors({ ...validationErrors, password: undefined });
-                    }
-                  }}
-                  required
-                />
-                {validationErrors.password && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.password}</p>
-                )}
-              </label>
-              <label className="flex flex-col">
-                <p className="text-sm font-medium pb-2">Telefon</p>
-                <input
-                  className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.phoneNumber ? 'border-red-500' : ''}`}
+
+                <div>
+                  <FormInput
+                    name="password"
+                    label="Passwort"
+                    type="password"
+                    required
+                    className="mb-0"
+                  />
+                  <PasswordStrengthIndicator password={watchedPassword} />
+                </div>
+
+                <FormInput
+                  name="phoneNumber"
+                  label="Telefon"
                   type="tel"
-                  value={registerData.phoneNumber}
-                  onChange={(e) => {
-                    setRegisterData({ ...registerData, phoneNumber: e.target.value });
-                    if (validationErrors.phoneNumber) {
-                      setValidationErrors({ ...validationErrors, phoneNumber: undefined });
-                    }
-                  }}
                   required
+                  className="mb-0"
                 />
-                {validationErrors.phoneNumber && (
-                  <p className="text-red-500 text-xs mt-1">{validationErrors.phoneNumber}</p>
-                )}
-              </label>
-              <label className="flex flex-col">
-                <p className="text-sm font-medium pb-2">Führerscheinnummer</p>
-                <input
-                  className={`form-input rounded-lg border-gray-300 h-12 px-3 ${validationErrors.driverLicenseNumber ? 'border-red-500' : ''}`}
+
+                <FormInput
+                  name="driverLicenseNumber"
+                  label="Führerscheinnummer"
                   type="text"
-                  value={registerData.driverLicenseNumber}
-                  onChange={(e) => {
-                    setRegisterData({ ...registerData, driverLicenseNumber: e.target.value });
-                    if (validationErrors.driverLicenseNumber) {
-                      setValidationErrors({ ...validationErrors, driverLicenseNumber: undefined });
-                    }
-                  }}
                   required
+                  className="mb-0"
                 />
-                {validationErrors.driverLicenseNumber && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {validationErrors.driverLicenseNumber}
-                  </p>
-                )}
-              </label>
-              <AddressAutocomplete
-                street={registerData.street}
-                postalCode={registerData.postalCode}
-                city={registerData.city}
-                onAddressChange={handleAddressChange}
-                validationErrors={validationErrors}
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="h-12 rounded-lg bg-primary text-white font-bold hover:opacity-90 disabled:opacity-50 mt-2"
-              >
-                {loading ? 'Wird geladen...' : 'Registrieren'}
-              </button>
-            </form>
+
+                <AddressAutocomplete
+                  street={registerMethods.watch('street')}
+                  postalCode={registerMethods.watch('postalCode')}
+                  city={registerMethods.watch('city')}
+                  onAddressChange={handleAddressChange}
+                  validationErrors={registerMethods.formState.errors}
+                />
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="h-12 rounded-lg bg-primary text-white font-bold hover:opacity-90 disabled:opacity-50 mt-2"
+                >
+                  {loading ? 'Wird geladen...' : 'Registrieren'}
+                </button>
+              </form>
+            </FormProvider>
           )}
         </div>
       </div>

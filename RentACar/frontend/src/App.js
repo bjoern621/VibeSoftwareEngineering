@@ -4,8 +4,10 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { BookingProvider } from './context/BookingContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
@@ -24,6 +26,9 @@ import ProfilePage from './pages/ProfilePage';
 import PriceCalculatorPage from './pages/PriceCalculatorPage';
 import BookingWizardPage from './pages/BookingWizardPage';
 import BookingSuccessPage from './pages/BookingSuccessPage';
+import NotFoundPage from './pages/NotFoundPage';
+import ForbiddenPage from './pages/ForbiddenPage';
+import ServerErrorPage from './pages/ServerErrorPage';
 
 // ProtectedRoute Komponente für geschützte Routen
 const ProtectedRoute = ({ children }) => {
@@ -63,7 +68,7 @@ const EmployeeRoute = ({ children }) => {
   }
 
   if (user?.role !== 'EMPLOYEE' && user?.role !== 'ADMIN') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/forbidden" replace />;
   }
 
   return children;
@@ -71,13 +76,14 @@ const EmployeeRoute = ({ children }) => {
 
 function App() {
   return (
-    <AuthProvider>
-      <BookingProvider>
-        <Router>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BookingProvider>
+          <Router>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-grow">
+                <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<LoginPage />} />
@@ -152,13 +158,45 @@ function App() {
                     </EmployeeRoute>
                   }
                 />
+                {/* Fehlerseiten */}
+                <Route path="/forbidden" element={<ForbiddenPage />} />
+                <Route path="/server-error" element={<ServerErrorPage />} />
+                {/* 404 - Muss als letzte Route stehen */}
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>
             <Footer />
           </div>
+          {/* Toast Notifications */}
+          <Toaster
+            position="top-right"
+            reverseOrder={false}
+            toastOptions={{
+              duration: 5000,
+              style: {
+                background: '#fff',
+                color: '#363636',
+              },
+              success: {
+                duration: 4000,
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                duration: 6000,
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
         </Router>
       </BookingProvider>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -38,8 +38,12 @@ public class RentalApplicationService {
 
     @Transactional
     public Long performCheckOut(Long bookingId, Integer mileage, String fuelLevel, String cleanliness, String damagesDescription) {
+        System.out.println("[DEBUG] performCheckOut called - bookingId: " + bookingId + ", mileage: " + mileage + ", fuelLevel: " + fuelLevel + ", cleanliness: " + cleanliness);
+        
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + bookingId));
+        
+        System.out.println("[DEBUG] Booking found - ID: " + booking.getId() + ", Status: " + booking.getStatus());
 
         // 1. Validate Booking Status
         if (booking.getStatus() != BookingStatus.CONFIRMED) {
@@ -62,12 +66,17 @@ public class RentalApplicationService {
         vehicleRepository.save(vehicle); // Explicit save, though transactional should handle it
 
         // 4. Create RentalAgreement
+        System.out.println("[DEBUG] Creating VehicleCondition - fuelLevel: " + fuelLevel + ", cleanliness: " + cleanliness + ", damagesDescription: " + damagesDescription);
+        VehicleCondition condition = new VehicleCondition(fuelLevel, cleanliness, damagesDescription);
+        System.out.println("[DEBUG] VehicleCondition created successfully");
+        
         RentalAgreement agreement = new RentalAgreement(
                 booking,
                 checkoutMileage,
                 LocalDateTime.now(),
-                new VehicleCondition(fuelLevel, cleanliness, damagesDescription)
+                condition
         );
+        System.out.println("[DEBUG] RentalAgreement created successfully - ID will be assigned after save");
         
         rentalAgreementRepository.save(agreement);
         

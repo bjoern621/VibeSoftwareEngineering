@@ -154,7 +154,7 @@ class DamageReportControllerTest {
                 .thenThrow(new IllegalArgumentException("Damage report not found with ID: " + reportId));
 
         mockMvc.perform(get("/api/schadensberichte/{id}", reportId))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
