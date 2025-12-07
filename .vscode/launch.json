@@ -23,10 +23,22 @@
             "request": "launch",
             "name": "React Frontend",
             "runtimeExecutable": "npm",
-            "runtimeArgs": ["start"],
+            "runtimeArgs": [
+                "start"
+            ],
             "cwd": "${workspaceFolder}\\MyMensa2\\frontend",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-RentACarApplication<rentacar-backend>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.rentacar.RentACarApplication",
+            "projectName": "rentacar-backend",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ],
     "compounds": [

@@ -8,6 +8,7 @@ import com.rentacar.domain.exception.UnauthorizedBookingAccessException;
 import com.rentacar.domain.model.Booking;
 import com.rentacar.domain.model.BookingStatus;
 import com.rentacar.infrastructure.security.JwtUtil;
+import com.rentacar.infrastructure.security.RoleConstants;
 import com.rentacar.presentation.dto.BookingHistoryDto;
 import com.rentacar.presentation.dto.CreateBookingRequestDTO;
 import com.rentacar.presentation.dto.CancelBookingRequestDto;
@@ -69,7 +70,7 @@ public class BookingController {
      * @return Liste der Buchungen des aktuellen Kunden
      */
     @GetMapping("/kunden/meine-buchungen")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize(RoleConstants.CUSTOMER)
     public ResponseEntity<List<BookingHistoryDto>> getMyBookings(
             Authentication authentication,
             @RequestParam(required = false) BookingStatus status) {
@@ -93,7 +94,7 @@ public class BookingController {
      * @return Liste der Buchungen des angegebenen Kunden
      */
     @GetMapping("/kunden/{id}/buchungen")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<List<BookingHistoryDto>> getCustomerBookings(
             @PathVariable Long id,
             @RequestParam(required = false) BookingStatus status) {
@@ -115,7 +116,7 @@ public class BookingController {
      * @return Liste aller Buchungen
      */
     @GetMapping("/buchungen")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<List<BookingHistoryDto>> getAllBookings(
             @RequestParam(required = false) BookingStatus status) {
         
@@ -136,7 +137,7 @@ public class BookingController {
      * @return Die erstellte Buchung (als DTO)
      */
     @PostMapping("/buchungen")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize(RoleConstants.CUSTOMER)
     public ResponseEntity<BookingHistoryDto> createBooking(
             @Valid @RequestBody CreateBookingRequestDTO request,
             Authentication authentication) {
@@ -155,7 +156,7 @@ public class BookingController {
      * @return Aufschlüsselung der Zusatzkosten
      */
     @GetMapping("/buchungen/{id}/zusatzkosten")
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.ANY_AUTHENTICATED)
     public ResponseEntity<com.rentacar.presentation.dto.AdditionalCostsDTO> getAdditionalCosts(@PathVariable Long id) {
         com.rentacar.presentation.dto.AdditionalCostsDTO costs = bookingApplicationService.getAdditionalCosts(id);
         return ResponseEntity.ok(costs);
@@ -170,7 +171,7 @@ public class BookingController {
      * @return Die bestätigte Buchung
      */
     @PostMapping("/buchungen/{id}/bestaetigen")
-    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
     public ResponseEntity<BookingHistoryDto> confirmBooking(@PathVariable Long id) {
         Booking booking = bookingApplicationService.confirmBooking(id);
         return ResponseEntity.ok(mapToDto(booking));
@@ -185,7 +186,7 @@ public class BookingController {
      * @return Buchungsdetails als DTO
      */
     @GetMapping("/buchungen/{id}")
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.ANY_AUTHENTICATED)
     public ResponseEntity<BookingHistoryDto> getBookingById(
             @PathVariable Long id,
             Authentication authentication) {
@@ -261,7 +262,7 @@ public class BookingController {
      * @throws CancellationDeadlineExceededException wenn < 24h vor Abholung (400)
      */
     @DeleteMapping("/buchungen/{id}/stornieren")
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
+    @PreAuthorize(RoleConstants.ANY_AUTHENTICATED)
     public ResponseEntity<Void> cancelBooking(
         @PathVariable Long id,
         @RequestBody(required = false) @Valid CancelBookingRequestDto request,
