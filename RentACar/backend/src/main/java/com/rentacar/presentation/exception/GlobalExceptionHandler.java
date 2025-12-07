@@ -10,6 +10,7 @@ import com.rentacar.domain.exception.InvalidDriverLicenseException;
 import com.rentacar.domain.exception.InvalidEmailException;
 import com.rentacar.domain.exception.InvalidLicensePlateException;
 import com.rentacar.domain.exception.InvalidMileageException;
+import com.rentacar.domain.exception.InvalidRentalAgreementDataException;
 import com.rentacar.domain.exception.InvalidVehicleDataException;
 import com.rentacar.domain.exception.InvalidVerificationTokenException;
 import com.rentacar.domain.exception.TooManyLoginAttemptsException;
@@ -346,6 +347,40 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Behandelt IllegalArgumentException (z.B. ungültige Eingaben).
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Ungültige Eingabe",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    /**
+     * Behandelt IllegalStateException (z.B. ungültiger Status).
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Ungültiger Status",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    /**
      * Behandelt alle anderen unerwarteten Exceptions.
      * 
      * @param ex die Exception
@@ -452,5 +487,42 @@ public class GlobalExceptionHandler {
             "Ungültige Anmeldedaten. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort."
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    /**
+     * Behandelt NullPointerException.
+     * Wird geworfen, wenn erforderliche Daten null sind (z.B. in VehicleCondition).
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request
+     */
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Ungültige Eingabedaten",
+            ex.getMessage() != null ? ex.getMessage() : "Ein erforderliches Feld darf nicht leer sein."
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    /**
+     * Behandelt InvalidRentalAgreementDataException.
+     * Wird geworfen, wenn Daten für einen Mietvertrag ungültig sind.
+     * 
+     * @param ex die Exception
+     * @return HTTP 400 Bad Request
+     */
+    @ExceptionHandler(InvalidRentalAgreementDataException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRentalAgreementDataException(
+            InvalidRentalAgreementDataException ex) {
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Ungültige Mietvertragsdaten",
+            ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
