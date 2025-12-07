@@ -158,9 +158,13 @@ const getProfile = async () => {
  */
 const updateProfile = async (profileData) => {
   try {
+    console.log('🔄 authService.updateProfile called with:', profileData);
     const response = await apiClient.put('/kunden/profil', profileData);
+    console.log('✅ Profile update response:', response.data);
     return response.data;
   } catch (error) {
+    console.error('❌ Profile update failed:', error.response?.data || error);
+    console.error('❌ Field Errors:', error.response?.data?.fieldErrors);
     throw extractErrorMessage(error);
   }
 };

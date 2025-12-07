@@ -9,6 +9,7 @@
  */
 
 import apiClient from '../config/axiosConfig';
+import { extractErrorMessage } from '../utils/apiErrorHandler';
 
 /**
  * Sucht nach verfügbaren Fahrzeugen basierend auf Kriterien.
@@ -40,10 +41,7 @@ export const searchVehicles = async ({ von, bis, typ, standort }) => {
     return response.data;
   } catch (error) {
     console.error('Fehler bei Fahrzeugsuche:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Laden der verfügbaren Fahrzeuge. Bitte versuchen Sie es später erneut.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Laden der verfügbaren Fahrzeuge. Bitte versuchen Sie es später erneut.');
   }
 };
 
@@ -59,10 +57,7 @@ export const getVehicleTypes = async () => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Laden der Fahrzeugtypen:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Laden der Fahrzeugtypen. Bitte versuchen Sie es später erneut.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Laden der Fahrzeugtypen. Bitte versuchen Sie es später erneut.');
   }
 };
 
@@ -78,10 +73,7 @@ export const getBranches = async () => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Laden der Filialen:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Laden der Filialen. Bitte versuchen Sie es später erneut.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Laden der Filialen. Bitte versuchen Sie es später erneut.');
   }
 };
 
@@ -98,7 +90,7 @@ export const getVehicleById = async (vehicleId) => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Laden des Fahrzeugs:', error);
-    throw new Error(error.response?.data?.message || 'Fahrzeug nicht gefunden.');
+    throw extractErrorMessage(error, 'Fahrzeug nicht gefunden.');
   }
 };
 
@@ -114,10 +106,7 @@ export const getAllVehicles = async () => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Laden der Fahrzeuge:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Laden der Fahrzeuge. Bitte versuchen Sie es später erneut.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Laden der Fahrzeuge. Bitte versuchen Sie es später erneut.');
   }
 };
 
@@ -141,10 +130,7 @@ export const createVehicle = async (vehicleData) => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Erstellen des Fahrzeugs:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Erstellen des Fahrzeugs. Bitte überprüfen Sie die Eingaben.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Erstellen des Fahrzeugs. Bitte überprüfen Sie die Eingaben.');
   }
 };
 
@@ -168,10 +154,7 @@ export const updateVehicle = async (vehicleId, vehicleData) => {
     return response.data;
   } catch (error) {
     console.error('Fehler beim Aktualisieren des Fahrzeugs:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Aktualisieren des Fahrzeugs. Bitte überprüfen Sie die Eingaben.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Aktualisieren des Fahrzeugs. Bitte überprüfen Sie die Eingaben.');
   }
 };
 
@@ -186,10 +169,7 @@ export const markAsInMaintenance = async (vehicleId) => {
     await apiClient.patch(`/fahrzeuge/${vehicleId}/wartung`);
   } catch (error) {
     console.error('Fehler beim Ändern des Status:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Ändern des Status. Das Fahrzeug ist möglicherweise vermietet.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Ändern des Status. Das Fahrzeug ist möglicherweise vermietet.');
   }
 };
 
@@ -204,10 +184,7 @@ export const markAsOutOfService = async (vehicleId) => {
     await apiClient.patch(`/fahrzeuge/${vehicleId}/ausser-betrieb`);
   } catch (error) {
     console.error('Fehler beim Ändern des Status:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Ändern des Status. Das Fahrzeug ist möglicherweise vermietet.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Ändern des Status. Das Fahrzeug ist möglicherweise vermietet.');
   }
 };
 
@@ -223,9 +200,6 @@ export const markAsAvailable = async (vehicleId) => {
     await apiClient.patch(`/fahrzeuge/${vehicleId}/verfuegbar`);
   } catch (error) {
     console.error('Fehler beim Ändern des Status:', error);
-    throw new Error(
-      error.response?.data?.message ||
-        'Fehler beim Ändern des Status. Das Fahrzeug hat einen ungültigen Status.'
-    );
+    throw extractErrorMessage(error, 'Fehler beim Ändern des Status. Das Fahrzeug hat einen ungültigen Status.');
   }
 };

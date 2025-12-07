@@ -449,7 +449,7 @@ public class GlobalExceptionHandler {
             LocalDateTime.now(),
             HttpStatus.UNAUTHORIZED.value(),
             "Authentifizierung fehlgeschlagen",
-            "Bitte melden Sie sich an oder aktualisieren Sie Ihren Token."
+            "Ungültige Anmeldedaten. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort."
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }

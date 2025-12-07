@@ -5,15 +5,20 @@
  * Features:
  * - Profildaten anzeigen (Anzeigemodus)
  * - Profildaten bearbeiten (Bearbeitungsmodus)
- * - Validierung für Pflichtfelder
+ * - React Hook Form mit Yup-Validierung
+ * - Toast-Benachrichtigungen statt State-basierter Meldungen
  * - Read-only Felder: driverLicenseNumber, emailVerified, createdAt
  * - Loading-States beim Laden und Speichern
- * - Erfolgs-/Fehlermeldungen
  */
 
 import React, { useState, useEffect } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import toast from 'react-hot-toast';
 import authService from '../services/authService';
 import AddressAutocomplete from '../components/AddressAutocomplete';
+import FormInput from '../components/forms/FormInput';
+import { profileSchema } from '../utils/validationRules';
 
 const ProfilePage = () => {
   // State für Profildaten
@@ -33,14 +38,25 @@ const ProfilePage = () => {
 
   // State für Bearbeitungsmodus
   const [editMode, setEditMode] = useState(false);
-  const [editData, setEditData] = useState({});
 
-  // State für Loading, Fehler und Erfolg
+  // State für Loading
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [validationErrors, setValidationErrors] = useState({});
+
+  // React Hook Form Setup
+  const methods = useForm({
+    resolver: yupResolver(profileSchema),
+    mode: 'onChange',
+    defaultValues: {
+      street: '',
+      postalCode: '',
+      city: '',
+      email: '',
+      phoneNumber: '',
+    },
+  });
+
+  const { handleSubmit, reset, watch, setValue } = methods;
 
   /**
    * Profildaten beim Laden der Seite abrufen
@@ -55,11 +71,10 @@ const ProfilePage = () => {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      setError('');
       const profile = await authService.getProfile();
       setProfileData(profile);
     } catch (err) {
-      setError(err.message || 'Profil konnte nicht geladen werden');
+      toast.error(err.message || 'Profil konnte nicht geladen werden');
     } finally {
       setLoading(false);
     }
@@ -69,9 +84,8 @@ const ProfilePage = () => {
    * Bearbeitungsmodus aktivieren
    */
   const handleEditClick = () => {
-    setEditData({
-      firstName: profileData.firstName,
-      lastName: profileData.lastName,
+    // Form mit aktuellen Profildaten initialisieren
+    reset({
       street: profileData.street,
       postalCode: profileData.postalCode,
       city: profileData.city,
@@ -79,9 +93,6 @@ const ProfilePage = () => {
       phoneNumber: profileData.phoneNumber || '',
     });
     setEditMode(true);
-    setError('');
-    setSuccess('');
-    setValidationErrors({});
   };
 
   /**
@@ -89,80 +100,55 @@ const ProfilePage = () => {
    */
   const handleCancelClick = () => {
     setEditMode(false);
-    setEditData({});
-    setValidationErrors({});
-    setError('');
-    setSuccess('');
-  };
-
-  /**
-   * Validierung der Profildaten (Frontend)
-   */
-  const validateProfileData = () => {
-    const errors = {};
-
-    // Straße validieren
-    if (!editData.street?.trim()) {
-      errors.street = 'Straße ist erforderlich';
-    }
-
-    // PLZ validieren
-    if (!editData.postalCode?.trim()) {
-      errors.postalCode = 'Postleitzahl ist erforderlich';
-    } else if (!/^\d{5}$/.test(editData.postalCode.trim())) {
-      errors.postalCode = 'Postleitzahl muss 5 Ziffern enthalten';
-    }
-
-    // Stadt validieren
-    if (!editData.city?.trim()) {
-      errors.city = 'Stadt ist erforderlich';
-    }
-
-    // E-Mail validieren
-    if (!editData.email?.trim()) {
-      errors.email = 'E-Mail ist erforderlich';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email.trim())) {
-      errors.email = 'E-Mail-Format ist ungültig';
-    }
-
-    return errors;
+    reset();
   };
 
   /**
    * Profildaten speichern
    */
-  const handleSaveClick = async (e) => {
-    e.preventDefault();
-
-    // Frontend-Validierung
-    const errors = validateProfileData();
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      setError('Bitte überprüfen Sie Ihre Eingaben');
-      return;
-    }
+  const onSubmit = async (formData) => {
+    const originalEmail = profileData.email;
 
     try {
       setSaving(true);
-      setError('');
-      setSuccess('');
-      setValidationErrors({});
+
+      // Backend DTO erwartet flache Struktur (NICHT verschachtelt!)
+      const completeData = {
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        email: formData.email || profileData.email,
+        phoneNumber: formData.phoneNumber || profileData.phoneNumber,
+        // Adressfelder FLACH (nicht als address-Objekt!)
+        street: formData.street || profileData.address?.street || '',
+        postalCode: formData.postalCode || profileData.address?.postalCode || '',
+        city: formData.city || profileData.address?.city || '',
+      };
+
+      // Debug: Log complete data
+      console.log('📤 Sending complete profile update:', completeData);
 
       // Backend-Request
-      const updatedProfile = await authService.updateProfile(editData);
+      const updatedProfile = await authService.updateProfile(completeData);
 
       // Profildaten aktualisieren
       setProfileData(updatedProfile);
       setEditMode(false);
-      
-      // Erfolgsmelding mit Hinweis bei E-Mail-Änderung
-      if (editData.email !== profileData.email) {
-        setSuccess('Profil erfolgreich aktualisiert. Bitte verifizieren Sie Ihre neue E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.');
-      } else {
-        setSuccess('Profil erfolgreich aktualisiert');
+
+      // Erfolgsmelding
+      toast.success('Profil erfolgreich aktualisiert');
+
+      // Zusätzliche Warnung bei E-Mail-Änderung
+      if (formData.email !== originalEmail) {
+        toast(
+          'Bitte verifizieren Sie Ihre neue E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.',
+          {
+            icon: '⚠️',
+            duration: 6000,
+          }
+        );
       }
     } catch (err) {
-      setError(err.message || 'Profil konnte nicht gespeichert werden');
+      toast.error(err.message || 'Profil konnte nicht gespeichert werden');
     } finally {
       setSaving(false);
     }
@@ -182,38 +168,12 @@ const ProfilePage = () => {
   };
 
   /**
-   * Input-Handler für Formularfelder
-   */
-  const handleInputChange = (field, value) => {
-    setEditData({
-      ...editData,
-      [field]: value,
-    });
-    // Validierungsfehler für das Feld entfernen
-    if (validationErrors[field]) {
-      setValidationErrors({
-        ...validationErrors,
-        [field]: undefined,
-      });
-    }
-  };
-
-  /**
    * Handler für Adress-Änderungen (für AddressAutocomplete)
    */
   const handleAddressChange = (addressFields) => {
-    setEditData({
-      ...editData,
-      ...addressFields,
+    Object.entries(addressFields).forEach(([key, value]) => {
+      setValue(key, value, { shouldValidate: true });
     });
-    // Entferne Validierungsfehler für geänderte Adressfelder
-    const newValidationErrors = { ...validationErrors };
-    Object.keys(addressFields).forEach((key) => {
-      if (newValidationErrors[key]) {
-        delete newValidationErrors[key];
-      }
-    });
-    setValidationErrors(newValidationErrors);
   };
 
   // Loading-Zustand
@@ -246,18 +206,6 @@ const ProfilePage = () => {
                 </button>
               )}
             </div>
-
-            {/* Erfolgs-/Fehlermeldungen */}
-            {error && (
-              <div className="p-4 rounded-lg bg-red-50 text-red-800 mb-6">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="p-4 rounded-lg bg-green-50 text-green-800 mb-6">
-                {success}
-              </div>
-            )}
 
             {/* Profil-Card */}
             <div className="bg-white rounded-xl shadow-md p-6 md:p-8">
@@ -366,123 +314,117 @@ const ProfilePage = () => {
 
               {/* Bearbeitungsmodus */}
               {editMode && (
-                <form onSubmit={handleSaveClick} className="space-y-6">
-                  {/* Persönliche Daten */}
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Persönliche Daten</h2>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Vor- und Nachname können aus Sicherheitsgründen nicht geändert werden.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 pb-2">Vorname</p>
-                        <div className="p-3 bg-gray-100 rounded-lg">
-                          <p className="text-base text-gray-700">{profileData.firstName}</p>
+                <FormProvider {...methods}>
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Persönliche Daten */}
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">Persönliche Daten</h2>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Vor- und Nachname können aus Sicherheitsgründen nicht geändert werden.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-500 pb-2">Vorname</p>
+                          <div className="p-3 bg-gray-100 rounded-lg">
+                            <p className="text-base text-gray-700">{profileData.firstName}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 pb-2">Nachname</p>
-                        <div className="p-3 bg-gray-100 rounded-lg">
-                          <p className="text-base text-gray-700">{profileData.lastName}</p>
+                        <div>
+                          <p className="text-sm font-medium text-gray-500 pb-2">Nachname</p>
+                          <div className="p-3 bg-gray-100 rounded-lg">
+                            <p className="text-base text-gray-700">{profileData.lastName}</p>
+                          </div>
                         </div>
-                      </div>
-                      <label className="flex flex-col">
-                        <p className="text-sm font-medium text-gray-700 pb-2">E-Mail *</p>
-                        <input
-                          className={`form-input rounded-lg border-gray-300 h-12 px-3 ${
-                            validationErrors.email ? 'border-red-500' : ''
-                          }`}
+
+                        <FormInput
+                          name="email"
+                          label="E-Mail"
                           type="email"
-                          value={editData.email || ''}
-                          onChange={(e) => handleInputChange('email', e.target.value)}
                           required
+                          icon="email"
+                          helperText={
+                            watch('email') !== profileData.email
+                              ? '⚠️ Bei E-Mail-Änderung ist eine erneute Verifizierung erforderlich'
+                              : undefined
+                          }
                         />
-                        {validationErrors.email && (
-                          <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>
-                        )}
-                        {editData.email !== profileData.email && (
-                          <p className="text-yellow-600 text-xs mt-1">
-                            ⚠️ Bei E-Mail-Änderung ist eine erneute Verifizierung erforderlich
-                          </p>
-                        )}
-                      </label>
-                      <label className="flex flex-col">
-                        <p className="text-sm font-medium text-gray-700 pb-2">Telefon</p>
-                        <input
-                          className="form-input rounded-lg border-gray-300 h-12 px-3"
+
+                        <FormInput
+                          name="phoneNumber"
+                          label="Telefon"
                           type="tel"
-                          value={editData.phoneNumber || ''}
-                          onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                          required
+                          icon="phone"
                         />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Adresse */}
-                  <div className="border-t pt-6">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">Adresse</h2>
-                    <AddressAutocomplete
-                      street={editData.street || ''}
-                      postalCode={editData.postalCode || ''}
-                      city={editData.city || ''}
-                      onAddressChange={handleAddressChange}
-                      validationErrors={validationErrors}
-                    />
-                  </div>
-
-                  {/* Read-only Felder (Info) */}
-                  <div className="border-t pt-6">
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">
-                      Weitere Informationen
-                    </h2>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Die folgenden Felder können nicht bearbeitet werden:
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">Führerscheinnummer</p>
-                        <div className="mt-1 p-3 bg-gray-100 rounded-lg">
-                          <p className="text-base text-gray-700">
-                            {profileData.driverLicenseNumber}
-                          </p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">E-Mail-Verifizierung</p>
-                        <div className="mt-1 p-3 bg-gray-100 rounded-lg">
-                          <span
-                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
-                              profileData.emailVerified
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}
-                          >
-                            {profileData.emailVerified ? 'Verifiziert' : 'Ausstehend'}
-                          </span>
-                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-4 border-t pt-6">
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      className="flex-1 h-12 rounded-lg bg-primary text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {saving ? 'Wird gespeichert...' : 'Speichern'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelClick}
-                      disabled={saving}
-                      className="flex-1 h-12 rounded-lg bg-gray-200 text-gray-700 font-bold hover:bg-gray-300 disabled:opacity-50 transition-colors"
-                    >
-                      Abbrechen
-                    </button>
-                  </div>
-                </form>
+                    {/* Adresse */}
+                    <div className="border-t pt-6">
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">Adresse</h2>
+                      <AddressAutocomplete
+                        street={watch('street') || ''}
+                        postalCode={watch('postalCode') || ''}
+                        city={watch('city') || ''}
+                        onAddressChange={handleAddressChange}
+                        validationErrors={{}}
+                      />
+                    </div>
+
+                    {/* Read-only Felder (Info) */}
+                    <div className="border-t pt-6">
+                      <h2 className="text-xl font-bold text-gray-900 mb-4">
+                        Weitere Informationen
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Die folgenden Felder können nicht bearbeitet werden:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Führerscheinnummer</p>
+                          <div className="mt-1 p-3 bg-gray-100 rounded-lg">
+                            <p className="text-base text-gray-700">
+                              {profileData.driverLicenseNumber}
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">E-Mail-Verifizierung</p>
+                          <div className="mt-1 p-3 bg-gray-100 rounded-lg">
+                            <span
+                              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                                profileData.emailVerified
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}
+                            >
+                              {profileData.emailVerified ? 'Verifiziert' : 'Ausstehend'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 border-t pt-6">
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        className="flex-1 h-12 rounded-lg bg-primary text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {saving ? 'Wird gespeichert...' : 'Speichern'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelClick}
+                        disabled={saving}
+                        className="flex-1 h-12 rounded-lg bg-gray-200 text-gray-700 font-bold hover:bg-gray-300 disabled:opacity-50 transition-colors"
+                      >
+                        Abbrechen
+                      </button>
+                    </div>
+                  </form>
+                </FormProvider>
               )}
             </div>
           </div>

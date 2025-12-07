@@ -1,6 +1,6 @@
 /**
  * AddressAutocomplete - Adress-Eingabe mit OpenStreetMap Nominatim API
- * 
+ *
  * Features:
  * - Auto-Vervollständigung für Straße + Hausnummer
  * - Validiert echte Adressen in Deutschland
@@ -10,13 +10,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-const AddressAutocomplete = ({ 
-  street, 
-  postalCode, 
-  city, 
-  onAddressChange,
-  validationErrors 
-}) => {
+const AddressAutocomplete = ({ street, postalCode, city, onAddressChange, validationErrors }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,11 +43,11 @@ const AddressAutocomplete = ({
     try {
       setIsLoading(true);
       console.log('API Call gestartet für:', query); // Debug
-      
+
       // Nominatim API Call (nur Deutschland)
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=de&addressdetails=1&limit=5`;
       console.log('URL:', url); // Debug
-      
+
       const response = await fetch(url, {
         headers: {
           'Accept-Language': 'de',
@@ -67,7 +61,7 @@ const AddressAutocomplete = ({
 
       const data = await response.json();
       console.log('API Antwort:', data); // Debug
-      
+
       // Filtere nur Straßen-Adressen (nicht Städte/Bundesländer)
       const filteredResults = data.filter((item) => item.address && item.address.road);
       console.log('Gefilterte Ergebnisse:', filteredResults); // Debug
@@ -105,7 +99,7 @@ const AddressAutocomplete = ({
    */
   const selectAddress = (suggestion) => {
     const address = suggestion.address;
-    
+
     // Straße + Hausnummer
     const streetName = address.road || '';
     const houseNumber = address.house_number || '';
@@ -159,7 +153,9 @@ const AddressAutocomplete = ({
             autoComplete="off"
           />
           {validationErrors?.street && (
-            <p className="text-red-500 text-xs mt-1">{validationErrors.street}</p>
+            <p className="text-red-500 text-xs mt-1">
+              {validationErrors.street.message || validationErrors.street}
+            </p>
           )}
 
           {/* Loading Indicator */}
@@ -188,9 +184,7 @@ const AddressAutocomplete = ({
                         {formatSuggestion(suggestion)}
                       </p>
                       {suggestion.address.suburb && (
-                        <p className="text-xs text-gray-500">
-                          {suggestion.address.suburb}
-                        </p>
+                        <p className="text-xs text-gray-500">{suggestion.address.suburb}</p>
                       )}
                     </div>
                   </div>
@@ -223,7 +217,9 @@ const AddressAutocomplete = ({
             placeholder="PLZ"
           />
           {validationErrors?.postalCode && (
-            <p className="text-red-500 text-xs mt-1">{validationErrors.postalCode}</p>
+            <p className="text-red-500 text-xs mt-1">
+              {validationErrors.postalCode.message || validationErrors.postalCode}
+            </p>
           )}
         </label>
 
@@ -241,7 +237,9 @@ const AddressAutocomplete = ({
             placeholder="Stadt"
           />
           {validationErrors?.city && (
-            <p className="text-red-500 text-xs mt-1">{validationErrors.city}</p>
+            <p className="text-red-500 text-xs mt-1">
+              {validationErrors.city.message || validationErrors.city}
+            </p>
           )}
         </label>
       </div>
