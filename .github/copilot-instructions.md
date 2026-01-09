@@ -299,26 +299,4 @@ Nutze dieses Template, wann immer du die KI um Code für **CONCERT COMPARISON** 
 
 ---
 
-## 📝 User Stories Priorisierung
-
-### Must-Have (MVP)
-
-- **US-01**: Seats für ein Konzert anzeigen (Verfügbarkeit)
-- **US-02**: Platz reservieren (Hold mit TTL)
-- **US-03**: Ticket kaufen (Checkout)
-- **US-04**: Kein Platz darf doppelt verkauft werden (Concurrency!)
-- **US-09**: Konzert und Seats anlegen (Admin)
-
-### Should-Have
-
-- **US-05**: Verfügbarkeitsübersicht aktuell halten (SSE/WebSocket)
-- **US-06**: Verständliche Fehlermeldungen
-- **US-08**: Rate Limiting & Basisschutz
-
-### Could-Have
-
-- **US-07**: Konzerte vergleichen (Filter, Sort)
-
----
-
 **Quality over Quantity!** Fokus auf saubere Analyse, Tests, Dokumentation und CI/CD. Starte mit einer simplen User Story und baue eine solide Basis!
