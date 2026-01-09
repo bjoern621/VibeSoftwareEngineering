@@ -1,74 +1,48 @@
-# RENTACAR – KI-Coding Assistant Instructions
+# CONCERT COMPARISON – KI-Coding Assistant Instructions
 
 ## 🎯 Project Overview
 
-**RENTACAR** is a backend-only information system for a mid-sized car rental company with multiple branches. The system manages vehicles, customers, bookings, and rental processes (check-out / check-in, damage reports, pricing).
+**CONCERT COMPARISON** ist ein hochskalierbares Ticket-Verkaufssystem für große Konzerte und Events. Das System muss tausende gleichzeitige Nutzer handhaben und Spitzenlasten von bis zu 10.000 Requests/Sekunde beim Verkaufsstart bewältigen.
 
-> Important: **Backend-only project!** No web frontend; focus on clean DDD, REST API and high test coverage.
+> Wichtig: **Full-Stack Projekt!** Backend (Spring Boot) + Frontend (React); Fokus auf Concurrency, Skalierbarkeit, DDD und hohe Testabdeckung.
 
-### Core Functional Requirements (Short Overview)
+### Core Functional Requirements
 
-- **Vehicle Management**: Vehicle types, attributes, status (available, rented, maintenance, out of service).
-- **Customer Management**: Registration, profile data, booking history.
-- **Booking Management**: Search for available vehicles, create/modify/cancel bookings, price calculation.
-- **Rental Process**: Check-out, check-in, mileage tracking, damage reports, extra fees.
+- **Seat Management**: Sitzplätze/Kategorien für Konzerte verwalten, Verfügbarkeit in Echtzeit anzeigen.
+- **Seat Reservation (Hold)**: Zeitlich begrenzte Reservierung von Plätzen während des Checkouts (TTL).
+- **Ticket Purchase**: Kaufabschluss nur für aktive Holds, kein doppelter Verkauf.
+- **Concurrency Control**: Garantie, dass ein Platz maximal einmal verkauft wird (Race Condition Prevention).
+- **Real-time Updates**: Live-Aktualisierung der Verfügbarkeit (Polling/SSE/WebSocket).
+- **Event Comparison**: Konzerte vergleichen nach Datum, Ort, Preis, Verfügbarkeit.
+- **Rate Limiting**: Schutz vor übermäßigen/automatisierten Zugriffen.
+- **Admin Functions**: Konzerte und Seats anlegen.
 
-### Non-Functional Requirements (Extract)
+### Non-Functional Requirements
 
-- **Performance**: Vehicle availability search ≤ 2 seconds; support ≥ 100 concurrent users.
-- **Security**: GDPR-compliant storage, RBAC (customer, employee, admin), audit logging.
-- **Maintainability**: Strict DDD, modular architecture, ≥ 80% unit test coverage.
-
----
-
-## 🧠 MCP Servers: Context7 & Sequential Thinking
-
-We use **MCP servers** consistently during development:
-
-### 1. Context7 – Documentation & Examples
-
-**Purpose**: Pull up-to-date, version-specific framework/library docs and code examples directly into the prompt.
-
-**Use Context7 when:**
-
-- You need exact usage of Spring Boot / JPA / Validation / Security APIs.
-- You are unsure about annotations, config options or best practices.
-- You design persistence mappings (e.g. `@ManyToOne`, `@Embeddable`) or transactions.
-
-**Instruction to Copilot/ChatGPT (example):**
-
-> “Use the MCP server **Context7** to look up the current Spring Boot 3 / Spring Data JPA documentation for X and integrate the recommended pattern into the generated code.”
-
-### 2. Sequential Thinking – Stepwise Implementation Planning
-
-**Purpose**: Create and follow a step-by-step plan for complex tasks and refactorings.
-
-**Use Sequential Thinking when:**
-
-- Designing a new aggregate (e.g. `Booking` or `RentalAgreement`).
-- Implementing a complete feature end-to-end (Domain → Application → REST).
-- Refactoring an existing flow based on quality-assurance feedback.
-
-**Instruction to Copilot/ChatGPT (example):**
-
-> “Use the MCP server **Sequential Thinking** to first generate a detailed step-by-step implementation plan for this feature. Then implement the steps one by one, updating the plan as you go.”
-
-### 3. Mandatory MCP Usage Rules
-
-- For **every non-trivial feature**, start with a **Sequential Thinking** plan.
-- For **framework-specific questions**, always consult **Context7** before “guessing” APIs.
-- When you ask the AI for code, explicitly remind it to:
-  - Respect our DDD rules (see below).
-  - Use MCP (Context7 / Sequential Thinking) where helpful.
+- **Performance**: 
+  - Verfügbarkeitsabfrage ≤ 1 Sekunde
+  - Support für ≥ 1000 gleichzeitige Nutzer
+  - Spitzenlasten bis 10.000 Requests/Sekunde
+- **Reliability**: 
+  - Kein Platz darf doppelt verkauft werden (atomare Transaktionen)
+  - Automatische Hold-Freigabe nach TTL-Ablauf
+- **Scalability**: 
+  - Horizontal skalierbar (Stateless Backend)
+  - Elastic Load Balancing
+- **Quality**: 
+  - Strict DDD, modular architecture
+  - ≥ 80% unit test coverage
+  - Automated concurrency tests
+  - CI/CD Pipeline
 
 ---
 
 ## 🏗️ Architecture: DDD Layered Architecture
 
-We follow a DDD-style layered architecture for the RENTACAR backend.
+Wir folgen einer DDD-Style Layered Architecture für das Concert Comparison Backend.
 
 ```text
-src/main/java/com/rentacar/
+src/main/java/com/concertcomparison/
 ├── domain/                # Domain Layer (core business logic)
 │   ├── model/             # Entities, Value Objects, Enums
 │   ├── repository/        # Repository interfaces (Ports)
@@ -78,385 +52,141 @@ src/main/java/com/rentacar/
 │   └── dto/               # Application DTOs (if needed)
 ├── infrastructure/        # Infrastructure Layer (Adapters)
 │   ├── persistence/       # JPA repositories, DB mappings
-│   ├── external/          # External systems (e.g. payments, identity)
-│   └── messaging/         # Async messaging if needed
-└── presentation/          # Presentation Layer (REST API)
-    ├── controller/        # REST Controllers
+│   ├── messaging/         # SSE/WebSocket/Async messaging
+│   ├── scheduler/         # Background jobs (Hold cleanup)
+│   └── cache/             # Caching (Redis/Caffeine)
+└── presentation/          # Presentation Layer (REST API, WebSocket)
+    ├── controller/        # REST Controllers, WebSocket endpoints
     └── dto/               # Request/Response DTOs
 ```
 
-**Golden Rules:**
+**Goldene Regeln:**
 
-- Domain entities **never** exposed directly via REST – always map to DTOs.
-- Dependencies always **inward** toward domain:
+- Domain Entities **niemals** direkt via REST exponieren – immer auf DTOs mappen.
+- Dependencies immer **einwärts** zur Domain:
   - `presentation → application → domain`
-  - `infrastructure` implements ports for domain (repositories, external services).
-- No Spring annotations in `domain` package (pure Java).
+  - `infrastructure` implementiert Ports für Domain (Repositories, External Services).
+- Keine Spring Annotations im `domain` Package (pure Java).
 
 ---
 
-## 🚗 RENTACAR Domain Model
-
-### Aggregates & Entities (initial suggestion)
-
-- **Vehicle** (Aggregate Root)  
-  Fields:  
-  `id`, `licensePlate`, `brand`, `model`, `year`, `mileage`, `vehicleType`, `status`, `branch`.
-
-  Status: `AVAILABLE`, `RENTED`, `IN_MAINTENANCE`, `OUT_OF_SERVICE`.
-
-  Business methods:
-
-  - `markAsRented()`
-  - `markAsAvailable()`
-  - `markAsInMaintenance()`
-  - `retire()`
-
-- **Customer** (Aggregate Root)  
-  Fields:  
-  `id`, `name`, `address`, `driverLicenseNumber`, `contactDetails`.
-
-  Methods:
-
-  - `updateContactDetails(...)`
-  - `verifyDriverLicense(...)`
-
-- **Branch** (Aggregate Root or Value Object reference)  
-  Fields:  
-  `id`, `name`, `address`, `openingHours`.
-
-- **Booking** (Aggregate Root)  
-  Fields:  
-  `id`, `customer`, `vehicle`, `pickupBranch`, `returnBranch`,  
-  `pickupDateTime`, `returnDateTime`, `status`, `totalPrice`, `options` (extras).
-
-  Status: `REQUESTED`, `CONFIRMED`, `CANCELLED`, `EXPIRED`.
-
-  Business rules: availability checks, cancellation up to 24h before pickup.
-
-  Methods:
-
-  - `confirm()`
-  - `cancel()`
-  - `expire()`
-  - `calculatePrice(PricingPolicy)`
-
-- **RentalAgreement** (Aggregate Root for actual rental)  
-  Fields:  
-  `id`, `booking`, `checkoutOdometer`, `checkinOdometer`,  
-  `checkoutTime`, `checkinTime`, `status`, `finalPrice`, `damageReports`.
-
-  Status: `OPEN`, `CLOSED`.
-
-  Methods:
-
-  - `checkOut(...)`
-  - `checkIn(...)`
-  - `registerDamage(...)`
-  - `calculateFinalPrice(...)`
-
-- **DamageReport**  
-  Fields:  
-  `id`, `rentalAgreement`, `description`, `severity`, `estimatedCost`, `photos`.
-
-  Methods:
-
-  - `estimateCost(...)`.
-
-### Value Objects
-
-- `Money` (amount + currency).
-- `DateRange` for booking periods.
-- `LicensePlate`, `Address`, `ContactDetails`.
-- Optional: `Mileage` / `Kilometers` VO to validate non-negative values.
-
----
 
 ## 🔧 Tech Stack
 
 - **Framework**: Spring Boot 3.x
-- **Language**: Java 21+ (or course-specific version)
-- **Persistence**: Spring Data JPA (H2 dev, PostgreSQL or similar for prod)
-- **Security**: Spring Security with JWT and roles (`CUSTOMER`, `EMPLOYEE`, `ADMIN`)
-- **Build**: Maven or Gradle
-- **Testing**: JUnit 5, Mockito, MockMvc
+- **Language**: Java 21+
+- **Persistence**: Spring Data JPA (H2 dev, PostgreSQL/MySQL prod)
+- **Concurrency**: Optimistic Locking (`@Version`), Pessimistic Locking (wo nötig)
+- **Caching**: Redis (prod) / Caffeine (dev) für Availability-Aggregation
+- **Real-time**: Server-Sent Events (SSE) oder WebSocket für Live-Updates
+- **Scheduling**: Spring `@Scheduled` für Hold-Cleanup-Jobs
+- **Rate Limiting**: Bucket4j oder Spring Cloud Gateway
+- **Security**: Spring Security mit JWT/Session
+- **Build**: Maven
+- **Testing**: JUnit 5, Mockito, Testcontainers (für Concurrency-Tests)
+- **CI/CD**: GitHub Actions mit Tests, Code Coverage, Sonar
 - **Documentation**: OpenAPI / Swagger
 
 ---
 
-## 🔐 Security Implementation
+## 🔐 Security & Rate Limiting
 
-### 1. DSGVO-konforme Verschlüsselung (Jasypt)
+### Authentication & Authorization
 
-Sensitive customer data is encrypted at rest using **Jasypt Spring Boot Starter**:
+- **Methode**: JWT (stateless) oder Session-based
+- **Rollen**: `USER`, `ADMIN`
+- **Geschützte Endpoints**:
+  - `POST /api/reservations` – USER
+  - `POST /api/orders` – USER
+  - `POST /api/events` – ADMIN
+  - `POST /api/seats` – ADMIN
 
-- **Library**: `jasypt-spring-boot-starter` (Version 3.0.5)
-- **Algorithm**: AES-256 with HMAC-SHA512
-- **Implementation**: `EncryptedStringConverter` for JPA `@Convert` annotation
-- **Encrypted Fields**: 
-  - `firstName`, `lastName`, `email`, `phoneNumber`
-  - `address` (all fields: street, postalCode, city)
-  - `driverLicenseNumber`
-- **Configuration**: `application.properties` with environment variable support
+### Rate Limiting (US-08)
 
-**Example Usage:**
-```java
-@Column(nullable = false, length = 100)
-@Convert(converter = EncryptedStringConverter.class)
-private String firstName;
-```
-
-**Important:** Set `JASYPT_ENCRYPTOR_PASSWORD` environment variable in production!
-
-### 2. Authentication & Authorization (JWT + Spring Security)
-
-- **Authentication Method**: JWT (JSON Web Token) - stateless
-- **Token Validity**: 24 hours (configurable via `jwt.expiration`)
-- **Password Hashing**: BCrypt via `BCryptPasswordEncoder`
-- **Security Components**:
-  - `JwtUtil`: Token generation and validation
-  - `JwtAuthenticationFilter`: Intercepts requests, validates JWT tokens
-  - `CustomerUserDetailsService`: Loads user details for authentication
-  - `SecurityConfig`: Configures security filter chain
-
-**Public Endpoints** (no authentication required):
-- `POST /api/kunden/registrierung` - Customer registration
-- `POST /api/kunden/login` - Customer login
-- `POST /api/kunden/verify-email` - Email verification
-- `/h2-console/**` - H2 Console (development only)
-
-**Protected Endpoints** (JWT required):
-- `GET /api/kunden/profil` - Get customer profile
-- `PUT /api/kunden/profil` - Update customer profile
-- All other endpoints require authentication
-
-**Roles:**
-- `ROLE_CUSTOMER`: Regular customers
-- `ROLE_EMPLOYEE`: Company employees
-- `ROLE_ADMIN`: System administrators
-
-### 3. Email Verification
-
-- **Implementation**: Token-based email verification (24h validity)
-- **Flow**:
-  1. Customer registers → `verificationToken` generated (UUID)
-  2. Verification email sent with token link
-  3. Customer clicks link → token validated → email verified
-  4. Account unlocked for full access
-- **Email Service**: `MockEmailService` (logs emails to console for development)
-  - Can be replaced with SMTP implementation for production
-- **Token Storage**: Database field `verificationToken` with `tokenExpiryDate`
-
-**Email Service Interface** (Port):
-```java
-public interface EmailService {
-    void sendVerificationEmail(String recipientEmail, String recipientName, String verificationToken);
-    void sendWelcomeEmail(String recipientEmail, String recipientName);
-    void sendPasswordChangedEmail(String recipientEmail, String recipientName);
-}
-```
-
-### 4. Configuration Properties
-
-Add to `application.properties`:
-```properties
-# JWT Configuration
-jwt.secret=your-secret-key-min-256-bits-change-in-production
-jwt.expiration=86400000  # 24 hours in milliseconds
-
-# Jasypt Encryption (DSGVO)
-jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD:rentacar-dev-secret}
-jasypt.encryptor.algorithm=PBEWithHMACSHA512AndAES_256
-```
+- **Implementierung**: Bucket4j (Token Bucket Algorithm)
+- **Limits**: Konfigurierbar pro IP/User
+  - z.B. 100 Requests/Minute für normale User
+  - z.B. 10 Seat-Holds/Minute pro User
+- **Response**: HTTP 429 Too Many Requests
+- **Metriken**: Prometheus/Micrometer für Monitoring
 
 ---
 
-## 📦 DDD Patterns (Adapted to RENTACAR)
+## 🌐 REST API Conventions
 
-### 1. Aggregates
+### Events
 
-Example (simplified) `Booking`:
+- `GET /api/events` – Liste aller Events (mit Filtern)
+- `GET /api/events/{id}` – Event-Details
+- `POST /api/events` – Event erstellen (ADMIN)
+- `PUT /api/events/{id}` – Event aktualisieren (ADMIN)
+- `DELETE /api/events/{id}` – Event löschen (ADMIN)
 
-```java
-@Entity
-public class Booking {
+### Seats
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+- `GET /api/events/{eventId}/seats` – Alle Seats für ein Event
+- `GET /api/events/{eventId}/availability` – Verfügbarkeit aggregiert
+- `POST /api/seats` – Seats bulk-erstellen (ADMIN)
 
-    @ManyToOne(optional = false)
-    private Customer customer;
+### Reservations
 
-    @ManyToOne(optional = false)
-    private Vehicle vehicle;
+- `POST /api/reservations` – Seat reservieren (Hold)
+- `GET /api/reservations/{id}` – Reservation-Details
+- `DELETE /api/reservations/{id}` – Reservation stornieren
 
-    @Embedded
-    private DateRange rentalPeriod;
+### Orders
 
-    @Enumerated(EnumType.STRING)
-    private BookingStatus status;
+- `POST /api/orders` – Reservation kaufen (Checkout)
+- `GET /api/orders/{id}` – Order-Details
+- `GET /api/users/me/orders` – Meine Orders
 
-    @Embedded
-    private Money totalPrice;
+### Conventions
 
-    protected Booking() {
-        // for JPA
-    }
-
-    public Booking(Customer customer,
-                   Vehicle vehicle,
-                   DateRange rentalPeriod,
-                   Money totalPrice) {
-        // validate invariants here
-        this.customer = Objects.requireNonNull(customer);
-        this.vehicle = Objects.requireNonNull(vehicle);
-        this.rentalPeriod = Objects.requireNonNull(rentalPeriod);
-        this.totalPrice = Objects.requireNonNull(totalPrice);
-        this.status = BookingStatus.REQUESTED;
-    }
-
-    public void confirm() {
-        if (status != BookingStatus.REQUESTED) {
-            throw new BookingStatusTransitionException(id, status, BookingStatus.CONFIRMED);
-        }
-        this.status = BookingStatus.CONFIRMED;
-    }
-
-    public void cancel(LocalDateTime now) {
-        validateCancellationWindow(now);
-        if (!status.isCancellable()) {
-            throw new BookingStatusTransitionException(id, status, BookingStatus.CANCELLED);
-        }
-        this.status = BookingStatus.CANCELLED;
-    }
-
-    // Private invariants & validation methods...
-}
-```
-
-> Rule: **No public setters** for critical state; use expressive business methods instead.
-
-### 2. Repository Pattern
-
-Domain layer:
-
-```java
-public interface BookingRepository {
-    Booking save(Booking booking);
-    Optional<Booking> findById(Long id);
-    List<Booking> findByCustomerId(Long customerId);
-    List<Booking> findActiveBookingsForVehicle(Long vehicleId, DateRange period);
-}
-```
-
-Infrastructure layer:
-
-```java
-@Repository
-public interface JpaBookingRepository
-        extends BookingRepository, JpaRepository<Booking, Long> {
-
-    // Spring Data JPA derives the implementation
-}
-```
-
-Same idea for `VehicleRepository`, `CustomerRepository`, `RentalAgreementRepository`, `DamageReportRepository`.
-
-### 3. Domain Services
-
-For logic that spans multiple aggregates (e.g., checking availability + pricing):
-
-```java
-@Service
-public class BookingDomainService {
-
-    public Booking createBooking(
-        Customer customer,
-        Vehicle vehicle,
-        DateRange rentalPeriod,
-        PricingPolicy pricingPolicy
-    ) {
-        validateVehicleAvailability(vehicle, rentalPeriod);
-        Money price = pricingPolicy.calculatePrice(vehicle, rentalPeriod);
-        return new Booking(customer, vehicle, rentalPeriod, price);
-    }
-
-    private void validateVehicleAvailability(Vehicle vehicle, DateRange rentalPeriod) {
-        // domain rule checks...
-    }
-}
-```
-
-Application layer orchestrates calls to domain services + repositories.
-
----
-
-## 🌐 REST API Conventions (Example)
-
-- `GET /api/vehicles`
-- `GET /api/vehicles/{id}`
-- `POST /api/vehicles`
-- `PUT /api/vehicles/{id}`
-- `PATCH /api/vehicles/{id}/status`
-
-- `GET /api/customers/{id}/bookings`
-- `POST /api/bookings/search-availability`
-- `POST /api/bookings`
-- `POST /api/bookings/{id}/confirm`
-- `POST /api/bookings/{id}/cancel`
-
-- `POST /api/rentals/{bookingId}/check-out`
-- `POST /api/rentals/{id}/check-in`
-- `POST /api/rentals/{id}/damage-reports`
-
-Conventions:
-
-- Use DTOs for requests/responses.
-- Validate DTOs with Bean Validation (`@Valid`, `@NotNull`, `@Future`, etc.).
-- Map DTO ↔ Entity using dedicated mapper classes.
-
----
-
-## 🔒 Security & Roles
-
-Roles (minimum):
-
-- `ROLE_CUSTOMER`
-- `ROLE_EMPLOYEE`
-- `ROLE_ADMIN`
-
-Examples:
-
-- `CUSTOMER` can:
-  - register, manage own profile.
-  - search vehicles, create/cancel own bookings.
-- `EMPLOYEE` can:
-  - manage vehicles, perform check-in/check-out, create damage reports.
-- `ADMIN` can:
-  - manage branches, adjust pricing policies, view audit logs.
-
-Use method-level security where appropriate, e.g.:
-
-```java
-@PreAuthorize("hasRole('EMPLOYEE')")
-public RentalAgreement performCheckOut(Long bookingId, CheckOutCommand command) {
-    // ...
-}
-```
+- DTOs für Requests/Responses verwenden.
+- Bean Validation (`@Valid`, `@NotNull`, `@Future`, etc.).
+- DTO ↔ Entity Mapping via dedizierte Mapper-Klassen.
+- Fehlerbehandlung via `@RestControllerAdvice`.
 
 ---
 
 ## 🧪 Testing Strategy
 
-- **Unit tests** for:
-  - Domain entities (state transitions, invariants).
-  - Domain services (pricing, availability logic).
-- **Integration tests** for:
-  - REST controllers (MockMvc or WebTestClient).
-  - Persistence mappings (H2 in-memory DB).
+### Unit Tests
 
-Target: **≥ 80%** unit test coverage, focusing on domain logic.
+- **Domain Entities**: State Transitions, Invarianten
+- **Domain Services**: Business-Logik (Hold, Sell, Expire)
+- **Application Services**: Use-Case-Orchestrierung
+- **Target**: ≥ 80% Coverage
+
+### Integration Tests
+
+- **REST Controllers**: MockMvc oder WebTestClient
+- **Persistence**: H2 in-memory oder Testcontainers
+- **Concurrency Tests**: ExecutorService, ParallelStreams
+- **SSE/WebSocket**: WebTestClient mit Flux
+
+### Concurrency Tests (MUST!)
+
+```java
+@SpringBootTest
+class SeatConcurrencyTest {
+
+    @Test
+    void shouldHandleConcurrentReservations() {
+        // Test mit 100+ concurrent requests
+        // Assertion: Genau 1 erfolgreich, Rest Conflict/Error
+    }
+}
+```
+
+### CI/CD Pipeline
+
+- **GitHub Actions**:
+  - Build & Unit Tests
+  - Integration Tests
+  - Code Coverage Report (JaCoCo)
+  - SonarQube Analysis
+  - Docker Build (optional)
 
 ---
 
@@ -466,95 +196,129 @@ Target: **≥ 80%** unit test coverage, focusing on domain logic.
 - **Comments**: German
 - **Error messages**: German
 - **Commit messages**: German
-- **Documentation**: German (unless explicitly required otherwise)
+- **Documentation**: German
 
 ---
 
-## ✅ DDD Validation & Quality Checklist (Must Do!)
-
-Before committing, check:
+## ✅ DDD Validation & Quality Checklist
 
 ### Entities
 
-- [ ] Entity has **business methods** (not just getters/setters).
-- [ ] No public setters for critical fields.
-- [ ] Invariants are validated **inside** the entity (constructor or methods).
-- [ ] Domain-specific exceptions (e.g. `BookingStatusTransitionException`), not generic ones.
-- [ ] Aggregate root protects its children (no external mutation of collections).
+- [ ] Entity hat **Business Methods** (nicht nur Getters/Setters).
+- [ ] Keine public Setters für kritische Felder.
+- [ ] Invarianten werden **innerhalb** der Entity validiert (Constructor oder Methods).
+- [ ] Domain-spezifische Exceptions (z.B. `SeatNotAvailableException`), nicht generische.
+- [ ] Aggregate Root schützt seine Children (keine externe Mutation von Collections).
 
 ### Value Objects
 
-- [ ] All fields `final`, no public setters.
-- [ ] Validation happens in constructor/factory.
-- [ ] No identity/ID fields.
-- [ ] `equals()` / `hashCode()` correctly implemented (or Lombok `@Value`).
+- [ ] Alle Felder `final`, keine public Setters.
+- [ ] Validierung passiert im Constructor/Factory.
+- [ ] Keine Identität/ID-Felder.
+- [ ] `equals()` / `hashCode()` korrekt implementiert (oder Lombok `@Value`).
 
 ### Services
 
-- [ ] Application services orchestrate use cases, do not contain core business rules.
-- [ ] Core business logic lives in entities or domain services.
-- [ ] Domain services are stateless and focused.
-- [ ] `@Transactional` on application/domain services where needed.
+- [ ] Application Services orchestrieren Use Cases, enthalten keine Core Business Rules.
+- [ ] Core Business Logik lebt in Entities oder Domain Services.
+- [ ] Domain Services sind stateless und fokussiert.
+- [ ] `@Transactional` auf Application/Domain Services wo nötig.
 
 ### Repositories
 
-- [ ] Repository interfaces in `domain.repository`.
-- [ ] Spring Data / JPA implementations in `infrastructure.persistence`.
-- [ ] Repositories return entities, not DTOs.
-- [ ] No business logic in queries.
+- [ ] Repository Interfaces in `domain.repository`.
+- [ ] Spring Data / JPA Implementierungen in `infrastructure.persistence`.
+- [ ] Repositories geben Entities zurück, nicht DTOs.
+- [ ] Keine Business-Logik in Queries.
+
+### Concurrency (CRITICAL!)
+
+- [ ] Optimistic Locking (`@Version`) für alle Concurrency-kritischen Entities (Seat!).
+- [ ] Concurrency-Tests implementiert (mind. 1 Test mit 50+ parallelen Threads).
+- [ ] Race Conditions dokumentiert und getestet.
+- [ ] TTL-basierte Hold-Freigabe implementiert und getestet.
 
 ---
 
 ## 🤖 Copilot Prompt Template (with MCP)
 
-Use this template whenever you ask the AI to generate code for RENTACAR:
+Nutze dieses Template, wann immer du die KI um Code für **CONCERT COMPARISON** bittest:
 
-> I am working on a **DDD (Domain-Driven Design)** backend project called **RENTACAR**  
-> (car rental system with vehicles, customers, bookings, rentals and damage reports).
+> Ich arbeite an einem **DDD (Domain-Driven Design)** Backend-Projekt namens **CONCERT COMPARISON**  
+> (Ticket-Verkaufssystem für Konzerte mit hoher Concurrency und Skalierbarkeit).
 >
-> Please:
+> Bitte:
 >
-> 1. Use the **Context7 MCP server** to look up up-to-date Spring Boot 3 / JPA / Validation / Security documentation as needed.
-> 2. Use the **Sequential Thinking MCP server** to first create a step-by-step plan for the implementation, then implement it step by step.
+> 1. Nutze den **Context7 MCP Server** um aktuelle Spring Boot 3 / JPA / Validation / Security Dokumentation zu recherchieren.
+> 2. Nutze den **Sequential Thinking MCP Server** um zuerst einen Schritt-für-Schritt-Plan zu erstellen, dann implementiere schrittweise.
 >
-> Generate the following code:
-> [YOUR REQUEST, e.g. “Create the Booking aggregate with methods confirm() and cancel() and a BookingRepository interface.”]
+> Generiere folgenden Code:
+> [DEINE ANFRAGE, z.B. "Erstelle das Seat Aggregate mit hold(), release() und sell() Methoden sowie Optimistic Locking."]
 >
-> **CRITICAL DDD RULES (do NOT violate):**
+> **KRITISCHE DDD & CONCURRENCY REGELN (NICHT VERLETZEN):**
 >
-> - **ENTITIES** have business methods, no public setters for critical fields.  
->   Example: `booking.confirm()` instead of `booking.setStatus(CONFIRMED)`.
-> - **INVARIANTS** are validated inside the entity (constructor or methods),  
->   not in services or controllers.
-> - **VALUE OBJECTS** are immutable (final fields, no setters).  
->   Validation happens in constructor or factory.
-> - **SERVICES** orchestrate and call entity/domain-service methods,  
->   they should not implement complex business rules themselves.
-> - **EXCEPTIONS** are domain-specific  
->   (e.g. `InvalidRentalPeriodException`, `BookingStatusTransitionException`),  
->   not generic (`IllegalArgumentException`).
-> - **REPOSITORIES** are abstract interfaces in the domain layer and implemented  
->   in the infrastructure layer. They return **entities**, not DTOs.
-> - **AGGREGATE ROOTS** protect their children. Child entities are only modified via the root.
+> - **ENTITIES** haben Business Methods, keine public Setters für kritische Felder.  
+>   Beispiel: `seat.hold(reservationId)` statt `seat.setStatus(HELD)`.
+> - **INVARIANTS** werden innerhalb der Entity validiert (Constructor oder Methods),  
+>   nicht in Services oder Controllers.
+> - **VALUE OBJECTS** sind immutable (final fields, keine Setters).  
+>   Validierung im Constructor oder Factory.
+> - **SERVICES** orchestrieren und rufen Entity/Domain-Service Methoden auf,  
+>   sie sollten keine komplexen Business Rules selbst implementieren.
+> - **EXCEPTIONS** sind domain-spezifisch  
+>   (z.B. `SeatNotAvailableException`, `ReservationExpiredException`),  
+>   nicht generisch (`IllegalArgumentException`).
+> - **REPOSITORIES** sind abstrakte Interfaces im Domain Layer, implementiert  
+>   im Infrastructure Layer. Sie geben **Entities** zurück, nicht DTOs.
+> - **AGGREGATE ROOTS** schützen ihre Children. Child-Entities werden nur via Root modifiziert.
+> - **OPTIMISTIC LOCKING** (`@Version`) für alle Concurrency-kritischen Entities (z.B. Seat).
+> - **TRANSAKTIONEN** (@Transactional) für alle State-Changes, insb. Hold → Sold Transitions.
+> - **CONCURRENCY TESTS** für jeden kritischen Flow (Hold, Sell, Expire).
 >
-> After generating the code, please:
+> Nach Code-Generierung bitte:
 >
-> - Briefly validate against DDD best practices and the checklist above.
-> - Suggest small improvements if you see any anemic domain model tendencies.
+> - Kurz gegen DDD Best Practices und obige Checklist validieren.
+> - Verbesserungsvorschläge machen, falls Anemic Domain Model Tendenzen erkennbar.
 
 ---
 
 ## 🔄 Recommended Workflow per Feature
 
-1. **Clarify the use case** (e.g. “Customer creates a booking”).
-2. **Ask Sequential Thinking** (via MCP) to generate a step-by-step plan.
-3. **Design/adjust the domain model** (entities, VOs, repositories).
-4. **Generate code** layer by layer:
-   - Domain model
-   - Domain services
-   - Application services
-   - REST controllers + DTOs
-5. **Use Context7** (via MCP) to verify framework usage, libraries and edge cases.
-6. **Write tests** (domain first, then REST).
-7. **Run tests, refactor, re-run**.
-8. **Commit only when the DDD checklist is fulfilled.**
+1. **Clarify the Use Case** (z.B. "User reserviert einen Seat").
+2. **Ask Sequential Thinking** (via MCP) um einen Schritt-für-Schritt-Plan zu generieren.
+3. **Design/Adjust Domain Model** (Entities, VOs, Repositories).
+4. **Generate Code** Layer für Layer:
+   - Domain Model
+   - Domain Services
+   - Application Services
+   - REST Controllers + DTOs
+5. **Use Context7** (via MCP) um Framework-Nutzung, Libraries und Edge Cases zu verifizieren.
+6. **Write Tests** (Domain zuerst, dann REST, dann Concurrency).
+7. **Run Tests, Refactor, Re-Run**.
+8. **Commit nur wenn DDD & Concurrency Checklist erfüllt.**
+
+---
+
+## 📝 User Stories Priorisierung
+
+### Must-Have (MVP)
+
+- **US-01**: Seats für ein Konzert anzeigen (Verfügbarkeit)
+- **US-02**: Platz reservieren (Hold mit TTL)
+- **US-03**: Ticket kaufen (Checkout)
+- **US-04**: Kein Platz darf doppelt verkauft werden (Concurrency!)
+- **US-09**: Konzert und Seats anlegen (Admin)
+
+### Should-Have
+
+- **US-05**: Verfügbarkeitsübersicht aktuell halten (SSE/WebSocket)
+- **US-06**: Verständliche Fehlermeldungen
+- **US-08**: Rate Limiting & Basisschutz
+
+### Could-Have
+
+- **US-07**: Konzerte vergleichen (Filter, Sort)
+
+---
+
+**Quality over Quantity!** Fokus auf saubere Analyse, Tests, Dokumentation und CI/CD. Starte mit einer simplen User Story und baue eine solide Basis!
