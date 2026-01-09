@@ -1,0 +1,40 @@
+meta {
+  name: 08-logout-token-invalidated
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/kunden/profil
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+assert {
+  res.status: eq 401
+}
+
+docs {
+  # Nach Logout - Token ist ungültig
+
+  Testet, dass ein ausgeloggter Token nicht mehr verwendet werden kann.
+
+  ## Vorbedingungen
+  - Test 07-logout-success wurde ausgeführt
+  - authToken wurde durch Logout invalidiert
+
+  ## Erwartetes Ergebnis
+  - Status: 401 Unauthorized (JwtAuthenticationEntryPoint für blacklisted tokens)
+  - Token ist auf der Blacklist
+  - Zugriff auf geschützte Ressourcen wird verweigert
+
+  ## Wichtig
+  - Dieser Test muss NACH dem Logout-Test (07) ausgeführt werden
+  - Er verwendet denselben Token, der vorher ausgeloggt wurde
+  - Backend gibt 401 für ungültige/blacklisted tokens zurück (403 nur für Autorisierung)
+}
+

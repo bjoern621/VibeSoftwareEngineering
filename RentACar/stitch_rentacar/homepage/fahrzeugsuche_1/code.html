@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RENTACAR - Finden Sie Ihr perfektes Mietauto</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1976D2",
+                        "secondary": "#FF9800",
+                        "background-light": "#F5F5F5",
+                        "text-main": "#212121",
+                        "card-bg": "#FFFFFF"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light text-text-main">
+<div class="relative flex min-h-screen w-full flex-col">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 w-full border-b border-gray-200/80 bg-card-bg/80 backdrop-blur-sm">
+<div class="container mx-auto flex items-center justify-between px-6 py-3">
+<div class="flex items-center gap-4 text-text-main">
+<span class="material-symbols-outlined text-primary text-3xl">directions_car</span>
+<h2 class="text-xl font-bold tracking-tight">RENTACAR</h2>
+</div>
+<div class="hidden items-center gap-8 md:flex">
+<a class="text-sm font-medium hover:text-primary" href="#">Meine Buchungen</a>
+<a class="text-sm font-medium hover:text-primary" href="#">Hilfe</a>
+</div>
+<div class="flex gap-2">
+<button class="flex h-10 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary/10 px-4 text-sm font-bold text-primary transition-colors hover:bg-primary/20">
+<span class="truncate">Anmelden</span>
+</button>
+<button class="flex h-10 min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-primary px-4 text-sm font-bold text-white transition-opacity hover:opacity-90">
+<span class="truncate">Registrieren</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<!-- HeroSection -->
+<section class="relative flex min-h-[480px] w-full items-center justify-center bg-cover bg-center py-12" data-alt="A modern sports car on a road" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBdG6sBcOPaNASQCivb3PyJ8ytLelWkNWq4WaEM6WdSL9tDCvHAb1CV6m37Vno8GmcjGAGsFaINEik-RUnjOHeh9oA9mMqIaR-__Un_agzGNyTyXNA3sZj1QUoi2ElEL36sG5TcB2ak2IuCS4D8ml0DElcLD2eoPD2emdYa8aWzHjOScQ25zXGI3vM_njPJvMSujP1Q68Lslw1_DVc0LLJTMhnImhqiTXCyZbaRxA1w14gyyWf9gxMbKRvbOs4qvFpJRkSWUj74WKqA');">
+<div class="container mx-auto flex flex-col items-center gap-8 px-6 text-center">
+<div class="flex flex-col gap-2">
+<h1 class="text-4xl font-extrabold text-white sm:text-5xl">Finden Sie Ihr perfektes Mietauto</h1>
+<h2 class="text-base font-normal text-white/90">Buchen Sie schnell und einfach aus unserer großen Auswahl an Fahrzeugen.</h2>
+</div>
+<div class="w-full max-w-4xl rounded-xl bg-card-bg/90 p-4 shadow-2xl backdrop-blur-sm">
+<form class="grid grid-cols-1 items-end gap-4 md:grid-cols-4 lg:grid-cols-10">
+<!-- Location Input -->
+<label class="flex flex-col text-left md:col-span-2 lg:col-span-3">
+<p class="pb-2 text-sm font-medium text-text-main">Standort</p>
+<div class="relative flex w-full items-stretch">
+<span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">location_on</span>
+<input class="form-input h-14 w-full rounded-lg border-gray-300 bg-gray-50 pl-10 text-text-main placeholder:text-gray-400 focus:border-primary focus:ring-primary" placeholder="Stadt oder Flughafen" type="text"/>
+</div>
+</label>
+<!-- Date Pickers -->
+<label class="flex flex-col text-left lg:col-span-2">
+<p class="pb-2 text-sm font-medium text-text-main">Abholdatum</p>
+<div class="relative">
+<span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">calendar_today</span>
+<input class="form-input h-14 w-full rounded-lg border-gray-300 bg-gray-50 pl-10 text-text-main placeholder:text-gray-400 focus:border-primary focus:ring-primary" type="date" value="2024-07-25"/>
+</div>
+</label>
+<label class="flex flex-col text-left lg:col-span-2">
+<p class="pb-2 text-sm font-medium text-text-main">Rückgabedatum</p>
+<div class="relative">
+<span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">event</span>
+<input class="form-input h-14 w-full rounded-lg border-gray-300 bg-gray-50 pl-10 text-text-main placeholder:text-gray-400 focus:border-primary focus:ring-primary" type="date" value="2024-08-01"/>
+</div>
+</label>
+<!-- Vehicle Type Select -->
+<label class="flex flex-col text-left md:col-span-2 lg:col-span-2">
+<p class="pb-2 text-sm font-medium text-text-main">Fahrzeugtyp</p>
+<select class="form-select h-14 w-full rounded-lg border-gray-300 bg-gray-50 text-text-main focus:border-primary focus:ring-primary">
+<option>Alle Typen</option>
+<option>Kleinwagen</option>
+<option>SUV</option>
+<option>Kombi</option>
+<option>Sportwagen</option>
+</select>
+</label>
+<!-- CTA Button -->
+<button class="h-14 w-full rounded-lg bg-primary text-base font-bold text-white transition-opacity hover:opacity-90 md:col-span-2 lg:col-span-1">
+                                Suchen
+                            </button>
+</form>
+</div>
+</div>
+</section>
+<!-- Results Section -->
+<section class="container mx-auto px-6 py-10">
+<div class="flex flex-col gap-8 lg:flex-row">
+<!-- Filter Sidebar -->
+<aside class="w-full lg:w-1/4 xl:w-1/5">
+<div class="sticky top-24 rounded-xl border border-gray-200 bg-card-bg p-6 shadow-sm">
+<div class="flex items-center justify-between pb-4 border-b">
+<h3 class="text-lg font-bold">Filter</h3>
+<button class="text-sm font-medium text-primary hover:underline">Zurücksetzen</button>
+</div>
+<div class="space-y-6 pt-6">
+<!-- Vehicle Type Filter -->
+<div>
+<h4 class="mb-3 font-semibold">Fahrzeugtyp</h4>
+<div class="space-y-2">
+<label class="flex items-center">
+<input class="form-checkbox h-5 w-5 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="ml-3 text-sm">Kleinwagen</span>
+</label>
+<label class="flex items-center">
+<input checked="" class="form-checkbox h-5 w-5 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="ml-3 text-sm">SUV</span>
+</label>
+<label class="flex items-center">
+<input class="form-checkbox h-5 w-5 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="ml-3 text-sm">Kombi</span>
+</label>
+<label class="flex items-center">
+<input class="form-checkbox h-5 w-5 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="ml-3 text-sm">Cabrio</span>
+</label>
+</div>
+</div>
+<!-- Price Range Filter -->
+<div>
+<h4 class="mb-3 font-semibold">Preis pro Tag</h4>
+<input class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary" max="250" min="20" type="range" value="120"/>
+<div class="flex justify-between text-sm text-gray-500 mt-2">
+<span>20€</span>
+<span>250€</span>
+</div>
+</div>
+<!-- Features Filter -->
+<div>
+<h4 class="mb-3 font-semibold">Ausstattung</h4>
+<div class="space-y-2">
+<label class="flex items-center">
+<input class="form-checkbox h-5 w-5 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="ml-3 text-sm">Automatik</span>
+</label>
+<label class="flex items-center">
+<input class="form-checkbox h-5 w-5 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="ml-3 text-sm">Klimaanlage</span>
+</label>
+<label class="flex items-center">
+<input class="form-checkbox h-5 w-5 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="ml-3 text-sm">Navigationssystem</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Results Grid -->
+<div class="w-full lg:w-3/4 xl:w-4/5">
+<div class="mb-6">
+<h2 class="text-2xl font-bold">25 Fahrzeuge gefunden</h2>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+<!-- Vehicle Card 1 -->
+<div class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-card-bg shadow-sm transition-shadow hover:shadow-lg">
+<img class="h-48 w-full object-cover" data-alt="White Volkswagen Golf car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPrFJkGTc1ozdkhsvNCpVVl-0zQMFwD24xT3JuencRO_FHeVHm21hDZI4F5smtVP0ofs6aycGPMDyouOlvKIpcDaBPtzoiLYk-mszgbV22eabnPjxISn9tIpjcScKa7EcsrSgs0Lgr960s6SlYIt5x_OMM1qE4gS4-XmpKRWX8wpQK8mEwekZLrrM_AHqFLHPdL-IW6CS87WbIMIRHpXBvrgva4D1tUDoXQYqzOlUSsthnS2FeaoPlOuRsaVJQbUIr1tpHZPqWGg0U"/>
+<div class="flex flex-grow flex-col p-5">
+<h3 class="text-lg font-bold">VW Golf</h3>
+<div class="mt-2 flex items-center gap-4 text-sm text-gray-600">
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">group</span> 5 Sitze</div>
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">auto_transmission</span> Automatik</div>
+</div>
+<div class="mt-auto pt-4 text-right">
+<p class="text-sm text-gray-500">ab</p>
+<p class="text-2xl font-bold text-secondary">75€<span class="text-base font-normal">/Tag</span></p>
+</div>
+<button class="mt-4 w-full rounded-lg bg-primary py-2.5 font-bold text-white transition-opacity hover:opacity-90">Jetzt buchen</button>
+</div>
+</div>
+<!-- Vehicle Card 2 -->
+<div class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-card-bg shadow-sm transition-shadow hover:shadow-lg">
+<img class="h-48 w-full object-cover" data-alt="Red Porsche sports car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi0FfTKNpqtvAkN2d2WIFfroa7QOASUTR7i26Y3rjkRXgVAVN1XXoqdmDiW1E3NtJcT0zZ9rqR2qDCv_vGmE9XSaBVVI2i9ymCkIjp9gBbt36LYCIkyQMXVPgLxwtwFSHPRzsUewXplYvI4uJVEW3qFHBMY0gu6h864zZ9ZyB-HUKi2eE890O1aMxiER6NdywCBvp6vSlX-YOF_Y3tisQlN_tCitxb1vSGJuM3fnDq65XIHpJw5fOWoAqq6BKibJEI0Vn1tI1RRAnx"/>
+<div class="flex flex-grow flex-col p-5">
+<h3 class="text-lg font-bold">Porsche 911</h3>
+<div class="mt-2 flex items-center gap-4 text-sm text-gray-600">
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">group</span> 2 Sitze</div>
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">auto_transmission</span> Automatik</div>
+</div>
+<div class="mt-auto pt-4 text-right">
+<p class="text-sm text-gray-500">ab</p>
+<p class="text-2xl font-bold text-secondary">220€<span class="text-base font-normal">/Tag</span></p>
+</div>
+<button class="mt-4 w-full rounded-lg bg-primary py-2.5 font-bold text-white transition-opacity hover:opacity-90">Jetzt buchen</button>
+</div>
+</div>
+<!-- Vehicle Card 3 -->
+<div class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-card-bg shadow-sm transition-shadow hover:shadow-lg">
+<img class="h-48 w-full object-cover" data-alt="Blue BMW SUV car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJLh7OQ9CyPQOO6mtKe9a5CxN4W_4rbgKwY-aAY58ve6LgqC1EkLM81q4nOsQ_aRDCTKiGZCZeHsvpY0776X5SlOCMhqN2RyqVclgDHqd5cytl8qKPNIEubfqp4BCq9-bBayj81dIK76xV4HeeFFHbBji_yDElTrmuiK1gLfEaouvAzEKAPHetBsrOHdKQJGgHsNPEm2Rca9wIYNp0Di0y1FpBdtZwkqUrP1BkCKU0CpSB9H1l2KLYDkQ5LsXaeeyteSLqB_M0xtIj"/>
+<div class="flex flex-grow flex-col p-5">
+<h3 class="text-lg font-bold">BMW X5</h3>
+<div class="mt-2 flex items-center gap-4 text-sm text-gray-600">
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">group</span> 5 Sitze</div>
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">auto_transmission</span> Automatik</div>
+</div>
+<div class="mt-auto pt-4 text-right">
+<p class="text-sm text-gray-500">ab</p>
+<p class="text-2xl font-bold text-secondary">110€<span class="text-base font-normal">/Tag</span></p>
+</div>
+<button class="mt-4 w-full rounded-lg bg-primary py-2.5 font-bold text-white transition-opacity hover:opacity-90">Jetzt buchen</button>
+</div>
+</div>
+<!-- Add more cards as needed -->
+<div class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-card-bg shadow-sm transition-shadow hover:shadow-lg">
+<img class="h-48 w-full object-cover" data-alt="White mercedes-benz sedan car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHhaAYxeReUWs7jefTT4CYNqTCAaCWVbr-H0pgLdb9IQUq5dDi5BXibTucjS423up6vzyW0SOnG23Cioy2yGfpgRILN3z19qmGjeckA1IYaWTZC7ye3tHl6PursmZJQjRCeTGtB60yr5cKSkQb2lMXuJ2QtoHLzbOrAfpHr3tCMTQ887EakSwFo44uO6BWV_Muk-zT2-CPZj5Nf6r6LicvBVKU-YC4GV6rAsxzDJeCOTgSQOluyZWEpsUnJnHwTfqd-TqiwOW7Cniq"/>
+<div class="flex flex-grow flex-col p-5">
+<h3 class="text-lg font-bold">Mercedes C-Klasse</h3>
+<div class="mt-2 flex items-center gap-4 text-sm text-gray-600">
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">group</span> 5 Sitze</div>
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">auto_transmission</span> Automatik</div>
+</div>
+<div class="mt-auto pt-4 text-right">
+<p class="text-sm text-gray-500">ab</p>
+<p class="text-2xl font-bold text-secondary">95€<span class="text-base font-normal">/Tag</span></p>
+</div>
+<button class="mt-4 w-full rounded-lg bg-primary py-2.5 font-bold text-white transition-opacity hover:opacity-90">Jetzt buchen</button>
+</div>
+</div>
+<div class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-card-bg shadow-sm transition-shadow hover:shadow-lg">
+<img class="h-48 w-full object-cover" data-alt="White Fiat 500 small car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5I55hVMVp5esHrTXULbA7RtNt3l588juewPhyhLYo8GUByShGvTlCIN_ktbQgBI_gh-Y944GaG0io6YR6f0W86fr5KQGJH2YFC8ptuySLorp0zvNYTUV8xx0SuAMrig9B455FKarUJO2RUOxMhD6bhXpDGxkkCb2GOcTPh9tFFWa46pBx5PmztnAHaDqURiKRgDP6_mzOYwS2RlHKR1eU6UxoKwLky4fN4QGJHwZk-vPIwgAbGoHvkcwEELxypmPWsrcVVh2S4eOg"/>
+<div class="flex flex-grow flex-col p-5">
+<h3 class="text-lg font-bold">Fiat 500</h3>
+<div class="mt-2 flex items-center gap-4 text-sm text-gray-600">
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">group</span> 4 Sitze</div>
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">help_guide</span> Manuell</div>
+</div>
+<div class="mt-auto pt-4 text-right">
+<p class="text-sm text-gray-500">ab</p>
+<p class="text-2xl font-bold text-secondary">45€<span class="text-base font-normal">/Tag</span></p>
+</div>
+<button class="mt-4 w-full rounded-lg bg-primary py-2.5 font-bold text-white transition-opacity hover:opacity-90">Jetzt buchen</button>
+</div>
+</div>
+<div class="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-card-bg shadow-sm transition-shadow hover:shadow-lg">
+<img class="h-48 w-full object-cover" data-alt="Red Audi RS5 car" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbwWc8FhxQFbF3FhNGd53eBmZ4YN7nxRifHaRubJMMTQVXS-toRFOWMqM2Kc7uam8NfSd0mo_Sc0cQGAkIXt7lcZccsMMX55xHNZkdPOaUtdd7g9xtBhF6JA9sL0NrQ7TjvxV1PhkGbqcB8kYneQSz7O6Y4Q50K4KrzpxqA-I46JJOh5rlNzI3fSq6oUovcTw_6k6UoXK1eB3DhryhcgnTbVwoP-8HoxtrSo1YKJMOn4yIeOw1r_YhHkxZOuTOpTnobFaEuRNKHFQa"/>
+<div class="flex flex-grow flex-col p-5">
+<h3 class="text-lg font-bold">Audi A5</h3>
+<div class="mt-2 flex items-center gap-4 text-sm text-gray-600">
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">group</span> 4 Sitze</div>
+<div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-base">auto_transmission</span> Automatik</div>
+</div>
+<div class="mt-auto pt-4 text-right">
+<p class="text-sm text-gray-500">ab</p>
+<p class="text-2xl font-bold text-secondary">130€<span class="text-base font-normal">/Tag</span></p>
+</div>
+<button class="mt-4 w-full rounded-lg bg-primary py-2.5 font-bold text-white transition-opacity hover:opacity-90">Jetzt buchen</button>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-10 flex justify-center">
+<nav class="flex items-center space-x-2">
+<button class="flex h-10 w-10 items-center justify-center rounded-lg text-gray-400" disabled=""><span class="material-symbols-outlined">chevron_left</span></button>
+<button class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary font-bold text-white">1</button>
+<button class="flex h-10 w-10 items-center justify-center rounded-lg font-medium text-text-main hover:bg-gray-200">2</button>
+<button class="flex h-10 w-10 items-center justify-center rounded-lg font-medium text-text-main hover:bg-gray-200">3</button>
+<span class="px-2">...</span>
+<button class="flex h-10 w-10 items-center justify-center rounded-lg font-medium text-text-main hover:bg-gray-200">8</button>
+<button class="flex h-10 w-10 items-center justify-center rounded-lg text-text-main hover:bg-gray-200"><span class="material-symbols-outlined">chevron_right</span></button>
+</nav>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="mt-auto bg-gray-800 text-white">
+<div class="container mx-auto px-6 py-8">
+<div class="flex flex-col items-center justify-between gap-6 sm:flex-row">
+<p>© 2024 RENTACAR. Alle Rechte vorbehalten.</p>
+<div class="flex space-x-6">
+<a class="hover:text-primary" href="#">Impressum</a>
+<a class="hover:text-primary" href="#">Datenschutz</a>
+<a class="hover:text-primary" href="#">AGB</a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

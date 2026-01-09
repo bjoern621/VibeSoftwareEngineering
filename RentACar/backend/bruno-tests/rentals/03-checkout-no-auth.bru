@@ -1,0 +1,26 @@
+meta {
+  name: 03 - Checkout No Auth
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/vermietung/1/checkout
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "mileage": 15000,
+    "fuelLevel": "FULL",
+    "cleanliness": "CLEAN",
+    "damagesDescription": null
+  }
+}
+
+tests {
+  test("Status is 401 or 403 Unauthorized", function() {
+    expect([401, 403]).to.include(res.status);
+  });
+}

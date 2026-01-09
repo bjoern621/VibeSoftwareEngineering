@@ -1,0 +1,89 @@
+version: "3.8"
+
+services:
+    # ==================== APPLICATION ====================
+
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        container_name: rentacar-backend
+        ports:
+            - "8080:8080"
+        environment:
+            - SPRING_PROFILES_ACTIVE=docker
+            - JASYPT_ENCRYPTOR_PASSWORD=rentacar-dev-secret-key
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "wget",
+                    "-q",
+                    "--spider",
+                    "http://localhost:8080/api/vehicle-types",
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 60s
+        networks:
+            - rentacar-net
+
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        container_name: rentacar-frontend
+        ports:
+            - "3000:80"
+        depends_on:
+            backend:
+                condition: service_healthy
+        networks:
+            - rentacar-net
+
+    # ==================== DEV TOOLS ====================
+
+    sonarqube:
+        image: sonarqube:community
+        container_name: rentacar-sonarqube
+        ports:
+            - "9000:9000"
+        environment:
+            - SONAR_JDBC_URL=jdbc:postgresql://sonar-db:5432/sonar
+            - SONAR_JDBC_USERNAME=sonar
+            - SONAR_JDBC_PASSWORD=sonar
+        volumes:
+            - sonarqube_data:/opt/sonarqube/data
+            - sonarqube_extensions:/opt/sonarqube/extensions
+            - sonarqube_logs:/opt/sonarqube/logs
+        depends_on:
+            - sonar-db
+        profiles:
+            - sonar
+        networks:
+            - rentacar-net
+
+    sonar-db:
+        image: postgres:15
+        container_name: rentacar-sonar-db
+        environment:
+            - POSTGRES_USER=sonar
+            - POSTGRES_PASSWORD=sonar
+            - POSTGRES_DB=sonar
+        volumes:
+            - postgresql_data:/var/lib/postgresql/data
+        profiles:
+            - sonar
+        networks:
+            - rentacar-net
+
+networks:
+    rentacar-net:
+        driver: bridge
+
+volumes:
+    sonarqube_data:
+    sonarqube_extensions:
+    sonarqube_logs:
+    postgresql_data:

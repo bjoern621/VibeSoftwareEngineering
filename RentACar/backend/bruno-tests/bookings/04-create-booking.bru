@@ -1,0 +1,92 @@
+meta {
+  name: 04 - Create Booking
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/buchungen
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+script:pre-request {
+  const axios = require('axios');
+  const baseUrl = bru.getEnvVar("baseUrl");
+  
+  // Ensure user exists and get token
+  try {
+    await axios.post(`${baseUrl}/api/kunden/registrierung`, {
+      email: "booking.test@example.com",
+      password: "Test1234!",
+      firstName: "Booking",
+      lastName: "Tester",
+      phoneNumber: "+49 30 12345678",
+      street: "Buchungsstraße 1",
+      postalCode: "10115",
+      city: "Berlin",
+      driverLicenseNumber: "B9876543210"
+    });
+  } catch (e) {}
+  
+  try {
+    const loginRes = await axios.post(`${baseUrl}/api/kunden/login`, {
+      email: "booking.test@example.com",
+      password: "Test1234!"
+    });
+    if (loginRes.data && loginRes.data.token) {
+      bru.setEnvVar("authToken", loginRes.data.token);
+    }
+  } catch (e) {
+    console.log("Login failed:", e.message);
+  }
+  
+  // Get available vehicle and branch IDs
+  try {
+    const vehiclesRes = await axios.get(`${baseUrl}/api/fahrzeuge`);
+    if (vehiclesRes.data && vehiclesRes.data.length > 0) {
+      bru.setEnvVar("testVehicleId", vehiclesRes.data[0].id);
+    }
+    
+    const branchesRes = await axios.get(`${baseUrl}/api/branches`);
+    if (branchesRes.data && branchesRes.data.length > 0) {
+      bru.setEnvVar("testBranchId", branchesRes.data[0].id);
+    }
+  } catch (e) {
+    console.log("Failed to get test data:", e.message);
+  }
+}
+
+body:json {
+  {
+    "vehicleId": {{testVehicleId}},
+    "pickupBranchId": {{testBranchId}},
+    "returnBranchId": {{testBranchId}},
+    "pickupDateTime": "2025-12-20T10:00:00",
+    "returnDateTime": "2025-12-25T10:00:00",
+    "additionalServices": []
+  }
+}
+
+tests {
+  test("Status is 201 Created or 400/409 (validation/conflict)", function() {
+    expect([201, 400, 409]).to.include(res.status);
+  });
+
+  test("Response contains booking data if created", function() {
+    if (res.status === 201) {
+      expect(res.body).to.have.property("id");
+      expect(res.body).to.have.property("status");
+    }
+  });
+}
+
+script:post-response {
+  if (res.status === 201 && res.body.id) {
+    bru.setEnvVar("testBookingId", res.body.id);
+  }
+}

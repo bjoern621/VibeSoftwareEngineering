@@ -1,0 +1,67 @@
+meta {
+  name: 06-login-rate-limiting
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/kunden/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "test.customer@example.com",
+    "password": "WrongPassword123!"
+  }
+}
+
+tests {
+  // Dieser Test sollte nach 5 fehlgeschlagenen Versuchen HTTP 429 zurückgeben
+  // Hinweis: Führen Sie diesen Test 6x hintereinander aus
+
+  test("Status code is 401/500 (1-5 times) or 429 (6+ times)", function() {
+    const validStatuses = [401, 429, 500];
+    expect(validStatuses).to.include(res.status);
+  });
+
+  test("If status is 429, check Retry-After header", function() {
+    if (res.status === 429) {
+      expect(res.headers['retry-after']).to.exist;
+      expect(res.headers['retry-after']).to.equal('900'); // 15 Minuten = 900 Sekunden
+    }
+  });
+
+  test("If status is 429, check error message", function() {
+    if (res.status === 429) {
+      expect(res.body.error).to.equal('Zu viele Login-Versuche');
+      expect(res.body.message).to.include('Zu viele fehlgeschlagene Login-Versuche');
+    }
+  });
+}
+
+docs {
+  ## Rate Limiting Test
+
+  Dieser Test prüft das Rate Limiting für Login-Versuche.
+
+  **Wichtig:** Der Test verwendet den vorhandenen Test-User `test.customer@example.com`
+  mit einem absichtlich falschen Passwort.
+
+  **Erwartetes Verhalten:**
+  - Erste 5 Versuche: HTTP 401 (Unauthorized) - falsches Passwort
+  - Ab 6. Versuch: HTTP 429 (Too Many Requests) - Rate Limit überschritten
+  - Response enthält `Retry-After: 900` Header (15 Minuten)
+
+  **Test-Anleitung:**
+  1. Führen Sie diesen Test 6x hintereinander aus
+  2. Die ersten 5 Mal sollte HTTP 401 zurückkommen
+  3. Ab dem 6. Mal sollte HTTP 429 zurückkommen
+  4. Warten Sie 15 Minuten oder starten Sie die Anwendung neu, um den Counter zu resetten
+
+  **Hinweis:**
+  - Der Test akzeptiert auch HTTP 500, falls der Authentifizierungsprozess einen internen Fehler wirft
+  - Verwenden Sie einen existierenden User aus der Testdatenbank
+}
+

@@ -1,0 +1,72 @@
+meta {
+  name: 03 - Login Success
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/kunden/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "test.customer@example.com",
+    "password": "Test1234!"
+  }
+}
+
+script:pre-request {
+  // Stelle sicher, dass der Test-User existiert
+  const axios = require('axios');
+  const baseUrl = bru.getEnvVar("baseUrl");
+  
+  try {
+    await axios.post(`${baseUrl}/api/kunden/registrierung`, {
+      email: "test.customer@example.com",
+      password: "Test1234!",
+      firstName: "Bruno",
+      lastName: "Testuser",
+      phoneNumber: "+49 30 12345678",
+      street: "Teststraße 123",
+      postalCode: "10115",
+      city: "Berlin",
+      driverLicenseNumber: "B1234567890"
+    });
+  } catch (e) {
+    // User existiert bereits - das ist OK
+  }
+}
+
+tests {
+  test("Status is 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response contains token", function() {
+    expect(res.body.token).to.be.a("string");
+    expect(res.body.token.length).to.be.greaterThan(0);
+  });
+
+  test("Response contains email", function() {
+    expect(res.body.email).to.equal("test.customer@example.com");
+  });
+}
+
+script:post-response {
+  // Debug: Log response body to verify refreshToken is present
+  console.log("Login response body:", JSON.stringify(res.body));
+  
+  if (res.status === 200 && res.body.token) {
+    bru.setEnvVar("authToken", res.body.token);
+    bru.setEnvVar("customerId", res.body.customerId);
+    // Capture refresh token for refresh-token tests
+    if (res.body.refreshToken) {
+      bru.setEnvVar("refreshToken", res.body.refreshToken);
+      console.log("✅ Refresh token captured:", res.body.refreshToken.substring(0, 20) + "...");
+    } else {
+      console.log("❌ WARNING: No refreshToken in login response!");
+    }
+  }
+}

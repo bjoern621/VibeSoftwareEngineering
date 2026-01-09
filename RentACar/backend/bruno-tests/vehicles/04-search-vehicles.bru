@@ -1,0 +1,21 @@
+meta {
+  name: 04 - Search Vehicles
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/fahrzeuge/suche?von=2025-12-01&bis=2025-12-10
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status is 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an("array");
+  });
+}

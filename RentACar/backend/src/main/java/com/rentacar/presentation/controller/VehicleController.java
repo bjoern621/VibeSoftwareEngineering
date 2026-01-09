@@ -1,0 +1,177 @@
+package com.rentacar.presentation.controller;
+
+import com.rentacar.application.service.VehicleApplicationService;
+import com.rentacar.infrastructure.security.RoleConstants;
+import com.rentacar.presentation.dto.CreateVehicleRequestDTO;
+import com.rentacar.presentation.dto.UpdateVehicleRequestDTO;
+import com.rentacar.presentation.dto.VehicleResponseDTO;
+import com.rentacar.presentation.dto.VehicleSearchResultDTO;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * REST Controller für Fahrzeugverwaltung.
+ * 
+ * Stellt die API Endpoints für CRUD-Operationen auf Fahrzeugen bereit.
+ * Zugriff nur für Benutzer mit Rolle EMPLOYEE oder ADMIN.
+ */
+@RestController
+@RequestMapping("/api/fahrzeuge")
+public class VehicleController {
+    
+    private final VehicleApplicationService vehicleApplicationService;
+    
+    public VehicleController(VehicleApplicationService vehicleApplicationService) {
+        this.vehicleApplicationService = vehicleApplicationService;
+    }
+    
+    /**
+     * POST /api/fahrzeuge - Erstellt ein neues Fahrzeug.
+     * 
+     * @param request die Fahrzeugdaten
+     * @return das erstellte Fahrzeug mit Status 201 Created
+     */
+    @PostMapping
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
+    public ResponseEntity<VehicleResponseDTO> createVehicle(@Valid @RequestBody CreateVehicleRequestDTO request) {
+        VehicleResponseDTO response = vehicleApplicationService.createVehicle(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
+    /**
+     * PUT /api/fahrzeuge/{id} - Aktualisiert ein bestehendes Fahrzeug.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @param request die neuen Fahrzeugdaten
+     * @return das aktualisierte Fahrzeug mit Status 200 OK
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
+    public ResponseEntity<VehicleResponseDTO> updateVehicle(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateVehicleRequestDTO request) {
+        VehicleResponseDTO response = vehicleApplicationService.updateVehicle(id, request);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * PATCH /api/fahrzeuge/{id}/ausser-betrieb - Markiert ein Fahrzeug als außer Betrieb.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/ausser-betrieb")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
+    public ResponseEntity<Void> markAsOutOfService(@PathVariable Long id) {
+        vehicleApplicationService.markVehicleAsOutOfService(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * PATCH /api/fahrzeuge/{id}/vermieten - Markiert ein Fahrzeug als vermietet.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/vermieten")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
+    public ResponseEntity<Void> markAsRented(@PathVariable Long id) {
+        vehicleApplicationService.markVehicleAsRented(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * PATCH /api/fahrzeuge/{id}/zurueckgeben - Gibt ein Fahrzeug zurück.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @param returnMileage der Kilometerstand bei Rückgabe
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/zurueckgeben")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
+    public ResponseEntity<Void> returnVehicle(
+            @PathVariable Long id,
+            @RequestParam Integer returnMileage) {
+        vehicleApplicationService.returnVehicle(id, returnMileage);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * PATCH /api/fahrzeuge/{id}/wartung - Markiert ein Fahrzeug als in Wartung.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/wartung")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
+    public ResponseEntity<Void> markAsInMaintenance(@PathVariable Long id) {
+        vehicleApplicationService.markVehicleAsInMaintenance(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * PATCH /api/fahrzeuge/{id}/verfuegbar - Reaktiviert ein Fahrzeug (von IN_MAINTENANCE oder OUT_OF_SERVICE).
+     * 
+     * @param id die ID des Fahrzeugs
+     * @return Status 204 No Content
+     */
+    @PatchMapping("/{id}/verfuegbar")
+    @PreAuthorize(RoleConstants.EMPLOYEE_OR_ADMIN)
+    public ResponseEntity<Void> markAsAvailable(@PathVariable Long id) {
+        vehicleApplicationService.reactivateVehicle(id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * GET /api/fahrzeuge - Gibt alle Fahrzeuge zurück.
+     * Öffentlich zugänglich für die Fahrzeugsuche.
+     * 
+     * @return Liste aller Fahrzeuge mit Status 200 OK
+     */
+    @GetMapping
+    public ResponseEntity<List<VehicleResponseDTO>> getAllVehicles() {
+        List<VehicleResponseDTO> vehicles = vehicleApplicationService.getAllVehicles();
+        return ResponseEntity.ok(vehicles);
+    }
+    
+    /**
+     * GET /api/fahrzeuge/{id} - Gibt ein einzelnes Fahrzeug zurück.
+     * Öffentlich zugänglich für die Fahrzeugdetailansicht.
+     * 
+     * @param id die ID des Fahrzeugs
+     * @return das Fahrzeug mit Status 200 OK
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<VehicleResponseDTO> getVehicleById(@PathVariable Long id) {
+        VehicleResponseDTO response = vehicleApplicationService.getVehicleById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/fahrzeuge/suche - Sucht nach verfügbaren Fahrzeugen.
+     * 
+     * @param von Startdatum (yyyy-MM-dd)
+     * @param bis Enddatum (yyyy-MM-dd)
+     * @param typ Fahrzeugtyp (optional)
+     * @param standort Standort (optional)
+     * @return Liste der verfügbaren Fahrzeuge
+     */
+    @GetMapping("/suche")
+    public ResponseEntity<List<VehicleSearchResultDTO>> searchVehicles(
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate von,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate bis,
+            @RequestParam(required = false) com.rentacar.domain.model.VehicleType typ,
+            @RequestParam(required = false) String standort) {
+        
+        java.time.LocalDateTime from = von.atStartOfDay();
+        java.time.LocalDateTime to = bis.atTime(java.time.LocalTime.MAX);
+        
+        List<VehicleSearchResultDTO> results = vehicleApplicationService.searchVehicles(from, to, typ, standort);
+        return ResponseEntity.ok(results);
+    }
+}

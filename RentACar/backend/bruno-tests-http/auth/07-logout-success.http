@@ -1,0 +1,9 @@
+### 07 - Logout Success
+# Converted from bruno-tests/auth/07-logout-success.bru
+# Requires Authorization: Bearer {{authToken}}
+# Expected: 200 OK and body: "Erfolgreich ausgeloggt"
+
+POST http://localhost:8080/api/kunden/logout
+Authorization: Bearer {{authToken}}
+
+###

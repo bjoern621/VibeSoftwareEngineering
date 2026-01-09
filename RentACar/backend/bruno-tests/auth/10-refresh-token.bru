@@ -1,0 +1,80 @@
+meta {
+  name: Refresh Access Token
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/auth/refresh
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.token: isDefined
+  res.body.refreshToken: isDefined
+  res.body.customerId: isDefined
+  res.body.email: isDefined
+}
+
+script:post-response {
+  if (res.status === 200) {
+    // Update both the generic token and authToken for subsequent tests
+    bru.setEnvVar("authToken", res.body.token);
+    bru.setEnvVar("refreshToken", res.body.refreshToken);
+    console.log("✅ Token refreshed successfully");
+  } else {
+    console.log("❌ Refresh failed with status:", res.status);
+  }
+}
+
+docs {
+  # Refresh Access Token
+
+  Erneuert einen abgelaufenen Access-Token mittels Refresh-Token.
+
+  ## Request
+  - **Method**: POST
+  - **URL**: `/api/auth/refresh`
+  - **Auth**: None (public endpoint)
+
+  ## Body
+  ```json
+  {
+    "refreshToken": "550e8400-e29b-41d4-a716-446655440000"
+  }
+  ```
+
+  ## Response (200 OK)
+  ```json
+  {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "660f9511-f39c-52e5-b827-557766551111",
+    "tokenType": "Bearer",
+    "customerId": 1,
+    "email": "customer@example.com"
+  }
+  ```
+
+  ## Notes
+  - Der alte Refresh-Token wird automatisch widerrufen (Token Rotation)
+  - Ein Refresh-Token kann nur einmal verwendet werden
+  - Nach Logout sind alle Refresh-Tokens ungültig
+  - Refresh-Tokens haben eine Gültigkeit von 7 Tagen
+  - Access-Tokens haben eine Gültigkeit von 15 Minuten
+
+  ## Error Responses
+  - **401 Unauthorized**: Refresh-Token ungültig, abgelaufen oder widerrufen
+}
+
