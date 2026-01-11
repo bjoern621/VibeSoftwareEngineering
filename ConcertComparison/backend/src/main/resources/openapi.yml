@@ -1,0 +1,987 @@
+openapi: 3.0.3
+info:
+  title: Concert Comparison - Ticket Verkaufssystem API
+  version: 1.0.0
+  description: |
+    Hochskalierbares Ticket-Verkaufssystem für große Konzerte und Events.
+    Unterstützt bis zu 10.000 Requests/Sekunde mit Concurrency Control und Real-time Updates.
+servers:
+  - url: /api
+
+tags:
+  - name: Auth
+    description: Authentifizierung und Registrierung
+  - name: Users
+    description: Benutzerprofil und Bestellungen
+  - name: Events
+    description: Konzert-/Event-Verwaltung
+  - name: Seats
+    description: Sitzplatzverwaltung und Verfügbarkeit
+  - name: Reservations
+    description: Sitzplatz-Reservierungen (Holds)
+  - name: Orders
+    description: Bestellungen und Tickets
+  - name: Payments
+    description: Zahlungsabwicklung
+  - name: Streaming
+    description: Real-time Updates (SSE)
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      security: []   # public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterRequest" }
+            examples:
+              registerExample:
+                value:
+                  email: "mario@example.com"
+                  password: "S3cur3P@ssw0rd!"
+                  firstName: "Mario"
+                  lastName: "Rossi"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserProfile" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and obtain JWT
+      security: []   # public
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+            examples:
+              loginExample:
+                value:
+                  email: "mario@example.com"
+                  password: "S3cur3P@ssw0rd!"
+      responses:
+        "200":
+          description: JWT issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoginResponse" }
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /users/profile:
+    get:
+      tags: [Users]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Profile data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserProfile" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /events:
+    get:
+      tags: [Events]
+      summary: List events with filters, sorting and pagination
+      description: |
+        Liste aller Events (Konzerte) mit optionalen Filtern für Datum, Venue, Preis.
+        Unterstützt Sortierung und Paginierung.
+      security: []   # public
+      parameters:
+        - in: query
+          name: date
+          schema: { type: string, format: date }
+          description: Filter by concert date (YYYY-MM-DD)
+        - in: query
+          name: venue
+          schema: { type: string }
+        - in: query
+          name: minPrice
+          schema: { type: number, format: double, minimum: 0 }
+        - in: query
+          name: maxPrice
+          schema: { type: number, format: double, minimum: 0 }
+        - in: query
+          name: sortBy
+          schema: { type: string, enum: [date, name, price] }
+        - in: query
+          name: sortOrder
+          schema: { type: string, enum: [asc, desc] }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 0, default: 0 }
+        - in: query
+          name: size
+          schema: { type: integer, minimum: 1, maximum: 200, default: 20 }
+      responses:
+        "200":
+          description: Paged concerts
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConcertPage" }
+              examples:
+                concertsExample:
+                  value:
+                    page: 0
+                    size: 20
+                    totalElements: 2
+                    items:
+                      - id: "c_1001"
+                        name: "The Weeknd Live"
+                        date: "2026-11-01"
+                        venue: "Berlin Arena"
+                        minPrice: 59.99
+                        available: true
+                      - id: "c_1002"
+                        name: "Coldplay Tour"
+                        date: "2026-11-03"
+                        venue: "Hamburg Stadium"
+                        minPrice: 79.99
+                        available: false
+        "429":
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema: { type: integer }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    post:
+      tags: [Events]
+      summary: Create a concert (Admin)
+      description: Requires ADMIN role.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConcertCreateRequest" }
+            examples:
+              createConcertExample:
+                value:
+                  name: "The Weeknd Live"
+                  date: "2026-11-01"
+                  venue: "Berlin Arena"
+                  basePrice: 59.99
+      responses:
+        "201":
+          description: Concert created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Concert" }
+        "403":
+          description: Forbidden (not admin)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /events/{id}:
+    get:
+      tags: [Events]
+      summary: Get event details
+      description: Liefert Details zu einem bestimmten Event/Konzert
+      security: []   # public
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+          description: Event ID
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Concert" }
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    put:
+      tags: [Events]
+      summary: Update an event (Admin)
+      description: Requires ADMIN role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+          description: Event ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConcertCreateRequest" }
+      responses:
+        "200":
+          description: Event updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Concert" }
+        "403":
+          description: Forbidden (not admin)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    delete:
+      tags: [Events]
+      summary: Delete an event (Admin)
+      description: Requires ADMIN role.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+          description: Event ID
+      responses:
+        "204":
+          description: Event deleted
+        "403":
+          description: Forbidden (not admin)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /events/{eventId}/availability:
+    get:
+      tags: [Seats]
+      summary: Get aggregated availability for an event
+      description: Liefert nur die aggregierte Verfügbarkeit nach Kategorie ohne einzelne Seats
+      security: []   # public
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema: { type: string }
+          description: Event ID
+      responses:
+        "200":
+          description: Aggregated availability by category
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [eventId, availabilityByCategory]
+                properties:
+                  eventId:
+                    type: string
+                    example: "c_1001"
+                  availabilityByCategory:
+                    type: array
+                    items: { $ref: "#/components/schemas/AvailabilityByCategory" }
+              examples:
+                availabilityExample:
+                  value:
+                    eventId: "c_1001"
+                    availabilityByCategory:
+                      - category: "VIP"
+                        available: 120
+                        held: 5
+                        sold: 30
+                      - category: "REGULAR"
+                        available: 800
+                        held: 20
+                        sold: 150
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /events/{id}/seats:
+    get:
+      tags: [Seats]
+      summary: Get seats for a concert incl. status and aggregated availability
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Seats + aggregation
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SeatAvailabilityResponse" }
+              examples:
+                seatsExample:
+                  value:
+                    concertId: "c_1001"
+                    seats:
+                      - id: "s_1"
+                        block: "A"
+                        category: "VIP"
+                        row: "1"
+                        number: "1"
+                        price: 129.99
+                        status: "AVAILABLE"
+                      - id: "s_2"
+                        block: "A"
+                        category: "VIP"
+                        row: "1"
+                        number: "2"
+                        price: 129.99
+                        status: "HELD"
+                    availabilityByCategory:
+                      - category: "VIP"
+                        available: 120
+                        held: 5
+                        sold: 30
+                      - category: "REGULAR"
+                        available: 800
+                        held: 20
+                        sold: 150
+        "404":
+          description: Concert not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    post:
+      tags: [Seats]
+      summary: Bulk create seats for a concert (Admin)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BulkSeatCreateRequest" }
+            examples:
+              bulkSeatsExample:
+                value:
+                  seats:
+                    - block: "A"
+                      category: "VIP"
+                      row: "1"
+                      number: "1"
+                      price: 129.99
+                    - block: "A"
+                      category: "VIP"
+                      row: "1"
+                      number: "2"
+                      price: 129.99
+      responses:
+        "201":
+          description: Seats created (AVAILABLE by default)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BulkSeatCreateResponse" }
+        "403":
+          description: Forbidden (not admin)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /events/{id}/seats/stream:
+    get:
+      tags: [Streaming]
+      summary: Stream seat updates for a concert (SSE)
+      description: Server-Sent Events stream. Emits events on seat changes (hold, purchase, release).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: text/event-stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              examples:
+                sseExample:
+                  value: |
+                    event: seat_update
+                    data: {"seatId":"s_2","status":"SOLD","timestamp":"2026-01-11T14:15:22Z"}
+
+  /seats:
+    post:
+      tags: [Seats]
+      summary: Bulk create seats (Admin)
+      description: |
+        Erstellt Seats für ein Event. Requires ADMIN role.
+        Alternative zu /events/{id}/seats POST.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventId, seats]
+              properties:
+                eventId:
+                  type: string
+                  example: "c_1001"
+                  description: Event ID für die Seats
+                seats:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [block, category, row, number, price]
+                    properties:
+                      block: { type: string, example: "A" }
+                      category: { type: string, example: "VIP" }
+                      row: { type: string, example: "1" }
+                      number: { type: string, example: "1" }
+                      price: { type: number, format: double, example: 129.99 }
+            examples:
+              bulkSeatsExample:
+                value:
+                  eventId: "c_1001"
+                  seats:
+                    - block: "A"
+                      category: "VIP"
+                      row: "1"
+                      number: "1"
+                      price: 129.99
+                    - block: "A"
+                      category: "VIP"
+                      row: "1"
+                      number: "2"
+                      price: 129.99
+      responses:
+        "201":
+          description: Seats created (AVAILABLE by default)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BulkSeatCreateResponse" }
+        "403":
+          description: Forbidden (not admin)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Event not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /seats/{id}/hold:
+    post:
+      tags: [Reservations]
+      summary: Hold a seat for a TTL window
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HoldCreateRequest" }
+            examples:
+              holdExample:
+                value:
+                  userId: "u_42"
+      responses:
+        "200":
+          description: Hold created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HoldResponse" }
+              examples:
+                holdResponseExample:
+                  value:
+                    holdId: "h_9001"
+                    seatId: "s_2"
+                    ttlSeconds: 600
+                    expiresAt: "2026-01-11T14:25:22Z"
+        "409":
+          description: Seat conflict (already held/sold or concurrency conflict)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Seat not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /reservations/{id}:
+    get:
+      tags: [Reservations]
+      summary: Get reservation details
+      description: Liefert Details zu einer bestimmten Reservierung (Hold)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+          description: Reservation/Hold ID
+      responses:
+        "200":
+          description: Reservation details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HoldResponse" }
+        "404":
+          description: Reservation not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    delete:
+      tags: [Reservations]
+      summary: Cancel/release a reservation
+      description: Storniert eine Reservierung und gibt den Seat wieder frei
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+          description: Reservation/Hold ID
+      responses:
+        "204":
+          description: Reservation cancelled, seat released
+        "404":
+          description: Reservation not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: Concurrency conflict
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Purchase ticket from active hold
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PurchaseRequest" }
+            examples:
+              purchaseExample:
+                value:
+                  holdId: "h_9001"
+      responses:
+        "201":
+          description: Order created; hold deleted; seat moved HELD -> SOLD
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PurchaseResponse" }
+              examples:
+                purchaseResponseExample:
+                  value:
+                    orderId: "o_7001"
+                    seatId: "s_2"
+                    concertId: "c_1001"
+                    status: "CONFIRMED"
+        "400":
+          description: Invalid/expired hold
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: Concurrency conflict
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /users/me/orders:
+    get:
+      tags: [Orders]
+      summary: Get own orders (order history)
+      responses:
+        "200":
+          description: List of own orders
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrderListResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get order details (incl. ticket metadata)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrderDetail" }
+        "403":
+          description: Not your order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /orders/{id}/ticket:
+    get:
+      tags: [Orders]
+      summary: Get ticket QR code as PNG
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: PNG image (QR code contains orderId, concertId, seatId, userId)
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "403":
+          description: Not your order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Order/ticket not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /payments/process:
+    post:
+      tags: [Payments]
+      summary: Process payment for an order (dummy provider)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PaymentProcessRequest" }
+            examples:
+              paymentExample:
+                value:
+                  orderId: "o_7001"
+                  method: "CREDIT_CARD"
+      responses:
+        "200":
+          description: Payment processed (PENDING -> SUCCESS/FAILED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaymentProcessResponse" }
+              examples:
+                paymentResponseExample:
+                  value:
+                    paymentId: "p_3001"
+                    orderId: "o_7001"
+                    amount: 129.99
+                    method: "CREDIT_CARD"
+                    status: "SUCCESS"
+                    transactionId: "tx_abc123"
+                    timestamp: "2026-01-11T14:16:10Z"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ---------- Enums ----------
+    Role:
+      type: string
+      enum: [USER, ADMIN]
+
+    SeatStatus:
+      type: string
+      enum: [AVAILABLE, HELD, SOLD]
+
+    PaymentMethod:
+      type: string
+      enum: [CREDIT_CARD, PAYPAL, BITCOIN]
+
+    PaymentStatus:
+      type: string
+      enum: [PENDING, SUCCESS, FAILED]
+
+    # ---------- Common ----------
+    ErrorResponse:
+      type: object
+      required: [code, message, alternatives]
+      properties:
+        code:
+          type: string
+          example: "SEAT_NOT_AVAILABLE"
+        message:
+          type: string
+          example: "Dieser Sitzplatz ist nicht mehr verfügbar."
+        alternatives:
+          type: array
+          items:
+            type: string
+          example: ["Bitte wählen Sie einen anderen Sitzplatz in Kategorie VIP."]
+
+    # ---------- Auth / Users ----------
+    RegisterRequest:
+      type: object
+      required: [email, password, firstName, lastName]
+      properties:
+        email: { type: string, format: email, example: "mario@example.com" }
+        password: { type: string, format: password, example: "S3cur3P@ssw0rd!" }
+        firstName: { type: string, example: "Mario" }
+        lastName: { type: string, example: "Rossi" }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: "mario@example.com" }
+        password: { type: string, format: password, example: "S3cur3P@ssw0rd!" }
+
+    LoginResponse:
+      type: object
+      required: [token, expiresInSeconds]
+      properties:
+        token: { type: string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        expiresInSeconds: { type: integer, example: 3600 }
+
+    UserProfile:
+      type: object
+      required: [id, email, firstName, lastName, role]
+      properties:
+        id: { type: string, example: "u_42" }
+        email: { type: string, format: email, example: "mario@example.com" }
+        firstName: { type: string, example: "Mario" }
+        lastName: { type: string, example: "Rossi" }
+        role: { $ref: "#/components/schemas/Role" }
+
+    # ---------- Concerts ----------
+    Concert:
+      type: object
+      required: [id, name, date, venue, minPrice, available]
+      properties:
+        id: { type: string, example: "c_1001" }
+        name: { type: string, example: "The Weeknd Live" }
+        date: { type: string, format: date, example: "2026-11-01" }
+        venue: { type: string, example: "Berlin Arena" }
+        minPrice: { type: number, format: double, example: 59.99 }
+        available: { type: boolean, example: true }
+
+    ConcertCreateRequest:
+      type: object
+      required: [name, date, venue, basePrice]
+      properties:
+        name: { type: string, example: "The Weeknd Live" }
+        date: { type: string, format: date, example: "2026-11-01" }
+        venue: { type: string, example: "Berlin Arena" }
+        basePrice: { type: number, format: double, minimum: 0, example: 59.99 }
+
+    ConcertPage:
+      type: object
+      required: [page, size, totalElements, items]
+      properties:
+        page: { type: integer, example: 0 }
+        size: { type: integer, example: 20 }
+        totalElements: { type: integer, example: 200 }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Concert" }
+
+    # ---------- Seats ----------
+    Seat:
+      type: object
+      required: [id, block, category, row, number, price, status]
+      properties:
+        id: { type: string, example: "s_2" }
+        block: { type: string, example: "A" }
+        category: { type: string, example: "VIP" }
+        row: { type: string, example: "1" }
+        number: { type: string, example: "2" }
+        price: { type: number, format: double, example: 129.99 }
+        status: { $ref: "#/components/schemas/SeatStatus" }
+
+    AvailabilityByCategory:
+      type: object
+      required: [category, available, held, sold]
+      properties:
+        category: { type: string, example: "VIP" }
+        available: { type: integer, minimum: 0, example: 120 }
+        held: { type: integer, minimum: 0, example: 5 }
+        sold: { type: integer, minimum: 0, example: 30 }
+
+    SeatAvailabilityResponse:
+      type: object
+      required: [concertId, seats, availabilityByCategory]
+      properties:
+        concertId: { type: string, example: "c_1001" }
+        seats:
+          type: array
+          items: { $ref: "#/components/schemas/Seat" }
+        availabilityByCategory:
+          type: array
+          items: { $ref: "#/components/schemas/AvailabilityByCategory" }
+
+    BulkSeatCreateRequest:
+      type: object
+      required: [seats]
+      properties:
+        seats:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [block, category, row, number, price]
+            properties:
+              block: { type: string, example: "A" }
+              category: { type: string, example: "VIP" }
+              row: { type: string, example: "1" }
+              number: { type: string, example: "1" }
+              price: { type: number, format: double, example: 129.99 }
+
+    BulkSeatCreateResponse:
+      type: object
+      required: [createdCount]
+      properties:
+        createdCount: { type: integer, example: 2 }
+
+    # ---------- Holds / Orders ----------
+    HoldCreateRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string, example: "u_42" }
+
+    HoldResponse:
+      type: object
+      required: [holdId, seatId, ttlSeconds, expiresAt]
+      properties:
+        holdId: { type: string, example: "h_9001" }
+        seatId: { type: string, example: "s_2" }
+        ttlSeconds: { type: integer, example: 600 }
+        expiresAt: { type: string, format: date-time, example: "2026-01-11T14:25:22Z" }
+
+    PurchaseRequest:
+      type: object
+      required: [holdId]
+      properties:
+        holdId: { type: string, example: "h_9001" }
+
+    PurchaseResponse:
+      type: object
+      required: [orderId, seatId, concertId, status]
+      properties:
+        orderId: { type: string, example: "o_7001" }
+        seatId: { type: string, example: "s_2" }
+        concertId: { type: string, example: "c_1001" }
+        status: { type: string, example: "CONFIRMED" }
+
+    OrderSummary:
+      type: object
+      required: [orderId, concertId, seatId, createdAt]
+      properties:
+        orderId: { type: string, example: "o_7001" }
+        concertId: { type: string, example: "c_1001" }
+        seatId: { type: string, example: "s_2" }
+        createdAt: { type: string, format: date-time, example: "2026-01-11T14:15:22Z" }
+
+    OrderListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OrderSummary" }
+
+    OrderDetail:
+      type: object
+      required: [orderId, concertId, seatId, userId, createdAt, ticket]
+      properties:
+        orderId: { type: string, example: "o_7001" }
+        concertId: { type: string, example: "c_1001" }
+        seatId: { type: string, example: "s_2" }
+        userId: { type: string, example: "u_42" }
+        createdAt: { type: string, format: date-time, example: "2026-01-11T14:15:22Z" }
+        ticket:
+          type: object
+          required: [ticketUrl]
+          properties:
+            ticketUrl: { type: string, example: "/api/orders/o_7001/ticket" }
+
+    # ---------- Payments ----------
+    PaymentProcessRequest:
+      type: object
+      required: [orderId, method]
+      properties:
+        orderId: { type: string, example: "o_7001" }
+        method: { $ref: "#/components/schemas/PaymentMethod" }
+
+    PaymentProcessResponse:
+      type: object
+      required: [paymentId, orderId, amount, method, status, transactionId, timestamp]
+      properties:
+        paymentId: { type: string, example: "p_3001" }
+        orderId: { type: string, example: "o_7001" }
+        amount: { type: number, format: double, example: 129.99 }
+        method: { $ref: "#/components/schemas/PaymentMethod" }
+        status: { $ref: "#/components/schemas/PaymentStatus" }
+        transactionId: { type: string, example: "tx_abc123" }
+        timestamp: { type: string, format: date-time, example: "2026-01-11T14:16:10Z" }
