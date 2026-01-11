@@ -1,7 +1,6 @@
 package com.concertcomparison.infrastructure.config;
 
 import com.concertcomparison.domain.model.Seat;
-import com.concertcomparison.domain.model.SeatStatus;
 import com.concertcomparison.domain.repository.SeatRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,12 @@ public class DataLoader implements CommandLineRunner {
         
         // VIP Section (50 Seats): 30 AVAILABLE, 12 HELD, 8 SOLD
         for (int i = 1; i <= 50; i++) {
-            Seat seat = new Seat(concertId, "VIP-" + i, "VIP", "Block A");
+            String row = String.valueOf((i - 1) / 10 + 1); // Reihe 1-5
+            String number = String.valueOf(i);
+            String seatNumber = "VIP-" + i;
+            double price = 129.99;
+            
+            Seat seat = new Seat(concertId, seatNumber, "VIP", "Block A", row, number, price);
             
             if (i > 30 && i <= 42) {
                 seat.hold("reservation-vip-" + i, 15); // HELD
@@ -65,7 +69,12 @@ public class DataLoader implements CommandLineRunner {
         
         // Category A (30 Seats): 20 AVAILABLE, 8 HELD, 2 SOLD
         for (int i = 1; i <= 30; i++) {
-            Seat seat = new Seat(concertId, "A-" + i, "CATEGORY_A", "Block B");
+            String row = String.valueOf((i - 1) / 10 + 1); // Reihe 1-3
+            String number = String.valueOf(i);
+            String seatNumber = "A-" + i;
+            double price = 79.99;
+            
+            Seat seat = new Seat(concertId, seatNumber, "CATEGORY_A", "Block B", row, number, price);
             
             if (i > 20 && i <= 28) {
                 seat.hold("reservation-a-" + i, 15);
@@ -79,7 +88,12 @@ public class DataLoader implements CommandLineRunner {
         
         // Category B (20 Seats): 10 AVAILABLE, 5 HELD, 5 SOLD
         for (int i = 1; i <= 20; i++) {
-            Seat seat = new Seat(concertId, "B-" + i, "CATEGORY_B", "Block C");
+            String row = String.valueOf((i - 1) / 10 + 1); // Reihe 1-2
+            String number = String.valueOf(i);
+            String seatNumber = "B-" + i;
+            double price = 49.99;
+            
+            Seat seat = new Seat(concertId, seatNumber, "CATEGORY_B", "Block C", row, number, price);
             
             if (i > 10 && i <= 15) {
                 seat.hold("reservation-b-" + i, 15);
@@ -91,8 +105,7 @@ public class DataLoader implements CommandLineRunner {
             seatRepository.save(seat);
         }
         
-        log.info("Concert 1 (Ed Sheeran): 100 seats loaded");
-        logConcertStats(concertId, "Ed Sheeran - Stadion Tour 2026");
+        log.info("Concert 1 loaded: 100 seats (50 VIP, 30 Cat-A, 20 Cat-B)");
     }
     
     /**
@@ -102,62 +115,63 @@ public class DataLoader implements CommandLineRunner {
     private void loadConcert2Seats() {
         long concertId = 2L;
         
-        // VIP Section (75 Seats): 45 AVAILABLE, 20 HELD, 10 SOLD
+        // VIP Section (75 Seats): 45 AVAILABLE, 18 HELD, 12 SOLD
         for (int i = 1; i <= 75; i++) {
-            Seat seat = new Seat(concertId, "VIP-" + i, "VIP", "Gold Circle");
+            String row = String.valueOf((i - 1) / 15 + 1); // Reihe 1-5
+            String number = String.valueOf(i);
+            String seatNumber = "VIP-" + i;
+            double price = 159.99;
             
-            if (i > 45 && i <= 65) {
-                seat.hold("reservation-ts-vip-" + i, 15);
-            } else if (i > 65) {
-                seat.hold("reservation-ts-vip-" + i, 15);
+            Seat seat = new Seat(concertId, seatNumber, "VIP", "Block A", row, number, price);
+            
+            if (i > 45 && i <= 63) {
+                seat.hold("reservation-vip-" + i, 15);
+            } else if (i > 63) {
+                seat.hold("reservation-vip-" + i, 15);
                 seat.sell();
             }
             
             seatRepository.save(seat);
         }
         
-        // Category A (50 Seats): 30 AVAILABLE, 15 HELD, 5 SOLD
+        // Category A (50 Seats): 30 AVAILABLE, 14 HELD, 6 SOLD
         for (int i = 1; i <= 50; i++) {
-            Seat seat = new Seat(concertId, "A-" + i, "CATEGORY_A", "Floor Standing");
+            String row = String.valueOf((i - 1) / 10 + 1); // Reihe 1-5
+            String number = String.valueOf(i);
+            String seatNumber = "A-" + i;
+            double price = 89.99;
             
-            if (i > 30 && i <= 45) {
-                seat.hold("reservation-ts-a-" + i, 15);
-            } else if (i > 45) {
-                seat.hold("reservation-ts-a-" + i, 15);
+            Seat seat = new Seat(concertId, seatNumber, "CATEGORY_A", "Block B", row, number, price);
+            
+            if (i > 30 && i <= 44) {
+                seat.hold("reservation-a-" + i, 15);
+            } else if (i > 44) {
+                seat.hold("reservation-a-" + i, 15);
                 seat.sell();
             }
             
             seatRepository.save(seat);
         }
         
-        // Category B (25 Seats): 15 AVAILABLE, 5 HELD, 5 SOLD
+        // Category B (25 Seats): 15 AVAILABLE, 6 HELD, 4 SOLD
         for (int i = 1; i <= 25; i++) {
-            Seat seat = new Seat(concertId, "B-" + i, "CATEGORY_B", "Upper Tier");
+            String row = String.valueOf((i - 1) / 10 + 1); // Reihe 1-3
+            String number = String.valueOf(i);
+            String seatNumber = "B-" + i;
+            double price = 59.99;
             
-            if (i > 15 && i <= 20) {
-                seat.hold("reservation-ts-b-" + i, 15);
-            } else if (i > 20) {
-                seat.hold("reservation-ts-b-" + i, 15);
+            Seat seat = new Seat(concertId, seatNumber, "CATEGORY_B", "Block C", row, number, price);
+            
+            if (i > 15 && i <= 21) {
+                seat.hold("reservation-b-" + i, 15);
+            } else if (i > 21) {
+                seat.hold("reservation-b-" + i, 15);
                 seat.sell();
             }
             
             seatRepository.save(seat);
         }
         
-        log.info("Concert 2 (Taylor Swift): 150 seats loaded");
-        logConcertStats(concertId, "Taylor Swift - Eras Tour 2026");
-    }
-    
-    /**
-     * Loggt Statistiken für ein Konzert.
-     */
-    private void logConcertStats(Long concertId, String concertName) {
-        long total = seatRepository.countByConcertId(concertId);
-        long available = seatRepository.findByConcertIdAndStatus(concertId, SeatStatus.AVAILABLE).size();
-        long held = seatRepository.findByConcertIdAndStatus(concertId, SeatStatus.HELD).size();
-        long sold = seatRepository.findByConcertIdAndStatus(concertId, SeatStatus.SOLD).size();
-        
-        log.info("  {} - Total: {}, Available: {}, Held: {}, Sold: {}", 
-                 concertName, total, available, held, sold);
+        log.info("Concert 2 loaded: 150 seats (75 VIP, 50 Cat-A, 25 Cat-B)");
     }
 }

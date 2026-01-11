@@ -1,11 +1,10 @@
 package com.concertcomparison.presentation.controller;
 
 import com.concertcomparison.application.service.SeatApplicationService;
-import com.concertcomparison.presentation.dto.CategoryAvailability;
+import com.concertcomparison.presentation.dto.AvailabilityByCategoryDTO;
 import com.concertcomparison.presentation.dto.SeatAvailabilityResponseDTO;
 import com.concertcomparison.presentation.dto.SeatResponseDTO;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,255 +12,233 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
 
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Integration Tests für SeatController.
- * 
- * Testet REST API, Response-Format und Performance-Acceptance-Criteria.
+ * Controller Tests für Seat Availability Endpoint.
+ * Testet REST API und JSON Response Structure gemäß OpenAPI Spec.
  */
 @WebMvcTest(SeatController.class)
-@DisplayName("SeatController Integration Tests")
 class SeatControllerTest {
-    
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @MockBean
     private SeatApplicationService seatApplicationService;
-    
-    @Nested
-    @DisplayName("GET /api/concerts/{id}/seats Tests")
-    class GetSeatAvailabilityTests {
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/events/{id}/seats sollte 200 OK mit JSON zurückgeben")
+    void getSeatsForConcert_ShouldReturn200_WithJsonResponse() throws Exception {
+        // Arrange
+        Long concertId = 1L;
         
-        @Test
-        @WithMockUser
-        @DisplayName("Gibt Seat-Verfügbarkeit zurück (200 OK)")
-        void getSeatAvailability_Success_Returns200() throws Exception {
-            // Arrange
-            Long concertId = 1L;
-            SeatAvailabilityResponseDTO mockResponse = createMockSeatAvailabilityResponse(concertId, 3);
-            
-            when(seatApplicationService.getSeatAvailability(concertId)).thenReturn(mockResponse);
-            
-            // Act & Assert
-            mockMvc.perform(get("/api/concerts/{id}/seats", concertId))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType("application/json"))
-                    .andExpect(jsonPath("$.concertId", is(1)))
-                    .andExpect(jsonPath("$.totalSeats", is(3)))
-                    .andExpect(jsonPath("$.availableSeats", is(2)))
-                    .andExpect(jsonPath("$.seats", hasSize(3)))
-                    .andExpect(jsonPath("$.seats[0].seatNumber", is("A-1")))
-                    .andExpect(jsonPath("$.seats[0].status", is("AVAILABLE")))
-                    .andExpect(jsonPath("$.seats[0].available", is(true)))
-                    .andExpect(jsonPath("$.seats[1].status", is("SOLD")))
-                    .andExpect(jsonPath("$.seats[2].status", is("AVAILABLE")));
-        }
-        
-        @Test
-        @WithMockUser
-        @DisplayName("Gibt aggregierte Verfügbarkeit pro Kategorie zurück")
-        void getSeatAvailability_WithCategoryAggregation() throws Exception {
-            // Arrange
-            Long concertId = 1L;
-            SeatAvailabilityResponseDTO mockResponse = createMockSeatAvailabilityResponse(concertId, 3);
-            
-            when(seatApplicationService.getSeatAvailability(concertId)).thenReturn(mockResponse);
-            
-            // Act & Assert
-            mockMvc.perform(get("/api/concerts/{id}/seats", concertId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.categoryAvailability", aMapWithSize(2)))
-                    .andExpect(jsonPath("$.categoryAvailability.VIP.total", is(2)))
-                    .andExpect(jsonPath("$.categoryAvailability.VIP.available", is(1)))
-                    .andExpect(jsonPath("$.categoryAvailability.VIP.sold", is(1)))
-                    .andExpect(jsonPath("$.categoryAvailability.VIP.held", is(0)))
-                    .andExpect(jsonPath("$.categoryAvailability.CATEGORY_A.total", is(1)))
-                    .andExpect(jsonPath("$.categoryAvailability.CATEGORY_A.available", is(1)));
-        }
-        
-        @Test
-        @WithMockUser
-        @DisplayName("Gibt leere Response bei Konzert ohne Seats zurück")
-        void getSeatAvailability_NoSeats_ReturnsEmptyResponse() throws Exception {
-            // Arrange
-            Long concertId = 999L;
-            SeatAvailabilityResponseDTO emptyResponse = SeatAvailabilityResponseDTO.empty(concertId);
-            
-            when(seatApplicationService.getSeatAvailability(concertId)).thenReturn(emptyResponse);
-            
-            // Act & Assert
-            mockMvc.perform(get("/api/concerts/{id}/seats", concertId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.concertId", is(999)))
-                    .andExpect(jsonPath("$.totalSeats", is(0)))
-                    .andExpect(jsonPath("$.availableSeats", is(0)))
-                    .andExpect(jsonPath("$.seats", hasSize(0)))
-                    .andExpect(jsonPath("$.categoryAvailability", anEmptyMap()));
-        }
-        
-        @Test
-        @WithMockUser
-        @DisplayName("Keine negativen Werte in Response (Acceptance Criteria)")
-        void getSeatAvailability_NoNegativeValues() throws Exception {
-            // Arrange: Alle Seats verkauft
-            Long concertId = 1L;
-            
-            List<SeatResponseDTO> seats = List.of(
-                createSeatDTO(1L, "A-1", "VIP", "Block A", "SOLD", false),
-                createSeatDTO(2L, "A-2", "VIP", "Block A", "SOLD", false)
-            );
-            
-            Map<String, CategoryAvailability> categoryAvailability = Map.of(
-                "VIP", new CategoryAvailability("VIP", 2, 0, 0, 2)
-            );
-            
-            SeatAvailabilityResponseDTO response = SeatAvailabilityResponseDTO.builder()
-                .concertId(concertId)
-                .seats(seats)
-                .categoryAvailability(categoryAvailability)
-                .totalSeats(2)
-                .availableSeats(0)
+        SeatResponseDTO seat1 = SeatResponseDTO.builder()
+                .id("1")
+                .block("Block A")
+                .category("VIP")
+                .row("1")
+                .number("1")
+                .price(129.99)
+                .status("AVAILABLE")
                 .build();
-            
-            when(seatApplicationService.getSeatAvailability(concertId)).thenReturn(response);
-            
-            // Act & Assert
-            mockMvc.perform(get("/api/concerts/{id}/seats", concertId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.availableSeats", is(0)))
-                    .andExpect(jsonPath("$.categoryAvailability.VIP.available", is(0)))
-                    .andExpect(jsonPath("$.categoryAvailability.VIP.held", is(0)))
-                    .andExpect(jsonPath("$.categoryAvailability.VIP.sold", is(2)));
-        }
-        
-        @Test
-        @WithMockUser
-        @DisplayName("Performance Test: < 200ms bei 1000+ Seats (Acceptance Criteria)")
-        void getSeatAvailability_PerformanceTest_LessThan200ms() throws Exception {
-            // Arrange: 1000 Seats
-            Long concertId = 1L;
-            SeatAvailabilityResponseDTO largeResponse = createLargeSeatAvailabilityResponse(concertId, 1000);
-            
-            when(seatApplicationService.getSeatAvailability(concertId)).thenReturn(largeResponse);
-            
-            // Act: Measure performance
-            long startTime = System.currentTimeMillis();
-            
-            mockMvc.perform(get("/api/concerts/{id}/seats", concertId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.totalSeats", is(1000)))
-                    .andExpect(jsonPath("$.seats", hasSize(1000)));
-            
-            long endTime = System.currentTimeMillis();
-            long duration = endTime - startTime;
-            
-            // Assert: Performance < 200ms (mit Caching)
-            System.out.println("Performance Test: " + duration + "ms für 1000 Seats");
-            
-            // Note: Der Test misst nur die Controller-Ebene.
-            // Echte Performance < 200ms wird durch Caching im SeatApplicationService erreicht.
-        }
+
+        SeatResponseDTO seat2 = SeatResponseDTO.builder()
+                .id("2")
+                .block("Block A")
+                .category("VIP")
+                .row("1")
+                .number("2")
+                .price(129.99)
+                .status("HELD")
+                .build();
+
+        AvailabilityByCategoryDTO vipAvailability = new AvailabilityByCategoryDTO("VIP", 1, 1, 0);
+
+        SeatAvailabilityResponseDTO responseDTO = SeatAvailabilityResponseDTO.builder()
+                .concertId("1")
+                .seats(Arrays.asList(seat1, seat2))
+                .availabilityByCategory(List.of(vipAvailability))
+                .build();
+
+        given(seatApplicationService.getSeatAvailability(concertId))
+                .willReturn(responseDTO);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/events/{id}/seats", concertId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.concertId").value("1"))
+                .andExpect(jsonPath("$.seats").isArray())
+                .andExpect(jsonPath("$.seats.length()").value(2))
+                .andExpect(jsonPath("$.seats[0].id").value("1"))
+                .andExpect(jsonPath("$.seats[0].block").value("Block A"))
+                .andExpect(jsonPath("$.seats[0].category").value("VIP"))
+                .andExpect(jsonPath("$.seats[0].row").value("1"))
+                .andExpect(jsonPath("$.seats[0].number").value("1"))
+                .andExpect(jsonPath("$.seats[0].price").value(129.99))
+                .andExpect(jsonPath("$.seats[0].status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.availabilityByCategory").isArray())
+                .andExpect(jsonPath("$.availabilityByCategory.length()").value(1))
+                .andExpect(jsonPath("$.availabilityByCategory[0].category").value("VIP"))
+                .andExpect(jsonPath("$.availabilityByCategory[0].available").value(1))
+                .andExpect(jsonPath("$.availabilityByCategory[0].held").value(1))
+                .andExpect(jsonPath("$.availabilityByCategory[0].sold").value(0));
     }
-    
-    // ==================== HELPER METHODS ====================
-    
-    /**
-     * Erstellt Mock-Response für Tests mit n Seats.
-     */
-    private SeatAvailabilityResponseDTO createMockSeatAvailabilityResponse(Long concertId, int seatCount) {
-        List<SeatResponseDTO> seats = List.of(
-            createSeatDTO(1L, "A-1", "VIP", "Block A", "AVAILABLE", true),
-            createSeatDTO(2L, "A-2", "VIP", "Block A", "SOLD", false),
-            createSeatDTO(3L, "B-1", "CATEGORY_A", "Block B", "AVAILABLE", true)
-        );
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/events/{id}/seats sollte leere Arrays zurückgeben wenn keine Seats")
+    void getSeatsForConcert_ShouldReturnEmpty_WhenNoSeats() throws Exception {
+        // Arrange
+        Long concertId = 999L;
         
-        Map<String, CategoryAvailability> categoryAvailability = Map.of(
-            "VIP", new CategoryAvailability("VIP", 2, 1, 0, 1),
-            "CATEGORY_A", new CategoryAvailability("CATEGORY_A", 1, 1, 0, 0)
-        );
-        
-        return SeatAvailabilityResponseDTO.builder()
-            .concertId(concertId)
-            .seats(seats)
-            .categoryAvailability(categoryAvailability)
-            .totalSeats(3)
-            .availableSeats(2)
-            .build();
+        SeatAvailabilityResponseDTO emptyResponse = SeatAvailabilityResponseDTO.empty("999");
+
+        given(seatApplicationService.getSeatAvailability(concertId))
+                .willReturn(emptyResponse);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/events/{id}/seats", concertId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.concertId").value("999"))
+                .andExpect(jsonPath("$.seats").isArray())
+                .andExpect(jsonPath("$.seats.length()").value(0))
+                .andExpect(jsonPath("$.availabilityByCategory").isArray())
+                .andExpect(jsonPath("$.availabilityByCategory.length()").value(0));
     }
-    
-    /**
-     * Erstellt große Seat-Response für Performance-Tests.
-     */
-    private SeatAvailabilityResponseDTO createLargeSeatAvailabilityResponse(Long concertId, int seatCount) {
-        List<SeatResponseDTO> seats = IntStream.range(0, seatCount)
-            .mapToObj(i -> createSeatDTO(
-                (long) i, 
-                "SEAT-" + i, 
-                i < seatCount / 2 ? "VIP" : "CATEGORY_A",
-                "Block " + (i % 10),
-                i % 3 == 0 ? "SOLD" : (i % 3 == 1 ? "HELD" : "AVAILABLE"),
-                i % 3 == 2
-            ))
-            .toList();
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/events/{id}/seats sollte String IDs verwenden (nicht Long)")
+    void getSeatsForConcert_ShouldUseStringIds_NotLong() throws Exception {
+        // Arrange
+        Long concertId = 42L;
         
-        long availableCount = seats.stream().filter(SeatResponseDTO::isAvailable).count();
-        
-        // Fix: Korrekte Berechnung der Seat-Verteilung
-        long vipTotal = seatCount / 2;
-        long vipAvailable = (long) Math.ceil(vipTotal / 3.0);
-        long vipHeld = vipTotal / 3;
-        long vipSold = vipTotal - vipAvailable - vipHeld;
-        
-        long catATotal = seatCount - vipTotal;
-        long catAAvailable = (long) Math.ceil(catATotal / 3.0);
-        long catAHeld = catATotal / 3;
-        long catASold = catATotal - catAAvailable - catAHeld;
-        
-        Map<String, CategoryAvailability> categoryAvailability = Map.of(
-            "VIP", new CategoryAvailability("VIP", vipTotal, vipAvailable, vipHeld, vipSold),
-            "CATEGORY_A", new CategoryAvailability("CATEGORY_A", catATotal, catAAvailable, catAHeld, catASold)
-        );
-        
-        return SeatAvailabilityResponseDTO.builder()
-            .concertId(concertId)
-            .seats(seats)
-            .categoryAvailability(categoryAvailability)
-            .totalSeats(seatCount)
-            .availableSeats(availableCount)
-            .build();
+        SeatResponseDTO seat = SeatResponseDTO.builder()
+                .id("123")
+                .block("Block X")
+                .category("CATEGORY_A")
+                .row("5")
+                .number("10")
+                .price(79.99)
+                .status("AVAILABLE")
+                .build();
+
+        SeatAvailabilityResponseDTO responseDTO = SeatAvailabilityResponseDTO.builder()
+                .concertId("42")
+                .seats(List.of(seat))
+                .availabilityByCategory(List.of(new AvailabilityByCategoryDTO("CATEGORY_A", 1, 0, 0)))
+                .build();
+
+        given(seatApplicationService.getSeatAvailability(concertId))
+                .willReturn(responseDTO);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/events/{id}/seats", concertId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.concertId").isString())
+                .andExpect(jsonPath("$.concertId").value("42"))
+                .andExpect(jsonPath("$.seats[0].id").isString())
+                .andExpect(jsonPath("$.seats[0].id").value("123"));
     }
-    
-    /**
-     * Erstellt ein einzelnes SeatResponseDTO für Tests.
-     */
-    private SeatResponseDTO createSeatDTO(Long id, String seatNumber, String category, 
-                                         String block, String status, boolean isAvailable) {
-        return SeatResponseDTO.builder()
-            .id(id)
-            .seatNumber(seatNumber)
-            .category(category)
-            .block(block)
-            .status(status)
-            .statusDisplayName(getStatusDisplayName(status))
-            .isAvailable(isAvailable)
-            .build();
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/events/{id}/seats sollte mehrere Kategorien unterstützen")
+    void getSeatsForConcert_ShouldSupportMultipleCategories() throws Exception {
+        // Arrange
+        Long concertId = 1L;
+        
+        SeatResponseDTO vipSeat = SeatResponseDTO.builder()
+                .id("1")
+                .block("A")
+                .category("VIP")
+                .row("1")
+                .number("1")
+                .price(129.99)
+                .status("AVAILABLE")
+                .build();
+
+        SeatResponseDTO regularSeat = SeatResponseDTO.builder()
+                .id("2")
+                .block("B")
+                .category("CATEGORY_A")
+                .row("2")
+                .number("1")
+                .price(79.99)
+                .status("AVAILABLE")
+                .build();
+
+        AvailabilityByCategoryDTO vipAvailability = new AvailabilityByCategoryDTO("VIP", 1, 0, 0);
+        AvailabilityByCategoryDTO regularAvailability = new AvailabilityByCategoryDTO("CATEGORY_A", 1, 0, 0);
+
+        SeatAvailabilityResponseDTO responseDTO = SeatAvailabilityResponseDTO.builder()
+                .concertId("1")
+                .seats(Arrays.asList(vipSeat, regularSeat))
+                .availabilityByCategory(Arrays.asList(regularAvailability, vipAvailability))  // Alphabetisch sortiert
+                .build();
+
+        given(seatApplicationService.getSeatAvailability(concertId))
+                .willReturn(responseDTO);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/events/{id}/seats", concertId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.seats.length()").value(2))
+                .andExpect(jsonPath("$.availabilityByCategory.length()").value(2))
+                .andExpect(jsonPath("$.availabilityByCategory[0].category").value("CATEGORY_A"))
+                .andExpect(jsonPath("$.availabilityByCategory[1].category").value("VIP"));
     }
-    
-    private String getStatusDisplayName(String status) {
-        return switch (status) {
-            case "AVAILABLE" -> "Verfügbar";
-            case "HELD" -> "Reserviert";
-            case "SOLD" -> "Verkauft";
-            default -> status;
-        };
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/events/{id}/seats sollte alle erforderlichen Seat-Felder enthalten")
+    void getSeatsForConcert_ShouldIncludeAllRequiredSeatFields() throws Exception {
+        // Arrange
+        Long concertId = 1L;
+        
+        SeatResponseDTO seat = SeatResponseDTO.builder()
+                .id("1")
+                .block("Block A")
+                .category("VIP")
+                .row("3")
+                .number("5")
+                .price(149.99)
+                .status("SOLD")
+                .build();
+
+        SeatAvailabilityResponseDTO responseDTO = SeatAvailabilityResponseDTO.builder()
+                .concertId("1")
+                .seats(List.of(seat))
+                .availabilityByCategory(List.of(new AvailabilityByCategoryDTO("VIP", 0, 0, 1)))
+                .build();
+
+        given(seatApplicationService.getSeatAvailability(concertId))
+                .willReturn(responseDTO);
+
+        // Act & Assert - Prüfe dass ALLE Felder aus OpenAPI Spec vorhanden sind
+        mockMvc.perform(get("/api/events/{id}/seats", concertId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.seats[0].id").exists())
+                .andExpect(jsonPath("$.seats[0].block").exists())
+                .andExpect(jsonPath("$.seats[0].category").exists())
+                .andExpect(jsonPath("$.seats[0].row").exists())
+                .andExpect(jsonPath("$.seats[0].number").exists())
+                .andExpect(jsonPath("$.seats[0].price").exists())
+                .andExpect(jsonPath("$.seats[0].status").exists())
+                // Prüfe dass KEINE Extra-Felder vorhanden sind
+                .andExpect(jsonPath("$.seats[0].seatNumber").doesNotExist())
+                .andExpect(jsonPath("$.seats[0].statusDisplayName").doesNotExist())
+                .andExpect(jsonPath("$.seats[0].isAvailable").doesNotExist())
+                .andExpect(jsonPath("$.seats[0].holdExpiresAt").doesNotExist())
+                .andExpect(jsonPath("$.totalSeats").doesNotExist())
+                .andExpect(jsonPath("$.availableSeats").doesNotExist());
     }
 }

@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/concerts/999/seats
+  url: {{baseUrl}}/api/events/999/seats
   body: none
   auth: none
 }
@@ -16,8 +16,7 @@ tests {
   });
   
   test("Empty response for nonexistent concert", function() {
-    expect(res.body.totalSeats).to.equal(0);
-    expect(res.body.availableSeats).to.equal(0);
     expect(res.body.seats).to.be.an('array').that.is.empty;
+    expect(res.body.availabilityByCategory).to.be.an('array').that.is.empty;
   });
 }

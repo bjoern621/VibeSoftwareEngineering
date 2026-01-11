@@ -3,14 +3,14 @@ package com.concertcomparison.application.service;
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.model.SeatStatus;
 import com.concertcomparison.domain.repository.SeatRepository;
-import com.concertcomparison.presentation.dto.CategoryAvailability;
+import com.concertcomparison.presentation.dto.AvailabilityByCategoryDTO;
 import com.concertcomparison.presentation.dto.SeatAvailabilityResponseDTO;
 import com.concertcomparison.presentation.dto.SeatResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,225 +18,178 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 /**
- * Unit Tests für SeatApplicationService.
- * 
- * Testet Use Cases, Aggregation und DTO-Mapping.
+ * Application Service Tests für Seat Availability Use Case.
+ * Testet DTO-Mapping und Aggregation-Logik.
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("SeatApplicationService Unit Tests")
 class SeatApplicationServiceTest {
-    
+
     @Mock
     private SeatRepository seatRepository;
-    
+
+    @InjectMocks
     private SeatApplicationService seatApplicationService;
-    
+
+    private Seat vipSeat1;
+    private Seat vipSeat2;
+    private Seat regularSeat;
+
     @BeforeEach
     void setUp() {
-        seatApplicationService = new SeatApplicationService(seatRepository);
+        vipSeat1 = new Seat(1L, "VIP-A-1", "VIP", "Block A", "1", "1", 129.99);
+        vipSeat1.setId(1L);
+
+        vipSeat2 = new Seat(1L, "VIP-A-2", "VIP", "Block A", "1", "2", 129.99);
+        vipSeat2.setId(2L);
+        
+        regularSeat = new Seat(1L, "REG-B-1", "CATEGORY_A", "Block B", "2", "1", 79.99);
+        regularSeat.setId(3L);
     }
-    
-    @Nested
-    @DisplayName("getSeatAvailability() Tests")
-    class GetSeatAvailabilityTests {
+
+    @Test
+    @DisplayName("getSeatAvailability sollte alle Seats mit String IDs zurückgeben")
+    void getSeatAvailability_ShouldReturnAllSeats_WithStringIds() {
+        // Arrange
+        Long concertId = 1L;
+        given(seatRepository.findByConcertId(concertId))
+                .willReturn(Arrays.asList(vipSeat1, vipSeat2, regularSeat));
+
+        // Act
+        SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
+
+        // Assert
+        assertThat(result.getConcertId()).isEqualTo("1");
+        assertThat(result.getSeats()).hasSize(3);
         
-        @Test
-        @DisplayName("Gibt alle Seats für Konzert zurück")
-        void getSeatAvailability_ReturnsAllSeatsForConcert() {
-            // Arrange
-            Long concertId = 1L;
-            List<Seat> mockSeats = Arrays.asList(
-                createSeat(1L, concertId, "A-1", "VIP", "Block A", SeatStatus.AVAILABLE),
-                createSeat(2L, concertId, "A-2", "VIP", "Block A", SeatStatus.SOLD),
-                createSeat(3L, concertId, "B-1", "CATEGORY_A", "Block B", SeatStatus.AVAILABLE),
-                createSeat(4L, concertId, "B-2", "CATEGORY_A", "Block B", SeatStatus.HELD)
-            );
-            
-            when(seatRepository.findByConcertId(concertId)).thenReturn(mockSeats);
-            
-            // Act
-            SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
-            
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getConcertId()).isEqualTo(concertId);
-            assertThat(result.getTotalSeats()).isEqualTo(4);
-            assertThat(result.getAvailableSeats()).isEqualTo(2);
-            assertThat(result.getSeats()).hasSize(4);
-        }
-        
-        @Test
-        @DisplayName("Aggregiert Verfügbarkeit pro Kategorie korrekt")
-        void getSeatAvailability_AggregatesCorrectly() {
-            // Arrange
-            Long concertId = 1L;
-            List<Seat> mockSeats = Arrays.asList(
-                createSeat(1L, concertId, "A-1", "VIP", "Block A", SeatStatus.AVAILABLE),
-                createSeat(2L, concertId, "A-2", "VIP", "Block A", SeatStatus.SOLD),
-                createSeat(3L, concertId, "A-3", "VIP", "Block A", SeatStatus.HELD),
-                createSeat(4L, concertId, "B-1", "CATEGORY_A", "Block B", SeatStatus.AVAILABLE),
-                createSeat(5L, concertId, "B-2", "CATEGORY_A", "Block B", SeatStatus.AVAILABLE)
-            );
-            
-            when(seatRepository.findByConcertId(concertId)).thenReturn(mockSeats);
-            
-            // Act
-            SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
-            
-            // Assert: VIP Kategorie
-            assertThat(result.getCategoryAvailability()).hasSize(2);
-            
-            CategoryAvailability vipAvailability = result.getCategoryAvailability().get("VIP");
-            assertThat(vipAvailability).isNotNull();
-            assertThat(vipAvailability.getTotal()).isEqualTo(3);
-            assertThat(vipAvailability.getAvailable()).isEqualTo(1);
-            assertThat(vipAvailability.getHeld()).isEqualTo(1);
-            assertThat(vipAvailability.getSold()).isEqualTo(1);
-            
-            // Assert: CATEGORY_A
-            CategoryAvailability categoryAAvailability = result.getCategoryAvailability().get("CATEGORY_A");
-            assertThat(categoryAAvailability).isNotNull();
-            assertThat(categoryAAvailability.getTotal()).isEqualTo(2);
-            assertThat(categoryAAvailability.getAvailable()).isEqualTo(2);
-            assertThat(categoryAAvailability.getHeld()).isEqualTo(0);
-            assertThat(categoryAAvailability.getSold()).isEqualTo(0);
-        }
-        
-        @Test
-        @DisplayName("Gibt leere Response bei keinen Seats zurück")
-        void getSeatAvailability_NoSeats_ReturnsEmptyResponse() {
-            // Arrange
-            Long concertId = 999L;
-            when(seatRepository.findByConcertId(concertId)).thenReturn(List.of());
-            
-            // Act
-            SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
-            
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getConcertId()).isEqualTo(concertId);
-            assertThat(result.getTotalSeats()).isEqualTo(0);
-            assertThat(result.getAvailableSeats()).isEqualTo(0);
-            assertThat(result.getSeats()).isEmpty();
-            assertThat(result.getCategoryAvailability()).isEmpty();
-        }
-        
-        @Test
-        @DisplayName("Keine negativen Werte in Aggregation (Acceptance Criteria)")
-        void getSeatAvailability_NoNegativeValuesInAggregation() {
-            // Arrange: Alle Seats verkauft
-            Long concertId = 1L;
-            List<Seat> allSoldSeats = Arrays.asList(
-                createSeat(1L, concertId, "A-1", "VIP", "Block A", SeatStatus.SOLD),
-                createSeat(2L, concertId, "A-2", "VIP", "Block A", SeatStatus.SOLD)
-            );
-            
-            when(seatRepository.findByConcertId(concertId)).thenReturn(allSoldSeats);
-            
-            // Act
-            SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
-            
-            // Assert: Keine negativen Werte
-            assertThat(result.getAvailableSeats()).isGreaterThanOrEqualTo(0);
-            assertThat(result.getTotalSeats()).isGreaterThanOrEqualTo(0);
-            
-            CategoryAvailability vipAvailability = result.getCategoryAvailability().get("VIP");
-            assertThat(vipAvailability.getAvailable()).isEqualTo(0);
-            assertThat(vipAvailability.getHeld()).isEqualTo(0);
-            assertThat(vipAvailability.getSold()).isEqualTo(2);
-            assertThat(vipAvailability.getTotal()).isEqualTo(2);
-        }
-        
-        @Test
-        @DisplayName("Mappt Seat zu DTO korrekt")
-        void getSeatAvailability_MapsSeatToDTOCorrectly() {
-            // Arrange
-            Long concertId = 1L;
-            Seat mockSeat = createSeat(1L, concertId, "A-12", "VIP", "Block A", SeatStatus.AVAILABLE);
-            
-            when(seatRepository.findByConcertId(concertId)).thenReturn(List.of(mockSeat));
-            
-            // Act
-            SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
-            
-            // Assert
-            assertThat(result.getSeats()).hasSize(1);
-            SeatResponseDTO seatDTO = result.getSeats().get(0);
-            
-            assertThat(seatDTO.getId()).isEqualTo(1L);
-            assertThat(seatDTO.getSeatNumber()).isEqualTo("A-12");
-            assertThat(seatDTO.getCategory()).isEqualTo("VIP");
-            assertThat(seatDTO.getBlock()).isEqualTo("Block A");
-            assertThat(seatDTO.getStatus()).isEqualTo("AVAILABLE");
-            assertThat(seatDTO.getStatusDisplayName()).isEqualTo("Verfügbar");
-            assertThat(seatDTO.isAvailable()).isTrue();
-        }
-        
-        @Test
-        @DisplayName("Große Anzahl an Seats (Performance-Test-Vorbereitung)")
-        void getSeatAvailability_LargeNumberOfSeats() {
-            // Arrange: 1000 Seats simulieren
-            Long concertId = 1L;
-            List<Seat> largeSeats = createLargeNumberOfSeats(concertId, 1000);
-            
-            when(seatRepository.findByConcertId(concertId)).thenReturn(largeSeats);
-            
-            // Act
-            long startTime = System.currentTimeMillis();
-            SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
-            long duration = System.currentTimeMillis() - startTime;
-            
-            // Assert
-            assertThat(result.getTotalSeats()).isEqualTo(1000);
-            assertThat(result.getSeats()).hasSize(1000);
-            
-            // Performance-Hinweis: Caching wird in Integration-Tests getestet
-            System.out.println("Processing time for 1000 seats: " + duration + "ms");
-        }
+        // Prüfe String ID Conversion
+        SeatResponseDTO firstSeat = result.getSeats().get(0);
+        assertThat(firstSeat.getId()).isEqualTo("1");
+        assertThat(firstSeat.getCategory()).isEqualTo("VIP");
+        assertThat(firstSeat.getBlock()).isEqualTo("Block A");
+        assertThat(firstSeat.getRow()).isEqualTo("1");
+        assertThat(firstSeat.getNumber()).isEqualTo("1");
+        assertThat(firstSeat.getPrice()).isEqualTo(129.99);
+        assertThat(firstSeat.getStatus()).isEqualTo("AVAILABLE");
     }
-    
-    // ==================== HELPER METHODS ====================
-    
-    /**
-     * Erstellt einen Mock-Seat mit allen Feldern.
-     */
-    private Seat createSeat(Long id, Long concertId, String seatNumber, 
-                           String category, String block, SeatStatus status) {
-        Seat seat = new Seat(concertId, seatNumber, category, block);
+
+    @Test
+    @DisplayName("getSeatAvailability sollte availabilityByCategory als Array zurückgeben")
+    void getSeatAvailability_ShouldReturnAvailabilityByCategory_AsArray() {
+        // Arrange
+        Long concertId = 1L;
+        given(seatRepository.findByConcertId(concertId))
+                .willReturn(Arrays.asList(vipSeat1, vipSeat2, regularSeat));
+
+        // Act
+        SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
+
+        // Assert
+        List<AvailabilityByCategoryDTO> availability = result.getAvailabilityByCategory();
+        assertThat(availability).hasSize(2);
         
-        // Setze ID via Reflection (da private)
-        try {
-            var idField = Seat.class.getDeclaredField("id");
-            idField.setAccessible(true);
-            idField.set(seat, id);
-            
-            // Setze Status via Reflection (für Tests)
-            if (status != SeatStatus.AVAILABLE) {
-                var statusField = Seat.class.getDeclaredField("status");
-                statusField.setAccessible(true);
-                statusField.set(seat, status);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Test setup failed", e);
-        }
-        
-        return seat;
+        // Prüfe alphabetische Sortierung
+        assertThat(availability.get(0).getCategory()).isEqualTo("CATEGORY_A");
+        assertThat(availability.get(1).getCategory()).isEqualTo("VIP");
     }
-    
-    /**
-     * Erstellt eine große Anzahl an Test-Seats für Performance-Tests.
-     */
-    private List<Seat> createLargeNumberOfSeats(Long concertId, int count) {
-        return java.util.stream.IntStream.range(0, count)
-            .mapToObj(i -> {
-                String category = i < count / 2 ? "VIP" : "CATEGORY_A";
-                SeatStatus status = i % 3 == 0 ? SeatStatus.SOLD : 
-                                   i % 3 == 1 ? SeatStatus.HELD : SeatStatus.AVAILABLE;
-                return createSeat((long) i, concertId, "SEAT-" + i, category, "Block " + (i % 10), status);
-            })
-            .toList();
+
+    @Test
+    @DisplayName("getSeatAvailability sollte Availability korrekt aggregieren")
+    void getSeatAvailability_ShouldAggregateAvailabilityCorrectly() {
+        // Arrange
+        Long concertId = 1L;
+        vipSeat2.hold("res-1", java.time.LocalDateTime.now().plusMinutes(10));
+        
+        given(seatRepository.findByConcertId(concertId))
+                .willReturn(Arrays.asList(vipSeat1, vipSeat2, regularSeat));
+
+        // Act
+        SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
+
+        // Assert
+        AvailabilityByCategoryDTO vipAvailability = result.getAvailabilityByCategory().stream()
+                .filter(a -> a.getCategory().equals("VIP"))
+                .findFirst()
+                .orElseThrow();
+        
+        assertThat(vipAvailability.getAvailable()).isEqualTo(1);
+        assertThat(vipAvailability.getHeld()).isEqualTo(1);
+        assertThat(vipAvailability.getSold()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("getSeatAvailability sollte leere Liste zurückgeben wenn keine Seats vorhanden")
+    void getSeatAvailability_ShouldReturnEmpty_WhenNoSeats() {
+        // Arrange
+        Long concertId = 999L;
+        given(seatRepository.findByConcertId(concertId))
+                .willReturn(List.of());
+
+        // Act
+        SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
+
+        // Assert
+        assertThat(result.getConcertId()).isEqualTo("999");
+        assertThat(result.getSeats()).isEmpty();
+        assertThat(result.getAvailabilityByCategory()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getSeatAvailability sollte SOLD Seats korrekt zählen")
+    void getSeatAvailability_ShouldCountSoldSeatsCorrectly() {
+        // Arrange
+        Long concertId = 1L;
+        vipSeat1.hold("res-1", java.time.LocalDateTime.now().plusMinutes(10));
+        vipSeat1.sell("res-1");
+        
+        given(seatRepository.findByConcertId(concertId))
+                .willReturn(Arrays.asList(vipSeat1, vipSeat2, regularSeat));
+
+        // Act
+        SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
+
+        // Assert
+        AvailabilityByCategoryDTO vipAvailability = result.getAvailabilityByCategory().stream()
+                .filter(a -> a.getCategory().equals("VIP"))
+                .findFirst()
+                .orElseThrow();
+        
+        assertThat(vipAvailability.getAvailable()).isEqualTo(1);
+        assertThat(vipAvailability.getHeld()).isEqualTo(0);
+        assertThat(vipAvailability.getSold()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("getSeatAvailability sollte verschiedene Status pro Kategorie korrekt aggregieren")
+    void getSeatAvailability_ShouldAggregateMixedStatusesCorrectly() {
+        // Arrange
+        Long concertId = 1L;
+        
+        Seat vipSeat3 = new Seat(1L, "VIP-A-3", "VIP", "Block A", "1", "3", 129.99);
+        vipSeat3.setId(4L);
+        vipSeat3.hold("res-2", java.time.LocalDateTime.now().plusMinutes(10));
+        vipSeat3.sell("res-2");
+        
+        Seat vipSeat4 = new Seat(1L, "VIP-A-4", "VIP", "Block A", "1", "4", 129.99);
+        vipSeat4.setId(5L);
+        vipSeat4.hold("res-3", java.time.LocalDateTime.now().plusMinutes(10));
+        
+        given(seatRepository.findByConcertId(concertId))
+                .willReturn(Arrays.asList(vipSeat1, vipSeat2, vipSeat3, vipSeat4));
+
+        // Act
+        SeatAvailabilityResponseDTO result = seatApplicationService.getSeatAvailability(concertId);
+
+        // Assert
+        AvailabilityByCategoryDTO vipAvailability = result.getAvailabilityByCategory().stream()
+                .filter(a -> a.getCategory().equals("VIP"))
+                .findFirst()
+                .orElseThrow();
+        
+        assertThat(vipAvailability.getAvailable()).isEqualTo(2);  // vipSeat1, vipSeat2
+        assertThat(vipAvailability.getHeld()).isEqualTo(1);       // vipSeat4
+        assertThat(vipAvailability.getSold()).isEqualTo(1);       // vipSeat3
     }
 }
