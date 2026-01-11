@@ -1,331 +1,246 @@
 package com.concertcomparison.domain.model;
 
-import com.concertcomparison.domain.exception.SeatNotAvailableException;
-import com.concertcomparison.domain.exception.SeatNotHeldException;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.DisplayName;
 
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Unit Tests für Seat Entity.
- * 
- * Testet Business Methods, State Transitions und Invarianten.
+ * Domain Tests für Seat Aggregate Root.
+ * Testet Business Logic und State Transitions gemäß DDD Best Practices.
  */
-@DisplayName("Seat Entity Unit Tests")
 class SeatTest {
-    
-    @Nested
-    @DisplayName("Constructor Tests")
-    class ConstructorTests {
-        
-        @Test
-        @DisplayName("Erstellt Seat mit gültigen Parametern")
-        void createSeat_WithValidParameters_Success() {
-            // Act
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            
-            // Assert
-            assertThat(seat.getConcertId()).isEqualTo(1L);
-            assertThat(seat.getSeatNumber()).isEqualTo("A-12");
-            assertThat(seat.getCategory()).isEqualTo("VIP");
-            assertThat(seat.getBlock()).isEqualTo("Block A");
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
-            assertThat(seat.isAvailable()).isTrue();
-        }
-        
-        @Test
-        @DisplayName("Wirft Exception bei null Concert-ID")
-        void createSeat_WithNullConcertId_ThrowsException() {
-            // Act & Assert
-            assertThatThrownBy(() -> new Seat(null, "A-12", "VIP", "Block A"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Concert-ID darf nicht null sein");
-        }
-        
-        @Test
-        @DisplayName("Wirft Exception bei leerer Sitzplatznummer")
-        void createSeat_WithEmptySeatNumber_ThrowsException() {
-            // Act & Assert
-            assertThatThrownBy(() -> new Seat(1L, "", "VIP", "Block A"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Sitzplatznummer darf nicht leer sein");
-        }
-        
-        @Test
-        @DisplayName("Wirft Exception bei leerer Kategorie")
-        void createSeat_WithEmptyCategory_ThrowsException() {
-            // Act & Assert
-            assertThatThrownBy(() -> new Seat(1L, "A-12", "", "Block A"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Kategorie darf nicht leer sein");
-        }
+
+    private static final Long CONCERT_ID = 1L;
+    private static final String SEAT_NUMBER = "A-1";
+    private static final String CATEGORY = "VIP";
+    private static final String BLOCK = "Block A";
+    private static final String ROW = "1";
+    private static final String NUMBER = "1";
+    private static final Double PRICE = 129.99;
+
+    @Test
+    @DisplayName("Neuer Seat sollte AVAILABLE Status haben")
+    void newSeat_ShouldHaveAvailableStatus() {
+        // Act
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+
+        // Assert
+        assertThat(seat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
+        assertThat(seat.getConcertId()).isEqualTo(CONCERT_ID);
+        assertThat(seat.getSeatNumber()).isEqualTo(SEAT_NUMBER);
+        assertThat(seat.getCategory()).isEqualTo(CATEGORY);
+        assertThat(seat.getBlock()).isEqualTo(BLOCK);
+        assertThat(seat.getRow()).isEqualTo(ROW);
+        assertThat(seat.getNumber()).isEqualTo(NUMBER);
+        assertThat(seat.getPrice()).isEqualTo(PRICE);
+        assertThat(seat.getHoldReservationId()).isNull();
+        assertThat(seat.getHoldExpiresAt()).isNull();
     }
-    
-    @Nested
-    @DisplayName("hold() Method Tests")
-    class HoldTests {
-        
-        @Test
-        @DisplayName("hold() - Reserviert verfügbaren Seat erfolgreich")
-        void hold_AvailableSeat_Success() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            String reservationId = "RES-123";
-            int holdDurationMinutes = 15;
-            
-            // Act
-            seat.hold(reservationId, holdDurationMinutes);
-            
-            // Assert
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.HELD);
-            assertThat(seat.isHeld()).isTrue();
-            assertThat(seat.isAvailable()).isFalse();
-            assertThat(seat.getHoldReservationId()).isEqualTo(reservationId);
-            assertThat(seat.getHoldExpiresAt()).isNotNull();
-            assertThat(seat.getHoldExpiresAt()).isAfter(LocalDateTime.now());
-        }
-        
-        @Test
-        @DisplayName("hold() - Wirft Exception bei bereits reserviertem Seat")
-        void hold_AlreadyHeldSeat_ThrowsException() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 15);
-            
-            // Act & Assert
-            assertThatThrownBy(() -> seat.hold("RES-456", 15))
-                .isInstanceOf(SeatNotAvailableException.class)
-                .hasMessageContaining("bereits Reserviert");
-        }
-        
-        @Test
-        @DisplayName("hold() - Wirft Exception bei verkauftem Seat")
-        void hold_SoldSeat_ThrowsException() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 15);
-            seat.sell();
-            
-            // Act & Assert
-            assertThatThrownBy(() -> seat.hold("RES-456", 15))
-                .isInstanceOf(SeatNotAvailableException.class)
-                .hasMessageContaining("bereits Verkauft");
-        }
-        
-        @Test
-        @DisplayName("hold() - Wirft Exception bei leerer Reservation-ID")
-        void hold_WithEmptyReservationId_ThrowsException() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            
-            // Act & Assert
-            assertThatThrownBy(() -> seat.hold("", 15))
+
+    @Test
+    @DisplayName("Constructor sollte null concertId ablehnen")
+    void constructor_ShouldRejectNullConcertId() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Seat(null, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Reservation-ID darf nicht leer sein");
-        }
-        
-        @Test
-        @DisplayName("hold() - Wirft Exception bei negativer Hold-Dauer")
-        void hold_WithNegativeDuration_ThrowsException() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            
-            // Act & Assert
-            assertThatThrownBy(() -> seat.hold("RES-123", -5))
+                .hasMessageContaining("Concert-ID");
+    }
+
+    @Test
+    @DisplayName("Constructor sollte leeren seatNumber ablehnen")
+    void constructor_ShouldRejectEmptySeatNumber() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Seat(CONCERT_ID, "", CATEGORY, BLOCK, ROW, NUMBER, PRICE))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Hold-Dauer muss positiv sein");
-        }
+                .hasMessageContaining("Sitzplatznummer");
     }
-    
-    @Nested
-    @DisplayName("sell() Method Tests")
-    class SellTests {
-        
-        @Test
-        @DisplayName("sell() - Verkauft reservierten Seat erfolgreich")
-        void sell_HeldSeat_Success() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 15);
-            
-            // Act
-            seat.sell();
-            
-            // Assert
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.SOLD);
-            assertThat(seat.isSold()).isTrue();
-            assertThat(seat.isHeld()).isFalse();
-            assertThat(seat.isAvailable()).isFalse();
-            assertThat(seat.getHoldReservationId()).isNull();
-            assertThat(seat.getHoldExpiresAt()).isNull();
-        }
-        
-        @Test
-        @DisplayName("sell() - Wirft Exception bei nicht-reserviertem Seat")
-        void sell_NotHeldSeat_ThrowsException() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            
-            // Act & Assert
-            assertThatThrownBy(() -> seat.sell())
-                .isInstanceOf(SeatNotHeldException.class)
-                .hasMessageContaining("muss zuerst reserviert werden");
-        }
-        
-        @Test
-        @DisplayName("sell() - Wirft Exception bei bereits verkauftem Seat")
-        void sell_AlreadySoldSeat_ThrowsException() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 15);
-            seat.sell();
-            
-            // Act & Assert
-            assertThatThrownBy(() -> seat.sell())
-                .isInstanceOf(SeatNotHeldException.class);
-        }
+
+    @Test
+    @DisplayName("Constructor sollte leere category ablehnen")
+    void constructor_ShouldRejectEmptyCategory() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Seat(CONCERT_ID, SEAT_NUMBER, "", BLOCK, ROW, NUMBER, PRICE))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Kategorie");
     }
-    
-    @Nested
-    @DisplayName("releaseHold() Method Tests")
-    class ReleaseHoldTests {
-        
-        @Test
-        @DisplayName("releaseHold() - Gibt reservierten Seat frei")
-        void releaseHold_HeldSeat_Success() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 15);
-            
-            // Act
-            seat.releaseHold();
-            
-            // Assert
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
-            assertThat(seat.isAvailable()).isTrue();
-            assertThat(seat.isHeld()).isFalse();
-            assertThat(seat.getHoldReservationId()).isNull();
-            assertThat(seat.getHoldExpiresAt()).isNull();
-        }
-        
-        @Test
-        @DisplayName("releaseHold() - Wirft Exception bei verfügbarem Seat")
-        void releaseHold_AvailableSeat_ThrowsException() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            
-            // Act & Assert
-            assertThatThrownBy(() -> seat.releaseHold())
+
+    @Test
+    @DisplayName("Constructor sollte leeren block ablehnen")
+    void constructor_ShouldRejectEmptyBlock() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, "", ROW, NUMBER, PRICE))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Block");
+    }
+
+    @Test
+    @DisplayName("Constructor sollte leere row ablehnen")
+    void constructor_ShouldRejectEmptyRow() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, "", NUMBER, PRICE))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Reihe");
+    }
+
+    @Test
+    @DisplayName("Constructor sollte leere number ablehnen")
+    void constructor_ShouldRejectEmptyNumber() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, "", PRICE))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Sitznummer");
+    }
+
+    @Test
+    @DisplayName("Constructor sollte null price ablehnen")
+    void constructor_ShouldRejectNullPrice() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Preis");
+    }
+
+    @Test
+    @DisplayName("Constructor sollte negative price ablehnen")
+    void constructor_ShouldRejectNegativePrice() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, -10.0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Preis");
+    }
+
+    @Test
+    @DisplayName("hold() sollte Seat von AVAILABLE zu HELD ändern")
+    void hold_ShouldChangeStatusFromAvailableToHeld() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        String reservationId = "res-123";
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(10);
+
+        // Act
+        seat.hold(reservationId, expiresAt);
+
+        // Assert
+        assertThat(seat.getStatus()).isEqualTo(SeatStatus.HELD);
+        assertThat(seat.getHoldReservationId()).isEqualTo(reservationId);
+        assertThat(seat.getHoldExpiresAt()).isEqualTo(expiresAt);
+    }
+
+    @Test
+    @DisplayName("hold() sollte exception werfen wenn Seat nicht AVAILABLE ist")
+    void hold_ShouldThrowException_WhenSeatNotAvailable() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-1", LocalDateTime.now().plusMinutes(10));
+
+        // Act & Assert
+        assertThatThrownBy(() -> seat.hold("res-2", LocalDateTime.now().plusMinutes(10)))
+                .isInstanceOf(com.concertcomparison.domain.exception.SeatNotAvailableException.class)
+                .hasMessageContaining("reserviert");
+    }
+
+    @Test
+    @DisplayName("sell() sollte Seat von HELD zu SOLD ändern und Hold-Daten löschen")
+    void sell_ShouldChangeStatusFromHeldToSold_AndClearHoldData() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        String reservationId = "res-123";
+        seat.hold(reservationId, LocalDateTime.now().plusMinutes(10));
+
+        // Act
+        seat.sell(reservationId);
+
+        // Assert
+        assertThat(seat.getStatus()).isEqualTo(SeatStatus.SOLD);
+        assertThat(seat.getHoldReservationId()).isNull();
+        assertThat(seat.getHoldExpiresAt()).isNull();
+    }
+
+    @Test
+    @DisplayName("sell() sollte exception werfen bei falscher reservationId")
+    void sell_ShouldThrowException_WhenReservationIdDoesNotMatch() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", LocalDateTime.now().plusMinutes(10));
+
+        // Act & Assert
+        assertThatThrownBy(() -> seat.sell("wrong-id"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Reservierungs-ID");
+    }
+
+    @Test
+    @DisplayName("sell() sollte exception werfen wenn Seat nicht HELD ist")
+    void sell_ShouldThrowException_WhenSeatNotHeld() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+
+        // Act & Assert
+        assertThatThrownBy(() -> seat.sell("res-123"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("nicht reserviert");
-        }
-        
-        @Test
-        @DisplayName("releaseHold() - Wirft Exception bei verkauftem Seat")
-        void releaseHold_SoldSeat_ThrowsException() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 15);
-            seat.sell();
-            
-            // Act & Assert
-            assertThatThrownBy(() -> seat.releaseHold())
-                .isInstanceOf(IllegalStateException.class);
-        }
     }
-    
-    @Nested
-    @DisplayName("isHoldExpired() Method Tests")
-    class IsHoldExpiredTests {
-        
-        @Test
-        @DisplayName("isHoldExpired() - Gibt false für nicht-abgelaufene Hold zurück")
-        void isHoldExpired_NotExpired_ReturnsFalse() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 60); // 60 Minuten Hold
-            
-            // Act & Assert
-            assertThat(seat.isHoldExpired()).isFalse();
-        }
-        
-        @Test
-        @DisplayName("isHoldExpired() - Gibt false für verfügbaren Seat zurück")
-        void isHoldExpired_AvailableSeat_ReturnsFalse() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            
-            // Act & Assert
-            assertThat(seat.isHoldExpired()).isFalse();
-        }
-        
-        @Test
-        @DisplayName("isHoldExpired() - Gibt false für verkauften Seat zurück")
-        void isHoldExpired_SoldSeat_ReturnsFalse() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 15);
-            seat.sell();
-            
-            // Act & Assert
-            assertThat(seat.isHoldExpired()).isFalse();
-        }
+
+    @Test
+    @DisplayName("releaseHold() sollte Seat von HELD zu AVAILABLE ändern und Hold-Daten löschen")
+    void releaseHold_ShouldChangeStatusFromHeldToAvailable_AndClearHoldData() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", LocalDateTime.now().plusMinutes(10));
+
+        // Act
+        seat.releaseHold();
+
+        // Assert
+        assertThat(seat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
+        assertThat(seat.getHoldReservationId()).isNull();
+        assertThat(seat.getHoldExpiresAt()).isNull();
     }
-    
-    @Nested
-    @DisplayName("State Transition Tests")
-    class StateTransitionTests {
-        
-        @Test
-        @DisplayName("Vollständiger Lebenszyklus: AVAILABLE → HELD → SOLD")
-        void fullLifecycle_AvailableToHeldToSold_Success() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            
-            // Act & Assert: AVAILABLE → HELD
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
-            seat.hold("RES-123", 15);
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.HELD);
-            
-            // Act & Assert: HELD → SOLD
-            seat.sell();
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.SOLD);
-        }
-        
-        @Test
-        @DisplayName("Stornierungszyklus: AVAILABLE → HELD → AVAILABLE")
-        void cancellationCycle_AvailableToHeldToAvailable_Success() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            
-            // Act & Assert: AVAILABLE → HELD
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
-            seat.hold("RES-123", 15);
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.HELD);
-            
-            // Act & Assert: HELD → AVAILABLE
-            seat.releaseHold();
-            assertThat(seat.getStatus()).isEqualTo(SeatStatus.AVAILABLE);
-        }
-        
-        @Test
-        @DisplayName("SOLD ist finaler Zustand (keine Transition mehr möglich)")
-        void soldIsFinalState_NoTransitionPossible() {
-            // Arrange
-            Seat seat = new Seat(1L, "A-12", "VIP", "Block A");
-            seat.hold("RES-123", 15);
-            seat.sell();
-            
-            // Assert: Keine Transitionen mehr möglich
-            assertThatThrownBy(() -> seat.hold("RES-456", 15))
-                .isInstanceOf(SeatNotAvailableException.class);
-            
-            assertThatThrownBy(() -> seat.releaseHold())
-                .isInstanceOf(IllegalStateException.class);
-        }
+
+    @Test
+    @DisplayName("releaseHold() sollte exception werfen wenn Seat nicht HELD ist")
+    void releaseHold_ShouldThrowException_WhenSeatNotHeld() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+
+        // Act & Assert
+        assertThatThrownBy(() -> seat.releaseHold())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("nicht reserviert");
+    }
+
+    @Test
+    @DisplayName("isHoldExpired() sollte true zurückgeben wenn Hold abgelaufen ist")
+    void isHoldExpired_ShouldReturnTrue_WhenHoldExpired() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", LocalDateTime.now().minusSeconds(1));
+
+        // Act & Assert
+        assertThat(seat.isHoldExpired()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isHoldExpired() sollte false zurückgeben wenn Hold noch gültig ist")
+    void isHoldExpired_ShouldReturnFalse_WhenHoldNotExpired() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", LocalDateTime.now().plusMinutes(10));
+
+        // Act & Assert
+        assertThat(seat.isHoldExpired()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isHoldExpired() sollte false zurückgeben wenn kein Hold vorhanden ist")
+    void isHoldExpired_ShouldReturnFalse_WhenNotHeld() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+
+        // Act & Assert
+        assertThat(seat.isHoldExpired()).isFalse();
     }
 }

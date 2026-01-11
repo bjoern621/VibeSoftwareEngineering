@@ -47,6 +47,15 @@ public class Seat {
     @Column(name = "block", nullable = false, length = 50)
     private String block;
     
+    @Column(name = "seat_row", nullable = false, length = 10)
+    private String row;
+    
+    @Column(name = "number", nullable = false, length = 10)
+    private String number;
+    
+    @Column(name = "price", nullable = false)
+    private Double price;
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private SeatStatus status;
@@ -87,14 +96,20 @@ public class Seat {
      * @param seatNumber Sitzplatznummer (z.B. "A-12", "VIP-001")
      * @param category Kategorie (z.B. "VIP", "CATEGORY_A")
      * @param block Block/Bereich (z.B. "Block A", "Standing Area 1")
+     * @param row Reihe (z.B. "1", "A")
+     * @param number Sitznummer in der Reihe (z.B. "1", "12")
+     * @param price Preis in Euro
      */
-    public Seat(Long concertId, String seatNumber, String category, String block) {
-        validateConstructorParameters(concertId, seatNumber, category, block);
+    public Seat(Long concertId, String seatNumber, String category, String block, String row, String number, Double price) {
+        validateConstructorParameters(concertId, seatNumber, category, block, row, number, price);
         
         this.concertId = concertId;
         this.seatNumber = seatNumber;
         this.category = category;
         this.block = block;
+        this.row = row;
+        this.number = number;
+        this.price = price;
         this.status = SeatStatus.AVAILABLE;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -137,6 +152,35 @@ public class Seat {
     }
     
     /**
+     * Reserviert den Seat mit direktem Ablaufzeitpunkt (für Tests).
+     * 
+     * @param reservationId Eindeutige Reservierungs-ID
+     * @param expiresAt Ablaufzeitpunkt der Reservierung
+     * @throws SeatNotAvailableException wenn Seat nicht verfügbar ist
+     */
+    public void hold(String reservationId, LocalDateTime expiresAt) {
+        if (reservationId == null || reservationId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Reservation-ID darf nicht leer sein");
+        }
+        
+        if (expiresAt == null) {
+            throw new IllegalArgumentException("Ablaufzeitpunkt darf nicht null sein");
+        }
+        
+        if (this.status != SeatStatus.AVAILABLE) {
+            throw new SeatNotAvailableException(
+                String.format("Seat %s (ID: %d) ist bereits %s und kann nicht reserviert werden", 
+                    seatNumber, id, status.getDisplayName())
+            );
+        }
+        
+        this.status = SeatStatus.HELD;
+        this.holdReservationId = reservationId;
+        this.holdExpiresAt = expiresAt;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    /**
      * Verkauft den Seat (finale Transaktion).
      * 
      * Business Rules:
@@ -151,6 +195,38 @@ public class Seat {
             throw new SeatNotHeldException(
                 String.format("Seat %s (ID: %d) muss zuerst reserviert werden. Aktueller Status: %s", 
                     seatNumber, id, status.getDisplayName())
+            );
+        }
+        
+        this.status = SeatStatus.SOLD;
+        this.holdReservationId = null;
+        this.holdExpiresAt = null;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    /**
+     * Verkauft den Seat mit Validierung der Reservierungs-ID.
+     * 
+     * Business Rules:
+     * - Seat muss HELD sein
+     * - Reservierungs-ID muss übereinstimmen
+     * - Verkauf ist final
+     * 
+     * @param reservationId Reservierungs-ID zur Validierung
+     * @throws IllegalStateException wenn Seat nicht HELD ist oder ID nicht passt
+     */
+    public void sell(String reservationId) {
+        if (this.status != SeatStatus.HELD) {
+            throw new IllegalStateException(
+                String.format("Seat %s (ID: %d) ist nicht reserviert. Status: %s", 
+                    seatNumber, id, status.getDisplayName())
+            );
+        }
+        
+        if (!Objects.equals(this.holdReservationId, reservationId)) {
+            throw new IllegalStateException(
+                String.format("Seat %s (ID: %d) hat eine andere Reservierungs-ID", 
+                    seatNumber, id)
             );
         }
         
@@ -225,7 +301,8 @@ public class Seat {
     // ==================== VALIDATION ====================
     
     private void validateConstructorParameters(Long concertId, String seatNumber, 
-                                               String category, String block) {
+                                               String category, String block,
+                                               String row, String number, Double price) {
         if (concertId == null) {
             throw new IllegalArgumentException("Concert-ID darf nicht null sein");
         }
@@ -240,6 +317,18 @@ public class Seat {
         
         if (block == null || block.trim().isEmpty()) {
             throw new IllegalArgumentException("Block darf nicht leer sein");
+        }
+        
+        if (row == null || row.trim().isEmpty()) {
+            throw new IllegalArgumentException("Reihe darf nicht leer sein");
+        }
+        
+        if (number == null || number.trim().isEmpty()) {
+            throw new IllegalArgumentException("Sitznummer darf nicht leer sein");
+        }
+        
+        if (price == null || price <= 0) {
+            throw new IllegalArgumentException("Preis muss positiv sein");
         }
     }
     
@@ -285,6 +374,18 @@ public class Seat {
         return block;
     }
     
+    public String getRow() {
+        return row;
+    }
+    
+    public String getNumber() {
+        return number;
+    }
+    
+    public Double getPrice() {
+        return price;
+    }
+    
     public SeatStatus getStatus() {
         return status;
     }
@@ -307,6 +408,15 @@ public class Seat {
     
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+    
+    /**
+     * Setzt die ID (nur für Tests).
+     * 
+     * @param id Die zu setzende ID
+     */
+    public void setId(Long id) {
+        this.id = id;
     }
     
     // ==================== EQUALS & HASHCODE ====================

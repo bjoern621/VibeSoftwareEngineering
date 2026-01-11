@@ -20,13 +20,13 @@ import org.springframework.web.bind.annotation.*;
  * Stellt Endpoints für Seat-Abfragen bereit gemäß US-01.
  * 
  * API Conventions:
- * - RESTful Naming (GET /api/concerts/{id}/seats)
+ * - RESTful Naming (GET /api/events/{id}/seats)
  * - HTTP Status Codes (200 OK, 404 Not Found, 500 Internal Server Error)
  * - OpenAPI/Swagger Dokumentation
  * - DTOs für Request/Response (keine Entities exponieren)
  */
 @RestController
-@RequestMapping("/api/concerts")
+@RequestMapping("/api/events")
 @Tag(name = "Seats", description = "Sitzplatz-Verfügbarkeit und Management API")
 public class SeatController {
     
@@ -39,12 +39,12 @@ public class SeatController {
     }
     
     /**
-     * GET /api/concerts/{id}/seats
+     * GET /api/events/{id}/seats
      * 
      * Ruft alle Sitzplätze für ein Konzert mit Verfügbarkeit ab.
      * 
      * Acceptance Criteria (US-01):
-     * - Endpoint: GET /api/concerts/{id}/seats ✅
+     * - Endpoint: GET /api/events/{id}/seats ✅
      * - Response: Liste von Seats mit Status (available/held/sold) ✅
      * - Aggregierte Verfügbarkeit pro Kategorie ✅
      * - Keine negativen Werte ✅
@@ -88,12 +88,12 @@ public class SeatController {
             )
             @PathVariable("id") Long concertId) {
         
-        logger.info("GET /api/concerts/{}/seats - Fetching seat availability", concertId);
+        logger.info("GET /api/events/{}/seats - Fetching seat availability", concertId);
         
         SeatAvailabilityResponseDTO response = seatApplicationService.getSeatAvailability(concertId);
         
-        logger.info("GET /api/concerts/{}/seats - Returning {} total seats, {} available", 
-            concertId, response.getTotalSeats(), response.getAvailableSeats());
+        logger.info("GET /api/events/{}/seats - Returning {} seats in {} categories", 
+            concertId, response.getSeats().size(), response.getAvailabilityByCategory().size());
         
         return ResponseEntity.ok(response);
     }

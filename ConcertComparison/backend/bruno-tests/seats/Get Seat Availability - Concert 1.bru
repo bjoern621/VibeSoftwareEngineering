@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/concerts/1/seats
+  url: {{baseUrl}}/api/events/1/seats
   body: none
   auth: none
 }
@@ -15,26 +15,27 @@ tests {
     expect(res.status).to.equal(200);
   });
   
-  test("Response has concertId", function() {
-    expect(res.body.concertId).to.equal(1);
+  test("Response has concertId as string", function() {
+    expect(res.body.concertId).to.equal("1");
   });
   
   test("Response has seats array", function() {
     expect(res.body.seats).to.be.an('array');
   });
   
-  test("Response has categoryAvailability", function() {
-    expect(res.body.categoryAvailability).to.be.an('object');
+  test("Seats have row, number, price fields", function() {
+    const seat = res.body.seats[0];
+    expect(seat).to.have.property('row');
+    expect(seat).to.have.property('number');
+    expect(seat).to.have.property('price');
   });
   
-  test("totalSeats matches seats array length", function() {
-    expect(res.body.totalSeats).to.equal(res.body.seats.length);
+  test("Response has categoryAvailability array", function() {
+    expect(res.body.availabilityByCategory).to.be.an('array');
   });
   
   test("No negative values in category availability", function() {
-    const categories = Object.values(res.body.categoryAvailability);
-    categories.forEach(cat => {
-      expect(cat.total).to.be.at.least(0);
+    res.body.availabilityByCategory.forEach(cat => {
       expect(cat.available).to.be.at.least(0);
       expect(cat.held).to.be.at.least(0);
       expect(cat.sold).to.be.at.least(0);

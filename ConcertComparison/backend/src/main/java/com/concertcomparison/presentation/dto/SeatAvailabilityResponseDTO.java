@@ -1,68 +1,46 @@
 package com.concertcomparison.presentation.dto;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Response DTO für Seat-Verfügbarkeit eines Konzerts.
+ * Entspricht OpenAPI-Schema "SeatAvailabilityResponse".
  * 
- * Aggregiert alle Seat-Informationen für ein Konzert:
- * - Einzelne Seats mit Status
- * - Aggregierte Verfügbarkeit pro Kategorie
- * - Gesamtstatistiken
+ * Liefert vollständige Seat-Liste plus aggregierte Verfügbarkeit pro Kategorie.
  */
 public class SeatAvailabilityResponseDTO {
     
-    private Long concertId;
+    private String concertId;  // String gemäß OpenAPI
     private List<SeatResponseDTO> seats;
-    private Map<String, CategoryAvailability> categoryAvailability;
-    private long totalSeats;
-    private long availableSeats;
+    private List<AvailabilityByCategoryDTO> availabilityByCategory;  // Array gemäß OpenAPI
     
-    // ==================== CONSTRUCTORS ====================
-    
-    public SeatAvailabilityResponseDTO() {
-        // Default Constructor für Jackson Deserialization
-    }
+    // Constructors
+    public SeatAvailabilityResponseDTO() {}
     
     private SeatAvailabilityResponseDTO(Builder builder) {
         this.concertId = builder.concertId;
         this.seats = builder.seats;
-        this.categoryAvailability = builder.categoryAvailability;
-        this.totalSeats = builder.totalSeats;
-        this.availableSeats = builder.availableSeats;
+        this.availabilityByCategory = builder.availabilityByCategory;
     }
-    
-    // ==================== BUILDER PATTERN ====================
     
     public static Builder builder() {
         return new Builder();
     }
     
-    /**
-     * Erstellt eine leere Response für Konzerte ohne Seats.
-     * 
-     * @param concertId ID des Konzerts
-     * @return Leere SeatAvailabilityResponseDTO
-     */
-    public static SeatAvailabilityResponseDTO empty(Long concertId) {
+    public static SeatAvailabilityResponseDTO empty(String concertId) {
         return builder()
             .concertId(concertId)
             .seats(List.of())
-            .categoryAvailability(Map.of())
-            .totalSeats(0)
-            .availableSeats(0)
+            .availabilityByCategory(List.of())
             .build();
     }
     
     public static class Builder {
-        private Long concertId;
+        private String concertId;
         private List<SeatResponseDTO> seats;
-        private Map<String, CategoryAvailability> categoryAvailability;
-        private long totalSeats;
-        private long availableSeats;
+        private List<AvailabilityByCategoryDTO> availabilityByCategory;
         
-        public Builder concertId(Long concertId) {
+        public Builder concertId(String concertId) {
             this.concertId = concertId;
             return this;
         }
@@ -72,18 +50,8 @@ public class SeatAvailabilityResponseDTO {
             return this;
         }
         
-        public Builder categoryAvailability(Map<String, CategoryAvailability> categoryAvailability) {
-            this.categoryAvailability = categoryAvailability;
-            return this;
-        }
-        
-        public Builder totalSeats(long totalSeats) {
-            this.totalSeats = totalSeats;
-            return this;
-        }
-        
-        public Builder availableSeats(long availableSeats) {
-            this.availableSeats = availableSeats;
+        public Builder availabilityByCategory(List<AvailabilityByCategoryDTO> availabilityByCategory) {
+            this.availabilityByCategory = availabilityByCategory;
             return this;
         }
         
@@ -92,45 +60,16 @@ public class SeatAvailabilityResponseDTO {
         }
     }
     
-    // ==================== GETTERS & SETTERS ====================
-    
-    public Long getConcertId() {
+    // Getters
+    public String getConcertId() {
         return concertId;
-    }
-    
-    public void setConcertId(Long concertId) {
-        this.concertId = concertId;
     }
     
     public List<SeatResponseDTO> getSeats() {
         return seats;
     }
     
-    public void setSeats(List<SeatResponseDTO> seats) {
-        this.seats = seats;
-    }
-    
-    public Map<String, CategoryAvailability> getCategoryAvailability() {
-        return categoryAvailability;
-    }
-    
-    public void setCategoryAvailability(Map<String, CategoryAvailability> categoryAvailability) {
-        this.categoryAvailability = categoryAvailability;
-    }
-    
-    public long getTotalSeats() {
-        return totalSeats;
-    }
-    
-    public void setTotalSeats(long totalSeats) {
-        this.totalSeats = totalSeats;
-    }
-    
-    public long getAvailableSeats() {
-        return availableSeats;
-    }
-    
-    public void setAvailableSeats(long availableSeats) {
-        this.availableSeats = availableSeats;
+    public List<AvailabilityByCategoryDTO> getAvailabilityByCategory() {
+        return availabilityByCategory;
     }
 }
