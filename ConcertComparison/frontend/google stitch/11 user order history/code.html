@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Order History - TicketMaster Clone</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "primary-dark": "#165a8a",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e2830",
+                        "border-light": "#e5e7eb",
+                        "border-dark": "#2a343d",
+                        "text-main": "#121517",
+                        "text-sub": "#657886",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-gray-100 transition-colors duration-200">
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-72 hidden lg:flex flex-col border-r border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark h-full shrink-0">
+<div class="p-6 flex flex-col h-full justify-between">
+<div class="flex flex-col gap-8">
+<!-- Logo Area -->
+<div class="flex items-center gap-3 px-2">
+<div class="size-8 text-primary">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold tracking-tight">TicketMaster</h2>
+</div>
+<!-- User Profile Summary -->
+<div class="flex items-center gap-3 bg-background-light dark:bg-background-dark p-3 rounded-xl border border-border-light dark:border-border-dark">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 shrink-0" data-alt="Portrait of Max Mustermann" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC2gHbs5t_P9lCBJZMovxGTbGR19wplQzomk9qmgdJY3HEqzQA5rF5fluziiDsYEtOVadXe5Z2QuC1vHedS3so6enYEOKY5EbRwg3MEUm-UsuLvtp3BadCFBL1UicJv8tOn1Rs6CUqNT7J3ONg3T0iqEhhzrhbSFMLCsT0I0ge8DlhRCLtRnfO_bRcVMjGGep69vKhjQ7eD7nUlayPnwX9EbhidOesBYblSvaxAXt5ECnYjRA1TGxdp4Ol7VuQkNDBT-j2rFQHf8id8");'></div>
+<div class="flex flex-col min-w-0">
+<h1 class="text-sm font-semibold truncate dark:text-white">Max Mustermann</h1>
+<p class="text-text-sub dark:text-gray-400 text-xs truncate">max.mustermann@example.com</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-sub hover:bg-background-light dark:text-gray-400 dark:hover:bg-background-dark transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">person</span>
+<span class="text-sm font-medium">Profil</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-400 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl fill-1">receipt_long</span>
+<span class="text-sm font-medium">Meine Bestellungen</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-sub hover:bg-background-light dark:text-gray-400 dark:hover:bg-background-dark transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">credit_card</span>
+<span class="text-sm font-medium">Zahlungsmethoden</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-sub hover:bg-background-light dark:text-gray-400 dark:hover:bg-background-dark transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm font-medium">Einstellungen</span>
+</a>
+</nav>
+</div>
+<!-- Footer / Logout -->
+<div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-sub hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/10 dark:hover:text-red-400 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">logout</span>
+<span class="text-sm font-medium">Abmelden</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full relative overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between border-b border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-8 py-4 shrink-0 z-20">
+<!-- Mobile Menu Toggle (Hidden on Desktop) -->
+<button class="lg:hidden p-2 -ml-2 text-text-main dark:text-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<!-- Search Bar -->
+<div class="hidden md:flex flex-1 max-w-md">
+<label class="flex w-full items-center gap-2 rounded-lg bg-background-light dark:bg-background-dark px-4 py-2.5 ring-1 ring-transparent focus-within:ring-primary/50 transition-all">
+<span class="material-symbols-outlined text-text-sub dark:text-gray-500">search</span>
+<input class="bg-transparent border-none p-0 w-full text-sm text-text-main dark:text-white placeholder:text-text-sub focus:ring-0" placeholder="Suche nach Konzerten, Künstlern..." type="text"/>
+</label>
+</div>
+<!-- Top Nav Links -->
+<div class="flex items-center gap-6 ml-6">
+<nav class="hidden xl:flex items-center gap-6 text-sm font-medium text-text-sub dark:text-gray-400">
+<a class="hover:text-primary transition-colors" href="#">Concerts</a>
+<a class="hover:text-primary transition-colors" href="#">Sports</a>
+<a class="hover:text-primary transition-colors" href="#">Arts &amp; Theatre</a>
+</nav>
+<div class="h-6 w-px bg-border-light dark:bg-border-dark hidden xl:block"></div>
+<button class="relative p-2 text-text-sub hover:text-primary dark:text-gray-400 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 size-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-surface-dark"></span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6 md:p-10">
+<div class="max-w-5xl mx-auto flex flex-col gap-8 pb-12">
+<!-- Page Heading -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="flex flex-col gap-2">
+<h1 class="text-3xl md:text-4xl font-black tracking-tight text-text-main dark:text-white">Meine Bestellungen</h1>
+<p class="text-text-sub dark:text-gray-400 text-base">Verwalten Sie Ihre Tickets und Rechnungen an einem Ort.</p>
+</div>
+<button class="hidden sm:flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
+<span class="material-symbols-outlined text-lg">download</span>
+                        Alle Rechnungen herunterladen
+                    </button>
+</div>
+<!-- Tabs -->
+<div class="border-b border-border-light dark:border-border-dark">
+<div class="flex gap-8">
+<a class="flex items-center gap-2 border-b-[3px] border-primary pb-3 px-1 text-primary dark:text-blue-400" href="#">
+<span class="text-sm font-bold tracking-wide">Alle</span>
+<span class="bg-primary/10 text-primary dark:bg-blue-400/20 dark:text-blue-300 px-2 py-0.5 rounded-full text-xs font-bold">12</span>
+</a>
+<a class="flex items-center gap-2 border-b-[3px] border-transparent pb-3 px-1 text-text-sub hover:text-text-main dark:text-gray-400 dark:hover:text-gray-200 transition-colors" href="#">
+<span class="text-sm font-bold tracking-wide">Bevorstehend</span>
+<span class="bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full text-xs font-bold">2</span>
+</a>
+<a class="flex items-center gap-2 border-b-[3px] border-transparent pb-3 px-1 text-text-sub hover:text-text-main dark:text-gray-400 dark:hover:text-gray-200 transition-colors" href="#">
+<span class="text-sm font-bold tracking-wide">Vergangen</span>
+</a>
+</div>
+</div>
+<!-- Order List -->
+<div class="flex flex-col gap-4">
+<!-- Card 1: Upcoming -->
+<div class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col md:flex-row gap-6">
+<!-- Poster -->
+<div class="shrink-0 relative">
+<div class="w-full md:w-32 aspect-[2/3] md:aspect-[3/4] rounded-lg bg-cover bg-center shadow-inner" data-alt="Taylor Swift Eras Tour colorful poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC_2nsSPKmclsv--kruPw96BpS0ZgfFsL7Y3uUQQMY4XT-8TjOk9MhJSPuSbXnnIf63YPz9ImlKbLoz1A2qWlSinLQ5RS28xxuibUFZPQKHoxjWlHGryMxEt_xdLkJmFSQYnWX2rQtVw1NztNR0IVen0hmcXu4dnz0hKu6gl6lgzo5eox-sw4q29sMUt-BNd1UyK58-sbhyf_x_Bs3qCvigOejVUPXuThO2TuVNigAqvjEEqwLVjtLtNcmgUKEII8ZSM1HWnCzUmXsc");'></div>
+<!-- Mobile Date Badge (optional visibility tweak) -->
+<div class="absolute top-2 left-2 bg-white/90 dark:bg-black/80 backdrop-blur text-xs font-bold px-2 py-1 rounded md:hidden">
+                                27. Juli
+                            </div>
+</div>
+<!-- Content -->
+<div class="flex-1 flex flex-col justify-between py-1">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start gap-4">
+<div class="flex flex-col gap-1">
+<h3 class="text-xl font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">Taylor Swift | The Eras Tour</h3>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-text-sub dark:text-gray-400 mt-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">calendar_month</span>
+<span>Sa, 27. Juli 2024 • 19:30 Uhr</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span>Olympiastadion, Munich</span>
+</div>
+</div>
+</div>
+<!-- Status Badge -->
+<div class="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/50">
+<span class="material-symbols-outlined text-base font-bold">check_circle</span>
+<span class="text-xs font-bold uppercase tracking-wide">Bestätigt</span>
+</div>
+</div>
+<div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-dashed border-border-light dark:border-border-dark pt-4">
+<div class="flex flex-col gap-0.5">
+<span class="text-xs font-medium text-text-sub dark:text-gray-500 uppercase tracking-wider">Bestell-Nr</span>
+<span class="font-mono text-sm font-semibold text-text-main dark:text-gray-300">#849302-XY</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col gap-0.5 text-right sm:text-left">
+<span class="text-xs font-medium text-text-sub dark:text-gray-500 uppercase tracking-wider">Gesamtpreis</span>
+<span class="font-bold text-lg text-text-main dark:text-white">€ 245,00</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-main dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-lg">qr_code_2</span>
+<span class="hidden sm:inline">QR-Code</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold shadow-sm hover:bg-primary-dark transition-colors">
+<span>Details</span>
+<span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Upcoming -->
+<div class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col md:flex-row gap-6">
+<div class="shrink-0 relative">
+<div class="w-full md:w-32 aspect-[2/3] md:aspect-[3/4] rounded-lg bg-cover bg-center shadow-inner" data-alt="Coldplay colorful galaxy concert poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCuTJCjUG9hOnHYudsYVO1Ap_v3tX51y_ej24YBPeZi0t2tHsyBbwQIgvvsFMCcKyYuW66DsQtjoIg_HgcDB21srlfe5hUcqlPTxP1fDMHeeE57Q_x56Iipd9FvEjPSNmhKm4On8RupDWTSqt0R7YS7R1Bz7hIdr_hBvHIMhCYhdvw08nwDodFFj3I0x8yFNpNda6rcSuuGQ2rEo7r4n0IAGle58A3tEFHR27ISbnFviKZpGv680EnPse_JlrIUZ36D74ScyP8H0LiR");'></div>
+</div>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start gap-4">
+<div class="flex flex-col gap-1">
+<h3 class="text-xl font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">Coldplay: Music of the Spheres</h3>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-text-sub dark:text-gray-400 mt-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">calendar_month</span>
+<span>Di, 15. Aug 2024 • 20:00 Uhr</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span>Merkur Spiel-Arena, Dusseldorf</span>
+</div>
+</div>
+</div>
+<div class="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/50">
+<span class="material-symbols-outlined text-base font-bold">check_circle</span>
+<span class="text-xs font-bold uppercase tracking-wide">Bestätigt</span>
+</div>
+</div>
+<div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-dashed border-border-light dark:border-border-dark pt-4">
+<div class="flex flex-col gap-0.5">
+<span class="text-xs font-medium text-text-sub dark:text-gray-500 uppercase tracking-wider">Bestell-Nr</span>
+<span class="font-mono text-sm font-semibold text-text-main dark:text-gray-300">#992100-AB</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col gap-0.5 text-right sm:text-left">
+<span class="text-xs font-medium text-text-sub dark:text-gray-500 uppercase tracking-wider">Gesamtpreis</span>
+<span class="font-bold text-lg text-text-main dark:text-white">€ 180,50</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-main dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-lg">qr_code_2</span>
+<span class="hidden sm:inline">QR-Code</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold shadow-sm hover:bg-primary-dark transition-colors">
+<span>Details</span>
+<span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Past (Different Style for status) -->
+<div class="group bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl p-5 shadow-sm opacity-80 hover:opacity-100 transition-all duration-300 flex flex-col md:flex-row gap-6">
+<div class="shrink-0 relative">
+<div class="w-full md:w-32 aspect-[2/3] md:aspect-[3/4] rounded-lg bg-cover bg-center grayscale group-hover:grayscale-0 transition-all" data-alt="Ed Sheeran playing guitar concert poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCiQwrDAqsU90ay6xB4vFBhOLwKMiUAQ4B6pMalhvrp19Bk-MX0jwvbHdX3SV9OxpanGeiVLDmpThzq1mTg-83jbP29EE35JA5bbZiVcu6HxoGeDlUMXo4ToE3sY3Ti54R_Fc0nyYG5MLSmTSaI7pjLJ0D_sh4A5Cq9UKssPZCQ7NR6X2NukXNR4WxvH6aRK2KYa6ZmitD1v3Ag3iiDqA2YXuVXLyiOJRMVNWY9or3CTJSuwbxcuBv8X7FjKNy5_eXxGA1YHWXa8KwK");'></div>
+</div>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start gap-4">
+<div class="flex flex-col gap-1">
+<h3 class="text-xl font-bold text-text-sub dark:text-gray-300 group-hover:text-primary transition-colors">Ed Sheeran: +–=÷x Tour</h3>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-text-sub dark:text-gray-500 mt-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">calendar_month</span>
+<span>Fr, 12. Jan 2024 • 19:00 Uhr</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span>Deutsche Bank Park, Frankfurt</span>
+</div>
+</div>
+</div>
+<div class="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
+<span class="material-symbols-outlined text-base font-bold">event_available</span>
+<span class="text-xs font-bold uppercase tracking-wide">Vergangen</span>
+</div>
+</div>
+<div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-dashed border-border-light dark:border-border-dark pt-4">
+<div class="flex flex-col gap-0.5">
+<span class="text-xs font-medium text-text-sub dark:text-gray-500 uppercase tracking-wider">Bestell-Nr</span>
+<span class="font-mono text-sm font-semibold text-text-sub dark:text-gray-500">#773021-DE</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex flex-col gap-0.5 text-right sm:text-left">
+<span class="text-xs font-medium text-text-sub dark:text-gray-500 uppercase tracking-wider">Gesamtpreis</span>
+<span class="font-bold text-lg text-text-sub dark:text-gray-400">€ 110,00</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-transparent bg-transparent text-primary text-sm font-medium hover:bg-primary/10 transition-colors">
+<span>Rechnung ansehen</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination / Load More -->
+<div class="flex justify-center pt-8">
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark text-text-sub dark:text-gray-300 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-lg">autorenew</span>
+                            Mehr laden
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

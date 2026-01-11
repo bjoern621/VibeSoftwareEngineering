@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Dashboard Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                        "surface-dark": "#1a2632",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #374151;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- SideNavBar -->
+<aside class="w-64 flex-shrink-0 flex flex-col bg-white dark:bg-surface-dark border-r border-slate-200 dark:border-slate-800 transition-colors duration-300 hidden lg:flex">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-2xl">confirmation_number</span>
+</div>
+<div>
+<h1 class="text-base font-bold leading-none tracking-tight">TixMaster</h1>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Admin Panel</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+<p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Main</p>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary font-medium" href="#">
+<span class="material-symbols-outlined filled">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">confirmation_number</span>
+                    Manage Concerts
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">group</span>
+                    Users
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">analytics</span>
+                    Analytics
+                </a>
+<p class="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-2">System</p>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">settings</span>
+                    Settings
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">help</span>
+                    Support
+                </a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+<div class="size-8 rounded-full bg-cover bg-center" data-alt="User profile picture of admin" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCVgjbeXKUCZU_YOxJM76lEnYRKGe6RvVY5mMpEUTaxjm0_xVN1QCVThej37ALU7ILsVOmihwuxp3rXKQXntf2LlgE0QHodQ4D2aeMVzY_F5ivhXkTDswPSz9ebBpDq8QMRuimr5z4B2i_EZOPUB8Mfai_V-RzDdq2hl6ox1LxZFwqgIjcplWinS7w_vRD3j5a8y_HjJtMILLvlDGUU6lXOce9c6xy-mrb3mXN7f9puQykAtqFey-A3uJrop4r_HRSvn06OPPWO3ZT_");'></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-medium truncate">Alex Morgan</p>
+<p class="text-xs text-slate-500 truncate">Super Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- TopNavBar -->
+<header class="h-16 flex items-center justify-between px-6 bg-white dark:bg-surface-dark border-b border-slate-200 dark:border-slate-800 z-10">
+<div class="flex items-center gap-4 lg:hidden">
+<button class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="text-lg font-bold">Dashboard</h2>
+</div>
+<div class="hidden lg:flex items-center gap-4">
+<h2 class="text-xl font-bold tracking-tight">Dashboard Overview</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex relative group">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-[20px]">search</span>
+<input class="pl-10 pr-4 py-2 w-64 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 text-slate-900 dark:text-white placeholder-slate-500 transition-all" placeholder="Search events, users..." type="text"/>
+</div>
+<button class="relative p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-surface-dark"></span>
+</button>
+<button class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-6 lg:p-8 scroll-smooth">
+<div class="max-w-7xl mx-auto space-y-6">
+<!-- KPI Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
+<!-- Widget 1: Tickets (Orange) -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden group">
+<div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[120px] text-orange-500 -mr-8 -mt-8">confirmation_number</span>
+</div>
+<div class="flex justify-between items-start z-10">
+<div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Today's Tickets Sold</p>
+<h3 class="text-3xl font-bold text-slate-900 dark:text-white mt-2">1,240</h3>
+</div>
+<div class="p-2 bg-orange-50 dark:bg-orange-500/10 rounded-lg text-orange-600 dark:text-orange-400">
+<span class="material-symbols-outlined">local_activity</span>
+</div>
+</div>
+<div class="flex items-center gap-1 mt-4 z-10">
+<span class="text-green-600 dark:text-green-400 text-sm font-semibold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                                    12%
+                                </span>
+<span class="text-slate-400 text-sm">vs yesterday</span>
+</div>
+</div>
+<!-- Widget 2: Revenue (Blue/Primary) -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden group">
+<div class="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[120px] text-primary -mr-8 -mt-8">payments</span>
+</div>
+<div class="flex justify-between items-start z-10">
+<div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Revenue</p>
+<h3 class="text-3xl font-bold text-slate-900 dark:text-white mt-2">$84,300</h3>
+</div>
+<div class="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">attach_money</span>
+</div>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-4 overflow-hidden z-10">
+<div class="bg-primary h-full rounded-full" style="width: 75%"></div>
+</div>
+</div>
+<!-- Widget 3: Active Users (Green) -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between h-40 relative overflow-hidden">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">Active Users</p>
+<div class="flex items-baseline gap-2 mt-2">
+<h3 class="text-3xl font-bold text-slate-900 dark:text-white">10,402</h3>
+<span class="flex h-3 w-3 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+</span>
+</div>
+</div>
+<div class="p-2 bg-green-50 dark:bg-green-500/10 rounded-lg text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined">group</span>
+</div>
+</div>
+<div class="mt-4 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+<span class="text-green-600 dark:text-green-400 font-medium">Live</span>
+<span>currently on site</span>
+</div>
+</div>
+<!-- Widget 4: Capacity (Progress Circle) -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between h-40">
+<div class="flex flex-col gap-1">
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400">System Capacity</p>
+<h3 class="text-3xl font-bold text-slate-900 dark:text-white">85%</h3>
+<p class="text-xs font-medium text-orange-500 mt-1">High Load</p>
+</div>
+<div class="relative size-24">
+<svg class="size-full -rotate-90" viewbox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+<!-- Background Circle -->
+<circle class="stroke-slate-100 dark:stroke-slate-700" cx="18" cy="18" fill="none" r="16" stroke-width="3"></circle>
+<!-- Progress Circle -->
+<circle class="stroke-primary" cx="18" cy="18" fill="none" r="16" stroke-dasharray="100" stroke-dashoffset="15" stroke-linecap="round" stroke-width="3"></circle>
+</svg>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary">
+<span class="material-symbols-outlined">dns</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Line Chart -->
+<div class="lg:col-span-2 bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Hourly Sales Velocity</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Real-time data (24h)</p>
+</div>
+<select class="bg-slate-50 dark:bg-slate-800 border-none text-xs font-medium text-slate-600 dark:text-slate-300 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer">
+<option>Last 24 Hours</option>
+<option>Last 7 Days</option>
+<option>Last 30 Days</option>
+</select>
+</div>
+<!-- SVG Line Chart Mockup -->
+<div class="relative h-64 w-full">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 800 200">
+<defs>
+<lineargradient id="gradient-fill" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#1e75b3" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#1e75b3" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<line class="text-slate-100 dark:text-slate-700" stroke="currentColor" stroke-width="1" x1="0" x2="800" y1="0" y2="0"></line>
+<line class="text-slate-100 dark:text-slate-700" stroke="currentColor" stroke-width="1" x1="0" x2="800" y1="50" y2="50"></line>
+<line class="text-slate-100 dark:text-slate-700" stroke="currentColor" stroke-width="1" x1="0" x2="800" y1="100" y2="100"></line>
+<line class="text-slate-100 dark:text-slate-700" stroke="currentColor" stroke-width="1" x1="0" x2="800" y1="150" y2="150"></line>
+<!-- Path -->
+<path d="M0,150 C50,140 80,100 120,110 C160,120 200,60 250,50 C300,40 340,90 380,80 C420,70 460,20 500,30 C550,42 600,100 650,90 C700,80 750,20 800,40 V200 H0 Z" fill="url(#gradient-fill)"></path>
+<path d="M0,150 C50,140 80,100 120,110 C160,120 200,60 250,50 C300,40 340,90 380,80 C420,70 460,20 500,30 C550,42 600,100 650,90 C700,80 750,20 800,40" fill="none" stroke="#1e75b3" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+<!-- Points -->
+<circle class="fill-white stroke-primary" cx="250" cy="50" r="4" stroke-width="2"></circle>
+<circle class="fill-white stroke-primary" cx="500" cy="30" r="4" stroke-width="2"></circle>
+<circle class="fill-white stroke-primary" cx="800" cy="40" r="4" stroke-width="2"></circle>
+</svg>
+</div>
+<!-- X-Axis Labels -->
+<div class="flex justify-between text-xs text-slate-400 font-medium mt-2">
+<span>12am</span>
+<span>4am</span>
+<span>8am</span>
+<span>12pm</span>
+<span>4pm</span>
+<span>8pm</span>
+<span>11pm</span>
+</div>
+</div>
+<!-- Bar Chart (Top Concerts) -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6">Top Performing Events</h3>
+<div class="flex-1 flex flex-col justify-center gap-6">
+<!-- Item 1 -->
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-medium">
+<span class="text-slate-700 dark:text-slate-200">Taylor Swift - Eras Tour</span>
+<span class="text-slate-900 dark:text-white font-bold">98%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full" style="width: 98%"></div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-medium">
+<span class="text-slate-700 dark:text-slate-200">Coldplay - Music of Spheres</span>
+<span class="text-slate-900 dark:text-white font-bold">84%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-blue-400 to-cyan-400 h-full rounded-full" style="width: 84%"></div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-medium">
+<span class="text-slate-700 dark:text-slate-200">The Weeknd</span>
+<span class="text-slate-900 dark:text-white font-bold">72%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-red-500 to-orange-500 h-full rounded-full" style="width: 72%"></div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-medium">
+<span class="text-slate-700 dark:text-slate-200">Bad Bunny</span>
+<span class="text-slate-900 dark:text-white font-bold">65%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-yellow-500 to-amber-500 h-full rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+<button class="mt-6 w-full py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors border border-dashed border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+                                View All Events
+                            </button>
+</div>
+</div>
+<!-- Recent Transactions Table -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Recent Transactions</h3>
+<button class="text-sm text-primary font-medium hover:underline">Export CSV</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-sm text-left">
+<thead class="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50">
+<tr>
+<th class="px-6 py-3 font-semibold">Transaction ID</th>
+<th class="px-6 py-3 font-semibold">Customer</th>
+<th class="px-6 py-3 font-semibold">Event</th>
+<th class="px-6 py-3 font-semibold">Date</th>
+<th class="px-6 py-3 font-semibold">Amount</th>
+<th class="px-6 py-3 font-semibold">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+<tr class="bg-white dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-500">#TRX-8892</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-white">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">JD</div>
+                                                John Doe
+                                            </div>
+</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-300">Taylor Swift - Eras Tour</td>
+<td class="px-6 py-4 text-slate-500">Oct 24, 2023</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-white">$450.00</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">Completed</span>
+</td>
+</tr>
+<tr class="bg-white dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-500">#TRX-8891</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-white">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">SJ</div>
+                                                Sarah Jenkins
+                                            </div>
+</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-300">Coldplay - VIP</td>
+<td class="px-6 py-4 text-slate-500">Oct 24, 2023</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-white">$820.00</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">Completed</span>
+</td>
+</tr>
+<tr class="bg-white dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-500">#TRX-8890</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-white">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold">MK</div>
+                                                Mike Kowalski
+                                            </div>
+</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-300">The Weeknd - Floor</td>
+<td class="px-6 py-4 text-slate-500">Oct 23, 2023</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-white">$210.00</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400">Pending</span>
+</td>
+</tr>
+<tr class="bg-white dark:bg-surface-dark hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 font-mono text-slate-500">#TRX-8889</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-white">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold">EL</div>
+                                                Emma Lee
+                                            </div>
+</td>
+<td class="px-6 py-4 text-slate-600 dark:text-slate-300">Taylor Swift - GA</td>
+<td class="px-6 py-4 text-slate-500">Oct 23, 2023</td>
+<td class="px-6 py-4 font-medium text-slate-900 dark:text-white">$150.00</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400">Failed</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login - TicketMastery</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#1e75b3",
+                "background-light": "#f6f7f8",
+                "background-dark": "#121a20",
+                },
+                fontFamily: {
+                "display": ["Inter", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit to keep it clean */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dce1e5; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1; 
+        }
+    </style>
+</head>
+<body class="font-display antialiased text-[#121517] bg-[#F5F5F5] dark:bg-background-dark dark:text-white h-screen overflow-hidden selection:bg-primary/20">
+<div class="flex h-full w-full">
+<!-- Left Section: Login Form -->
+<div class="flex w-full lg:w-1/2 flex-col bg-[#F5F5F5] dark:bg-background-dark overflow-y-auto h-full px-6 py-8 sm:px-12 lg:px-20 xl:px-32 relative">
+<!-- Logo Header -->
+<div class="flex items-center gap-3 mb-12 lg:absolute lg:top-10 lg:left-20 lg:mb-0">
+<div class="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">confirmation_number</span>
+</div>
+<h2 class="text-[#121517] dark:text-white text-xl font-bold tracking-tight">TicketMastery</h2>
+</div>
+<div class="flex flex-1 flex-col justify-center max-w-[480px] mx-auto w-full">
+<!-- Heading -->
+<div class="flex flex-col gap-2 mb-8">
+<h1 class="text-[#121517] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Willkommen zurück</h1>
+<p class="text-[#657886] dark:text-gray-400 text-base font-normal leading-normal">
+                        Please enter your details to sign in.
+                    </p>
+</div>
+<!-- Form -->
+<form class="flex flex-col gap-5">
+<!-- Email Field -->
+<label class="flex flex-col gap-1.5">
+<span class="text-[#121517] dark:text-gray-200 text-sm font-semibold leading-normal">Email Address</span>
+<div class="relative">
+<input class="form-input flex w-full rounded-lg border border-[#dce1e5] bg-white dark:bg-[#1e2730] dark:border-gray-700 h-12 px-4 text-base text-[#121517] dark:text-white placeholder:text-[#657886] focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="name@example.com" type="email"/>
+<span class="material-symbols-outlined absolute right-4 top-3 text-[#657886]">mail</span>
+</div>
+</label>
+<!-- Password Field -->
+<label class="flex flex-col gap-1.5">
+<span class="text-[#121517] dark:text-gray-200 text-sm font-semibold leading-normal">Password</span>
+<div class="relative">
+<input class="form-input flex w-full rounded-lg border border-[#dce1e5] bg-white dark:bg-[#1e2730] dark:border-gray-700 h-12 px-4 text-base text-[#121517] dark:text-white placeholder:text-[#657886] focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Enter your password" type="password"/>
+<span class="material-symbols-outlined absolute right-4 top-3 text-[#657886] cursor-pointer hover:text-primary">visibility</span>
+</div>
+</label>
+<!-- Checkbox & Forgot Password -->
+<div class="flex items-center justify-between">
+<label class="flex items-center gap-3 cursor-pointer group">
+<div class="relative flex items-center">
+<input class="peer h-5 w-5 rounded border-[#dce1e5] dark:border-gray-600 bg-white dark:bg-[#1e2730] text-primary focus:ring-0 focus:ring-offset-0 transition-all checked:bg-primary checked:border-primary" type="checkbox"/>
+<!-- Custom SVG Tick is handled by tailwind forms plugin usually, but let's rely on standard appearance or the provided SVG concept if strictly needed. Standard is cleaner here. -->
+</div>
+<span class="text-[#121517] dark:text-gray-300 text-sm font-medium leading-normal group-hover:text-primary transition-colors">Angemeldet bleiben</span>
+</label>
+<a class="text-sm font-semibold text-primary hover:text-primary/80 transition-colors" href="#">Forgot password?</a>
+</div>
+<!-- Primary Button -->
+<button class="mt-2 flex w-full items-center justify-center rounded-lg bg-primary h-12 px-5 text-base font-bold text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all" type="button">
+                        Anmelden
+                    </button>
+<!-- Divider -->
+<div class="relative py-2">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-[#dce1e5] dark:border-gray-700"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="bg-[#F5F5F5] dark:bg-background-dark px-2 text-[#657886]">Or continue with</span>
+</div>
+</div>
+<!-- Google Button -->
+<button class="flex w-full items-center justify-center gap-3 rounded-lg border border-[#dce1e5] dark:border-gray-700 bg-white dark:bg-[#1e2730] h-12 px-5 text-base font-medium text-[#121517] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-all" type="button">
+<svg aria-hidden="true" class="h-5 w-5" viewbox="0 0 24 24">
+<path d="M12.0003 20.45c4.656 0 8.556-3.21 9.966-7.59h-9.966v-4.26h14.73c.18.87.27 1.8.27 2.82 0 6.63-4.47 11.37-11.37 11.37-6.27 0-11.37-5.1-11.37-11.37S9.39026.63 12.0003.63c3.06 0 5.67 1.11 7.68 2.97l-3.21 3.21c-1.11-1.05-2.58-1.74-4.47-1.74-3.9 0-7.11 3.21-7.11 7.11s3.21 7.11 7.11 7.11c2.7 0 5.07-1.5 6.36-3.78" fill="currentColor"></path>
+</svg>
+                        Google
+                    </button>
+<!-- Footer Link -->
+<p class="text-center text-sm text-[#657886] mt-4">
+                        Don't have an account? <a class="font-bold text-primary hover:underline" href="#">Sign up for free</a>
+</p>
+</form>
+<!-- Help Links Footer -->
+<div class="mt-12 flex justify-center gap-6 text-sm text-[#657886]">
+<a class="hover:text-[#121517] transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-[#121517] transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</div>
+<!-- Right Section: Visual & Branding -->
+<div class="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-primary to-[#2CA02C] flex-col items-center justify-center p-12 overflow-hidden text-center">
+<!-- Background Pattern / Noise -->
+<div class="absolute inset-0 opacity-10 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
+<!-- Abstract decorative circles -->
+<div class="absolute top-1/4 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+<div class="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl"></div>
+<div class="relative z-10 flex flex-col items-center max-w-lg">
+<!-- Illustration Container -->
+<div class="mb-10 w-full aspect-[4/3] rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-2xl overflow-hidden relative group">
+<img alt="Excited crowd at a live concert with vibrant stage lights" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700 ease-out" data-alt="Excited crowd at a live concert with vibrant stage lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsnntRekYndZ6FwirU11lIb3zBhqRCdL-blMFWvd3uAJjUzqQ5OsLShh67mGeyYi615guUrMxhu7itJFLhlAgls4uXoLqUUlOx5QpJxnYJI_F6hpMIom2RDOvpQiCjJ43Oil_75mPTHPbzLCxdFRT59x6nQNyMwSlqgJQF1_E3o9Y1DxzUgBjbc7rrE_5_BhnIqlI2K0nsA5IVJFu_BunGh2jEC6cMXQQKIsA25XBTOumNv-7VI8WwbX-MA0j9JxZOosfJ3ZKGyoGp"/>
+<!-- Overlay text on image -->
+<div class="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-black/40 backdrop-blur-md border border-white/10">
+<div class="flex items-center gap-3 text-white/90">
+<span class="material-symbols-outlined text-yellow-400">star</span>
+<span class="text-sm font-medium">4.9/5 Rating from fans</span>
+</div>
+</div>
+</div>
+<h2 class="text-4xl font-black text-white leading-tight mb-6 drop-shadow-sm">
+                    "Join 100,000+ happy concert goers"
+                </h2>
+<p class="text-lg text-white/90 font-medium max-w-md mx-auto leading-relaxed">
+                    Secure your spot for the biggest events of the year with real-time availability and instant booking.
+                </p>
+<!-- Social Proof Avatars -->
+<div class="flex items-center justify-center mt-10 gap-4">
+<div class="flex -space-x-3 rtl:space-x-reverse">
+<img alt="User avatar" class="w-10 h-10 border-2 border-white rounded-full object-cover" data-alt="Portrait of a smiling young woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYheQNLyIwDASTM8DgcDWhjzB7qVORZWakrruoKwVhpK1Bxa4rPdHLgH1nfR8rucih5Pc8qIevO-NKROCxCXArCMmlUip4nZ1MtB7FSSDyiRd4v5HRXX0mByOMNaMlGQzugnvGqgmiKHiPDUQF5D_Qrqhv_gUlA5_tVTngPpmikuJX-p6zRIM8icH570zHtj9GOPuTsR4tZtwI89lJCRSB65v_-zmveuH5tYPmzDj9VCR4G9EyCgsZQakufwCchRV_O2UgwlRZfSif"/>
+<img alt="User avatar" class="w-10 h-10 border-2 border-white rounded-full object-cover" data-alt="Portrait of a young man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAv_29DL_uCF74neeGTGSG2cpBBZYlbNKnrKRrZ4EFdJPOeaAkbSHF15oKuUqm_wOPlaep24JVdO6RrYDR2na8sRurf2w-bGTFQpixfS38wakwXgQVZr14lfJJAKLWha9Yw9CSO0I8Tt8AEA0G5Zs6qOHyViZmJ6NzNKu--tzEbYGocBrZqx3612XalZEZnBrKkhS8eDHd4tSB4T1nR6iS9qZiy4U8ns-aPdh_cmg15sVQdmuoOZ5R123fGOO8_LzEq3NN73Kku6SXY"/>
+<img alt="User avatar" class="w-10 h-10 border-2 border-white rounded-full object-cover" data-alt="Portrait of a smiling man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCb590AaXXoQt6-AG8232QHSV21cOTG17Xg9dMeseeMa07E1M5fCmBvbWLWlyCwREKlyfFIMaz7354c-FtES1y1uoYT8N-TmNlBNF9uVznXzX7Q-3I7otyqzmf5rgwu46BITCK8TJr6CwQTx6FIiAl0BiG8PlXaPSui1-HIrS6h9L3pZfFBoJ-VcBnSQSAMYS33cBlXGaw4xomD9e9uO-HWxIU8VbVhDVB5Eb2pjqxnZrsvg4As3-yBBCXiVvcO6x_uj7SJhMRpEutp"/>
+<div class="flex items-center justify-center w-10 h-10 text-xs font-medium text-primary bg-white border-2 border-white rounded-full hover:bg-gray-50">
+                            +99k
+                        </div>
+</div>
+<div class="text-white text-sm font-semibold">
+                        TicketMastery Community
+                    </div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

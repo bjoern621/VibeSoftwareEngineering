@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Interactive Seating Plan - TicketStream</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                        "seat-available": "#2CA02C",
+                        "seat-held": "#FFD700",
+                        "seat-sold": "#D3D3D3",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-[#121517] dark:text-gray-100 h-screen flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="flex shrink-0 items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e5e7eb] dark:border-gray-700 bg-white dark:bg-[#1a2228] px-6 py-3 z-20 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center bg-primary rounded-lg size-8 text-white">
+<span class="material-symbols-outlined text-[20px]">confirmation_number</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight">TicketStream</h2>
+<div class="h-6 w-px bg-gray-200 dark:bg-gray-600 mx-2"></div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold leading-none">The Rolling Stones</span>
+<span class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">World Tour 2024 • Berlin</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 rounded-full border border-green-100 dark:border-green-900/50">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-pulse absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+</span>
+<span class="text-xs font-medium text-green-700 dark:text-green-400">Live • 10k+ viewing</span>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center rounded-lg size-9 bg-[#f0f3f4] dark:bg-gray-700 text-[#121517] dark:text-white hover:bg-gray-200 transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg size-9 bg-[#f0f3f4] dark:bg-gray-700 text-[#121517] dark:text-white hover:bg-gray-200 transition-colors">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 ring-2 ring-white dark:ring-gray-800 shadow-sm" data-alt="User profile avatar gradient" style="background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+</div>
+</header>
+<!-- Main Content -->
+<div class="flex flex-1 overflow-hidden relative">
+<!-- Left: Map Area -->
+<main class="flex-1 relative bg-white dark:bg-[#121a20] overflow-hidden flex flex-col cursor-grab active:cursor-grabbing">
+<!-- Map Toolbar / Legend -->
+<div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
+<div class="bg-white/90 dark:bg-[#1a2228]/90 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700">
+<h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Legende</h3>
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-seat-available"></div>
+<span class="text-xs font-medium text-gray-700 dark:text-gray-300">Verfügbar</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-primary"></div>
+<span class="text-xs font-medium text-gray-700 dark:text-gray-300">Deine Auswahl</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-seat-held"></div>
+<span class="text-xs font-medium text-gray-700 dark:text-gray-300">Reserviert</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-seat-sold"></div>
+<span class="text-xs font-medium text-gray-700 dark:text-gray-300">Verkauft</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Zoom Controls -->
+<div class="absolute bottom-6 left-6 z-10 flex gap-2">
+<button class="bg-white dark:bg-[#1a2228] text-gray-700 dark:text-gray-200 p-2 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="bg-white dark:bg-[#1a2228] text-gray-700 dark:text-gray-200 p-2 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<button class="bg-white dark:bg-[#1a2228] text-gray-700 dark:text-gray-200 p-2 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ml-2" title="Reset View">
+<span class="material-symbols-outlined">center_focus_strong</span>
+</button>
+</div>
+<!-- The SVG Map Container -->
+<div class="flex-1 flex flex-col items-center justify-center p-10 overflow-auto bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#2d3748_1px,transparent_1px)] [background-size:20px_20px]">
+<!-- Stage -->
+<div class="w-[600px] h-32 mb-12 bg-gray-200 dark:bg-gray-800 rounded-xl flex flex-col items-center justify-center border-b-4 border-gray-300 dark:border-gray-700 shadow-sm relative group">
+<h2 class="text-2xl font-bold text-gray-400 tracking-[0.2em] uppercase group-hover:text-primary transition-colors">Bühne</h2>
+<div class="absolute bottom-0 w-full h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent opacity-50"></div>
+</div>
+<!-- Seating Grid SVG -->
+<!-- Note: This is a static representation of what would be dynamically generated -->
+<svg class="drop-shadow-xl" height="500" viewbox="0 0 800 500" width="800">
+<g transform="translate(400, 250)">
+<!-- Block A (Left) -->
+<g transform="translate(-250, 0) rotate(-10)">
+<text class="fill-gray-400 text-sm font-bold tracking-widest uppercase" text-anchor="middle" x="75" y="-30">Block A</text>
+<!-- Row 1 -->
+<circle class="fill-seat-sold cursor-not-allowed" cx="0" cy="0" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="30" cy="0" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="60" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="120" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="0" r="10"></circle>
+<!-- Row 2 -->
+<circle class="fill-seat-sold cursor-not-allowed" cx="0" cy="30" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="30" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="60" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="30" r="10"></circle>
+<circle class="fill-primary stroke-2 stroke-white cursor-pointer shadow-lg transform scale-110" cx="120" cy="30" r="10"></circle> <!-- Selected -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="30" r="10"></circle>
+<!-- Row 3 -->
+<circle class="fill-seat-held cursor-wait" cx="0" cy="60" r="10"></circle> <!-- Held -->
+<circle class="fill-seat-held cursor-wait" cx="30" cy="60" r="10"></circle> <!-- Held -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="60" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="120" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="60" r="10"></circle>
+</g>
+<!-- Block B (Center) -->
+<g transform="translate(-105, 20)">
+<text class="fill-gray-400 text-sm font-bold tracking-widest uppercase" text-anchor="middle" x="105" y="-30">Block B</text>
+<!-- Row 1 -->
+<circle class="fill-seat-sold cursor-not-allowed" cx="0" cy="0" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="30" cy="0" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="60" cy="0" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="90" cy="0" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="120" cy="0" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="150" cy="0" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="180" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="210" cy="0" r="10"></circle>
+<!-- Row 2 -->
+<circle class="fill-seat-sold cursor-not-allowed" cx="0" cy="30" r="10"></circle>
+<circle class="fill-seat-sold cursor-not-allowed" cx="30" cy="30" r="10"></circle>
+<circle class="fill-primary stroke-2 stroke-white cursor-pointer transform scale-110" cx="60" cy="30" r="10"></circle> <!-- Selected -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="120" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="180" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="210" cy="30" r="10"></circle>
+<!-- Row 3 -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="0" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="30" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="60" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="60" r="10"></circle>
+<circle class="fill-seat-held cursor-wait" cx="120" cy="60" r="10"></circle> <!-- Held -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="180" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="210" cy="60" r="10"></circle>
+<!-- Row 4 -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="0" cy="90" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="30" cy="90" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="60" cy="90" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="90" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="120" cy="90" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="90" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="180" cy="90" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="210" cy="90" r="10"></circle>
+</g>
+<!-- Block C (Right) -->
+<g transform="translate(140, 0) rotate(10)">
+<text class="fill-gray-400 text-sm font-bold tracking-widest uppercase" text-anchor="middle" x="75" y="-30">Block C</text>
+<!-- Row 1 -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="0" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="30" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="60" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="120" cy="0" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="0" r="10"></circle>
+<!-- Row 2 -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="0" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="30" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="60" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="120" cy="30" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="30" r="10"></circle>
+<!-- Row 3 -->
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="0" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="30" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="60" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="90" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="120" cy="60" r="10"></circle>
+<circle class="fill-seat-available hover:stroke-black hover:stroke-2 cursor-pointer transition-all" cx="150" cy="60" r="10"></circle>
+</g>
+</g>
+</svg>
+<div class="mt-8 text-center opacity-40 text-sm font-medium">
+                    Nutzen Sie Maus oder Touchpad zum Navigieren und Zoomen.
+                </div>
+</div>
+</main>
+<!-- Right: Sidebar -->
+<aside class="w-[400px] shrink-0 bg-white dark:bg-[#1a2228] border-l border-gray-200 dark:border-gray-800 flex flex-col shadow-xl z-20">
+<!-- Timer Header -->
+<div class="p-4 bg-primary/10 border-b border-primary/20 flex items-center justify-between">
+<div class="flex items-center gap-2 text-primary dark:text-blue-400">
+<span class="material-symbols-outlined text-[20px]">timer</span>
+<span class="text-sm font-bold">Tickets reserviert für 09:42</span>
+</div>
+<div class="size-2 rounded-full bg-primary animate-pulse"></div>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-6">
+<h3 class="text-xl font-bold mb-6 text-[#121517] dark:text-white">Deine Auswahl</h3>
+<!-- Ticket Card 1 -->
+<div class="group relative flex items-start justify-between p-4 mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#121a20] hover:border-primary/50 transition-colors shadow-sm">
+<div class="flex gap-4">
+<div class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-bold">
+                            A
+                        </div>
+<div>
+<p class="font-bold text-[#121517] dark:text-white">Block A</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Reihe 2, Platz 13</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium">Standard</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-3">
+<span class="font-bold text-lg">120,00 €</span>
+<button class="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Ticket Card 2 -->
+<div class="group relative flex items-start justify-between p-4 mb-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#121a20] hover:border-primary/50 transition-colors shadow-sm">
+<div class="flex gap-4">
+<div class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-bold">
+                            B
+                        </div>
+<div>
+<p class="font-bold text-[#121517] dark:text-white">Block B</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Reihe 2, Platz 9</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium">Standard</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-3">
+<span class="font-bold text-lg">120,00 €</span>
+<button class="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Promo Code -->
+<div class="mt-6 pt-6 border-t border-dashed border-gray-200 dark:border-gray-700">
+<button class="text-primary dark:text-blue-400 text-sm font-semibold flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        Gutschein oder Promo-Code hinzufügen
+                    </button>
+</div>
+</div>
+<!-- Footer / Checkout -->
+<div class="p-6 bg-white dark:bg-[#1a2228] border-t border-gray-200 dark:border-gray-700">
+<div class="space-y-3 mb-6">
+<div class="flex justify-between text-gray-500 dark:text-gray-400 text-sm">
+<span>Zwischensumme (2 Tickets)</span>
+<span>240,00 €</span>
+</div>
+<div class="flex justify-between text-gray-500 dark:text-gray-400 text-sm">
+<span>Servicegebühren</span>
+<span>5,90 €</span>
+</div>
+<div class="flex justify-between items-center pt-3 border-t border-gray-100 dark:border-gray-800">
+<span class="text-lg font-bold text-[#121517] dark:text-white">Gesamt</span>
+<span class="text-2xl font-bold text-primary dark:text-blue-400">245,90 €</span>
+</div>
+<p class="text-xs text-gray-400 text-right">inkl. MwSt.</p>
+</div>
+<button class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all transform active:scale-[0.98]">
+<span>Weiter zum Checkout</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</aside>
+</div>
+</body></html>

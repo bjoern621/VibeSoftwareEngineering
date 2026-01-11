@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Concert Admin</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a222a",
+                        "border-light": "#e5e7eb",
+                        "border-dark": "#2d3748",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#121517] dark:text-gray-100 font-display transition-colors duration-200">
+<div class="min-h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark px-6 py-3 shadow-sm">
+<div class="mx-auto max-w-[1440px] flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center size-10 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">equalizer</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Concert Admin</h1>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium text-primary hover:text-primary/80 transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors" href="#">Events</a>
+<a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors" href="#">Orders</a>
+<a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors" href="#">Customers</a>
+<a class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-surface-dark"></span>
+</button>
+<div class="size-9 rounded-full bg-cover bg-center border border-border-light dark:border-border-dark cursor-pointer" data-alt="User profile avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB0hAB9JprOOlPDMSv5TaVGOrZfhRfpp-oGkQHNluYSGt0jMZC4saq3eVxOo0Wo-JWN6-LA1yiIOZplsAXTnz474xmSfnS7do7aPwoahCTH1Gum4en0uuLr7azfZ62imcgoUUcY1V-NS_U94aAKfDNqHb60j0yY-5cCL-H3aqmWQdQU-A7DV4vM7YZyX1R_8vipYmGQbrQDDkYiHW23OC-0-ZMUZEFUY3zR6uZBBtt3ry6f8ux0tKNVIMZ09uJUhx6dX-HYuB7jM9s2');">
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-[1440px] mx-auto px-6 py-8">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+<div>
+<h2 class="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Konzertverwaltung</h2>
+<p class="mt-2 text-gray-500 dark:text-gray-400">Verwalten Sie Ihre Events und verfolgen Sie die Verkäufe in Echtzeit.</p>
+</div>
+<button class="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-semibold h-12 px-6 rounded-lg transition-all shadow-md hover:shadow-lg active:scale-95">
+<span class="material-symbols-outlined">add</span>
+<span>Neues Konzert</span>
+</button>
+</div>
+<!-- Toolbar: Search & Filters -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark p-4 mb-6 shadow-sm flex flex-col lg:flex-row gap-4 justify-between items-center">
+<!-- Search -->
+<div class="relative w-full lg:w-96 group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2.5 border border-border-light dark:border-border-dark rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-shadow" placeholder="Suche nach Konzerten, Künstlern..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+<div class="relative group">
+<button class="inline-flex items-center justify-between gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-border-light dark:border-border-dark rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors min-w-[140px]">
+<span>Status: Alle</span>
+<span class="material-symbols-outlined text-gray-400 text-[20px]">keyboard_arrow_down</span>
+</button>
+</div>
+<div class="relative group">
+<button class="inline-flex items-center justify-between gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-border-light dark:border-border-dark rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors min-w-[180px]">
+<span>Ort: Alle</span>
+<span class="material-symbols-outlined text-gray-400 text-[20px]">keyboard_arrow_down</span>
+</button>
+</div>
+<div class="relative group">
+<button class="inline-flex items-center justify-between gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-border-light dark:border-border-dark rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors min-w-[160px]">
+<span>Datum: 30 Tage</span>
+<span class="material-symbols-outlined text-gray-400 text-[20px]">calendar_today</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-border-light dark:border-border-dark text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
+<th class="px-6 py-4 w-[300px]">Event Info</th>
+<th class="px-6 py-4">Veranstaltungsort</th>
+<th class="px-6 py-4 w-[250px]">Tickets Verkauft</th>
+<th class="px-6 py-4 text-right">Umsatz</th>
+<th class="px-6 py-4 text-center">Status</th>
+<th class="px-6 py-4 text-right">Aktionen</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-light dark:divide-border-dark">
+<!-- Row 1 -->
+<tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-cover bg-center shrink-0 shadow-sm" data-alt="Concert crowd with stage lights" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAvKPWtTgbPmv7yVajqwzFBfvm-mc-lCBkTp8A0G3sWKTyjWZLmkIR-SG_SaOyLAANaDhX1rSmKTPL6GH8DGlKVOYoU6CaNUlaRtc3WZmf_76WkBdqrU56MJmCUKmyaRB1-UlOSNFmPE_-rYR1z35gFZuYlaCTzTpCGHpjl8wAePXT9L7NHMQWTthawEiKrUecczDyl4cuUPkxA9wmFI1IjlpaAKZuw3KeWKl8xuo6sY5EspWrA62hTPLNmZKrZUMiyd4JDG83FrHUn');"></div>
+<div>
+<p class="font-bold text-gray-900 dark:text-white text-sm">Summer Vibes Festival</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">event</span> 24. Aug 2024
+                                            </p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                    Olympiastadion, Berlin
+                                </td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-gray-900 dark:text-white">8,450</span>
+<span class="text-gray-500">von 10,000</span>
+</div>
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full" style="width: 84.5%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right text-sm font-mono font-medium text-gray-900 dark:text-white">
+                                    €420.500
+                                </td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800">
+                                        Active
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Edit">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors" title="Analytics">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors" title="Delete">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-cover bg-center shrink-0 shadow-sm" data-alt="Rock concert audience" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC_bm-fc6vEFnCYPi7jbksOvws7ze93u6RbsNy4_Dx4umBMX1US14lrz87wisqde9Etfza7GSGqxe-OZrb2Qs5_lIbw4jKW0dreThk2S1yK-rLegwbG73N9kPOi9-EKZaA_UIt4r4X_U1-oo2uwqtK6LlJ3V7UrR0Qy25DdjDA-xw1rZWZ0yS3k9yn7dzn9EQjeUkrisJ3qrSysMXxx7fiA4UmGJw_bR_VmZ0HXWXPf8NdE2bRJFkCUHdrM94fFZgWizX4K9xvdpuYR');"></div>
+<div>
+<p class="font-bold text-gray-900 dark:text-white text-sm">Rock am Ring</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">event</span> 07. Jun 2024
+                                            </p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                    Nürburgring
+                                </td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-gray-900 dark:text-white">75,000</span>
+<span class="text-gray-500">von 75,000</span>
+</div>
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right text-sm font-mono font-medium text-gray-900 dark:text-white">
+                                    €1.250.000
+                                </td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800">
+                                        Sold Out
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-cover bg-center shrink-0 shadow-sm" data-alt="Classical orchestra conductor" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDGLZILEkb2QzVv0dIpSJoWjoUEeNbXpbAHD_aTSDGVN-w83veM_nmn5cyrvQdf-P_q8po9RJAL7XUXq-B-ANXTY_M9vl4ZgcMQgDRqXWkxpDN4TOPUhhx8iBBSU31A6QG67pi55R09DEji5wo5qczKil-HzWdqSDpznQSighQtPCF60H6lqk_hzS9jaFeZmAiO9qwmwlu_NEuUbf9JOotANx5loZmrz1xQx_cCu6IaeCiGoXhyh-TpKTGyxm6IwM5Xo8MJyJHBnsfE');"></div>
+<div>
+<p class="font-bold text-gray-900 dark:text-white text-sm">Klassik Open Air</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">event</span> 15. Sep 2024
+                                            </p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                    Tiergarten Berlin
+                                </td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-gray-900 dark:text-white">2,250</span>
+<span class="text-gray-500">von 5,000</span>
+</div>
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full" style="width: 45%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right text-sm font-mono font-medium text-gray-900 dark:text-white">
+                                    €12.450
+                                </td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                        Draft
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-cover bg-center shrink-0 shadow-sm" data-alt="Dark techno club atmosphere" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB1mSovuRQLNSWEFE6WtDX02EBfp_ptwIs-pyxkplvT74QzXQff3DWnc__c-QXXqw4AIlT1mMACKPH77VbUw_KIPkMPdsm6WT5yPoblm3pa13pR2WSipkjTFEPTAq_9j-NmswmH10jKC3RpNmV8JZHa0hv9uKaEsGEW-Y822xjbCtpTNtM5RyeVw28Q-vitThfyYBCPWs5MSi2Odq76byHikEZdqOePNVwjli1JMhUMQUR99xSsAl-zZNgh05M6ZL3rUTlSmTwhejG0');"></div>
+<div>
+<p class="font-bold text-gray-900 dark:text-white text-sm">Techno Bunker</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">event</span> 02. Okt 2024
+                                            </p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                    Berghain
+                                </td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-gray-900 dark:text-white">1,500</span>
+<span class="text-gray-500">von 1,500</span>
+</div>
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right text-sm font-mono font-medium text-gray-900 dark:text-white">
+                                    €85.000
+                                </td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800">
+                                        Sold Out
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-lg bg-cover bg-center shrink-0 shadow-sm" data-alt="Abstract concert lighting blue" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCbABmc7xZhDRNbNVW8OIxaBHy9YK-86MjUoQ_em99t3arjIE9_He9svIYLHyIcn3bXwtG6vbYn7OWd7WeFH7P1aZjrHDyQIn9O2PnaL1d8TE6xKfhQ1uQA0zkBIeQ_uQz5r6WO71U_wd6SiWHy3YzG5XMDbamVdaZmF6SrosRlWuH1MXp58hK4xSVo3pdGltQX84dy7Z_S6-tXIn5xbmAG4E2W8EtJjWtmCKhrxt8d3CsXl6P-47V2wdmaaBI8_0GLU2qOx6PoQKMQ');"></div>
+<div>
+<p class="font-bold text-gray-900 dark:text-white text-sm">Weihnachtskonzert</p>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">event</span> 10. Dez 2024
+                                            </p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                                    Elbphilharmonie
+                                </td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between text-xs">
+<span class="font-medium text-gray-900 dark:text-white">250</span>
+<span class="text-gray-500">von 2,100</span>
+</div>
+<div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full" style="width: 12%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right text-sm font-mono font-medium text-gray-900 dark:text-white">
+                                    €45.200
+                                </td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800">
+                                        Active
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+</button>
+<button class="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="bg-surface-light dark:bg-surface-dark px-6 py-4 border-t border-border-light dark:border-border-dark flex items-center justify-between">
+<div class="text-sm text-gray-500 dark:text-gray-400">
+                        Zeige <span class="font-medium text-gray-900 dark:text-white">1</span> bis <span class="font-medium text-gray-900 dark:text-white">5</span> von <span class="font-medium text-gray-900 dark:text-white">12</span> Konzerten
+                    </div>
+<div class="flex gap-2">
+<button class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-border-light dark:border-border-dark rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                            Zurück
+                        </button>
+<button class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-border-light dark:border-border-dark rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
+                            Weiter
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

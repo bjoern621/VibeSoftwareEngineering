@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile Settings - TicketMaster Plus</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white antialiased transition-colors duration-200">
+<div class="min-h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a222c] shadow-sm">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex h-16 items-center justify-between">
+<!-- Logo & Brand -->
+<div class="flex items-center gap-8">
+<a class="flex items-center gap-3" href="#">
+<div class="size-8 text-primary">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_6_319)">
+<path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
+</g>
+<defs>
+<clippath id="clip0_6_319"><rect fill="white" height="48" width="48"></rect></clippath>
+</defs>
+</svg>
+</div>
+<h2 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">TicketMaster Plus</h2>
+</a>
+<!-- Desktop Nav Links -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-medium text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-primary transition-colors" href="#">Events</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-primary transition-colors" href="#">Konzerte</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-primary transition-colors" href="#">Sport</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-primary transition-colors" href="#">Comedy</a>
+</nav>
+</div>
+<!-- Right Side: Search & Profile -->
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block w-64">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+</div>
+<input class="block w-full rounded-lg border-0 bg-slate-100 dark:bg-slate-800 py-2 pl-10 pr-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-700 transition-all" placeholder="Suche Events, Künstler..." type="text"/>
+</div>
+<button class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark" data-alt="User profile avatar small" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDdJm0jhJu3PNsNhFUi0HP1ne0aSVjPmeKICy1MgPpVioGvAyWHmAoUXWVNPIqKiPz8qrWwYNX6hXwlCCdCWdvESCAXkDSy3dRiEMGRdcFZvpOri2BmNsB8BZQNU30X3od9Mz_z9KdC5fhyx95EgucO5xmkiaX8WJFYp39uOmgtf8nod3R52mU_kODQgCK_bAWuwvJYnZBb6vtO4oTwOQ43LYEAVVIwImd5-YvOXyuXWlE9YYWAdpcwZcDZl8r8FGNNv-T-GDuylNvs");'></button>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Layout -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Left Sidebar -->
+<aside class="w-full lg:w-72 flex-shrink-0">
+<div class="bg-white dark:bg-[#1a222c] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden sticky top-24">
+<!-- Profile Summary -->
+<div class="p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col items-center text-center">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-24 mb-4 ring-4 ring-slate-50 dark:ring-slate-800" data-alt="Large user profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAtJCoVycLR9KFVo9IYB6oI1ZPCmoFv-Lau7AmLbMinkpaor_SSXDLC0-7aBXdoAyG4nkuKRrBxd2lojyowRQLWKQ2IlBCAHfC-yIMTXjxv-dD7sm4-dn25jxdJAIAL1bJ1FlEHoV6Gr7MJwdOmLeEikBSZ5jkQtwukLlOXvAkUi-x5I57p9feU7oSmGFXB9lO95OVxaJs6Yfxnf1BLiHA8yeuvHSlu16k-VsbtivUgH65Uz8Tfhm3QYx0OrXxJNazq-je7IMWG-Md1");'></div>
+<h1 class="text-lg font-semibold text-slate-900 dark:text-white">Max Mustermann</h1>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Mitglied seit 2023</p>
+</div>
+<!-- Vertical Navigation -->
+<nav class="p-3 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary transition-colors group" href="#">
+<span class="material-symbols-outlined filled text-[22px]">person</span>
+<span class="text-sm font-medium">Mein Profil</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">shopping_bag</span>
+<span class="text-sm font-medium">Meine Bestellungen</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">shield</span>
+<span class="text-sm font-medium">Sicherheit</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">credit_card</span>
+<span class="text-sm font-medium">Zahlungsarten</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">notifications</span>
+<span class="text-sm font-medium">Benachrichtigungen</span>
+</a>
+<div class="h-px bg-slate-100 dark:bg-slate-700 my-2 mx-3"></div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px]">logout</span>
+<span class="text-sm font-medium">Abmelden</span>
+</a>
+</nav>
+</div>
+</aside>
+<!-- Right Content -->
+<div class="flex-1">
+<div class="bg-white dark:bg-[#1a222c] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<!-- Page Header -->
+<div class="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-700 flex flex-wrap justify-between items-center gap-4">
+<div>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Persönliche Daten</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Verwalten Sie Ihre persönlichen Informationen und Kontoeinstellungen.</p>
+</div>
+<button class="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-slate-900">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span>Bearbeiten</span>
+</button>
+</div>
+<!-- Data Form (Read Only) -->
+<div class="p-6 sm:p-8 space-y-8">
+<!-- Identity Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-500 dark:text-slate-400">Vorname</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">person</span>
+</div>
+<input class="block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white py-3 pl-10 pr-4 focus:ring-0 focus:border-slate-300 dark:focus:border-slate-600 cursor-default" readonly="" type="text" value="Max"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-500 dark:text-slate-400">Nachname</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">person</span>
+</div>
+<input class="block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white py-3 pl-10 pr-4 focus:ring-0 focus:border-slate-300 dark:focus:border-slate-600 cursor-default" readonly="" type="text" value="Mustermann"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-500 dark:text-slate-400">E-Mail-Adresse</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">mail</span>
+</div>
+<input class="block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white py-3 pl-10 pr-4 focus:ring-0 focus:border-slate-300 dark:focus:border-slate-600 cursor-default" readonly="" type="email" value="max.mustermann@example.com"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-500 dark:text-slate-400">Telefonnummer</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">call</span>
+</div>
+<input class="block w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white py-3 pl-10 pr-4 focus:ring-0 focus:border-slate-300 dark:focus:border-slate-600 cursor-default" readonly="" type="text" value="+49 123 456789"/>
+</div>
+</div>
+</div>
+<!-- Divider -->
+<hr class="border-slate-100 dark:border-slate-700"/>
+<!-- Preferences Section -->
+<div class="space-y-4">
+<h3 class="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[24px]">mark_email_unread</span>
+                                    Newsletter &amp; Benachrichtigungen
+                                </h3>
+<div class="flex items-start md:items-center justify-between gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a222c]">
+<div class="flex-1">
+<p class="text-sm font-medium text-slate-900 dark:text-white">Ticket-Alarm &amp; Updates</p>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Ich möchte Updates zu Konzerten, Vorverkaufsstarts und exklusiven Angeboten erhalten.</p>
+</div>
+<!-- Toggle Switch (Checked State) -->
+<div class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-primary">
+<span class="sr-only">Use setting</span>
+<span aria-hidden="true" class="translate-x-5 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+</div>
+</div>
+<div class="flex items-start md:items-center justify-between gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a222c] opacity-75">
+<div class="flex-1">
+<p class="text-sm font-medium text-slate-900 dark:text-white">Partner-Angebote</p>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Informationen zu Angeboten unserer Partner (z.B. Fan-Merchandise).</p>
+</div>
+<!-- Toggle Switch (Unchecked State) -->
+<div class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-slate-200 dark:bg-slate-600">
+<span class="sr-only">Use setting</span>
+<span aria-hidden="true" class="translate-x-0 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+</div>
+</div>
+</div>
+<!-- Bottom Info -->
+<div class="mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 flex gap-3">
+<span class="material-symbols-outlined text-primary text-[24px]">info</span>
+<p class="text-sm text-slate-600 dark:text-slate-300">
+                                    Möchten Sie Ihr Passwort ändern oder die Zwei-Faktor-Authentifizierung aktivieren? Besuchen Sie den Bereich <a class="text-primary font-semibold hover:underline" href="#">Sicherheit</a>.
+                                </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Simple Footer -->
+<footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a222c] py-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-sm text-slate-500 dark:text-slate-400">© 2024 TicketMaster Plus. Alle Rechte vorbehalten.</p>
+<div class="flex gap-6">
+<a class="text-sm text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary" href="#">Impressum</a>
+<a class="text-sm text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary" href="#">Datenschutz</a>
+<a class="text-sm text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary" href="#">AGB</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>
