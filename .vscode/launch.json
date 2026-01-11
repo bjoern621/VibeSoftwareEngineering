@@ -39,6 +39,16 @@
             "projectName": "rentacar-backend",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ConcertComparisonApplication<concertcomparison-backend>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.concertcomparison.ConcertComparisonApplication",
+            "projectName": "concertcomparison-backend",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
         }
     ],
     "compounds": [

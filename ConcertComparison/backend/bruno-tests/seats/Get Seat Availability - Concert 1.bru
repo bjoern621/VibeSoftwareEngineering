@@ -1,0 +1,43 @@
+meta {
+  name: Get Seat Availability - Concert 1
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/concerts/1/seats
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has concertId", function() {
+    expect(res.body.concertId).to.equal(1);
+  });
+  
+  test("Response has seats array", function() {
+    expect(res.body.seats).to.be.an('array');
+  });
+  
+  test("Response has categoryAvailability", function() {
+    expect(res.body.categoryAvailability).to.be.an('object');
+  });
+  
+  test("totalSeats matches seats array length", function() {
+    expect(res.body.totalSeats).to.equal(res.body.seats.length);
+  });
+  
+  test("No negative values in category availability", function() {
+    const categories = Object.values(res.body.categoryAvailability);
+    categories.forEach(cat => {
+      expect(cat.total).to.be.at.least(0);
+      expect(cat.available).to.be.at.least(0);
+      expect(cat.held).to.be.at.least(0);
+      expect(cat.sold).to.be.at.least(0);
+    });
+  });
+}

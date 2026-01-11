@@ -1,0 +1,21 @@
+meta {
+  name: Get Seat Availability - Concert 2
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/concerts/2/seats
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has concertId", function() {
+    expect(res.body.concertId).to.equal(2);
+  });
+}

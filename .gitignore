@@ -44,3 +44,5 @@ build/
 # Spring Boot
 application-local.properties
 .vscode/launch.json
+ConcertComparison/backend/US-01-IMPLEMENTATION.md
+ConcertComparison/backend/bruno-tests/README.md
