@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Secure Checkout - TicketMaster Clone</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+        /* Custom Stepper Styles */
+        .step-active .step-circle {
+            background-color: #1e75b3;
+            color: white;
+            border-color: #1e75b3;
+        }
+        .step-completed .step-circle {
+            background-color: #10b981; /* Success Green */
+            color: white;
+            border-color: #10b981;
+        }
+        .step-pending .step-circle {
+            background-color: white;
+            color: #64748b;
+            border-color: #cbd5e1;
+        }
+        /* Dark mode overrides for stepper */
+        .dark .step-pending .step-circle {
+            background-color: #1e293b;
+            color: #94a3b8;
+            border-color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white transition-colors duration-200">
+<!-- Header -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a2632] px-6 lg:px-10 py-4 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="text-primary size-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">confirmation_number</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">TicketMaster Clone</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center gap-2 text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+                Secure Checkout
+            </div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 ring-2 ring-slate-100 dark:ring-slate-700" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDCxCTiK77Or8uzWIISh1dbjIXOXK8kuHenz-LH_PJfwsrJXLnY4KbZfdxakeBlOgj3Z-GH3IqPau-zFT9DtUp7ZGSY3jRiBy9zdHcM8cubV2hcfFQqDgEgzBQCGzoUrVpaknhDKf6YyKWkjXCej6svvBREhNe2HXQde6nUOpU-uGKMOj002MSLfsbkBRGo0EsgXNG7KrPOCN18OH_ij9S2DXvyES_JrIOmDJAdmpmsxQ8nF-7WBenyJKt8lBlHi7RgHUKVX-uEibtZ");'></div>
+</div>
+</header>
+<main class="layout-container flex grow flex-col min-h-[calc(100vh-80px)]">
+<div class="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<!-- Progress Stepper -->
+<div class="mb-10 w-full max-w-3xl mx-auto">
+<div class="relative flex items-center justify-between w-full">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-700 -z-10"></div>
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-[38%] h-1 bg-primary -z-10 transition-all duration-500"></div>
+<!-- Step 1: Cart -->
+<div class="flex flex-col items-center gap-2 step-completed">
+<div class="step-circle flex items-center justify-center size-8 sm:size-10 rounded-full border-2 text-sm sm:text-base font-bold z-10 bg-white dark:bg-slate-800">
+<span class="material-symbols-outlined text-lg">check</span>
+</div>
+<span class="text-xs sm:text-sm font-medium text-primary">Cart</span>
+</div>
+<!-- Step 2: Billing -->
+<div class="flex flex-col items-center gap-2 step-active">
+<div class="step-circle flex items-center justify-center size-8 sm:size-10 rounded-full border-2 text-sm sm:text-base font-bold z-10 bg-white dark:bg-slate-800 shadow-[0_0_0_4px_rgba(30,117,179,0.2)]">
+                            2
+                        </div>
+<span class="text-xs sm:text-sm font-bold text-primary">Billing</span>
+</div>
+<!-- Step 3: Payment -->
+<div class="flex flex-col items-center gap-2 step-pending">
+<div class="step-circle flex items-center justify-center size-8 sm:size-10 rounded-full border-2 text-sm sm:text-base font-bold z-10 bg-white dark:bg-slate-800">
+                            3
+                        </div>
+<span class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Payment</span>
+</div>
+<!-- Step 4: Success -->
+<div class="flex flex-col items-center gap-2 step-pending">
+<div class="step-circle flex items-center justify-center size-8 sm:size-10 rounded-full border-2 text-sm sm:text-base font-bold z-10 bg-white dark:bg-slate-800">
+                            4
+                        </div>
+<span class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Success</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left Column: Forms -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Timer Alert -->
+<div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-amber-600 dark:text-amber-400">timer</span>
+<div>
+<p class="text-amber-900 dark:text-amber-100 font-bold text-sm">High Demand!</p>
+<p class="text-amber-700 dark:text-amber-300 text-xs sm:text-sm">Your tickets are reserved for a limited time.</p>
+</div>
+</div>
+<div class="flex gap-2 shrink-0">
+<div class="flex flex-col items-center bg-white dark:bg-slate-800 px-3 py-1 rounded shadow-sm border border-amber-100 dark:border-amber-900">
+<span class="font-mono text-lg font-bold text-amber-600 dark:text-amber-400">09</span>
+<span class="text-[10px] uppercase text-slate-500">Min</span>
+</div>
+<span class="text-amber-600 dark:text-amber-400 font-bold py-1">:</span>
+<div class="flex flex-col items-center bg-white dark:bg-slate-800 px-3 py-1 rounded shadow-sm border border-amber-100 dark:border-amber-900">
+<span class="font-mono text-lg font-bold text-amber-600 dark:text-amber-400">59</span>
+<span class="text-[10px] uppercase text-slate-500">Sec</span>
+</div>
+</div>
+</div>
+<!-- Billing Form Section -->
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+<div class="mb-6">
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Billing Details</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Please enter the billing address associated with your payment method.</p>
+</div>
+<form class="flex flex-col gap-5">
+<!-- Name Row -->
+<div class="flex flex-col sm:flex-row gap-5">
+<label class="flex flex-col flex-1">
+<span class="text-slate-700 dark:text-slate-300 text-sm font-semibold mb-1.5">First Name</span>
+<input class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Jane" type="text"/>
+</label>
+<label class="flex flex-col flex-1">
+<span class="text-slate-700 dark:text-slate-300 text-sm font-semibold mb-1.5">Last Name</span>
+<input class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="Cooper" type="text"/>
+</label>
+</div>
+<!-- Email Row -->
+<label class="flex flex-col">
+<span class="text-slate-700 dark:text-slate-300 text-sm font-semibold mb-1.5">Email Address</span>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">mail</span>
+<input class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" type="email" value="jane.cooper@example.com"/>
+</div>
+</label>
+<!-- Address Row -->
+<label class="flex flex-col">
+<span class="text-slate-700 dark:text-slate-300 text-sm font-semibold mb-1.5">Street Address</span>
+<input class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="123 Concert Avenue" type="text"/>
+</label>
+<!-- City/State/Zip Row -->
+<div class="grid grid-cols-1 sm:grid-cols-6 gap-5">
+<label class="flex flex-col sm:col-span-3">
+<span class="text-slate-700 dark:text-slate-300 text-sm font-semibold mb-1.5">City</span>
+<input class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="New York" type="text"/>
+</label>
+<label class="flex flex-col sm:col-span-2">
+<span class="text-slate-700 dark:text-slate-300 text-sm font-semibold mb-1.5">State</span>
+<select class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none">
+<option>NY</option>
+<option>CA</option>
+<option>TX</option>
+</select>
+</label>
+<label class="flex flex-col sm:col-span-1">
+<span class="text-slate-700 dark:text-slate-300 text-sm font-semibold mb-1.5">Zip</span>
+<input class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" placeholder="10001" type="text"/>
+</label>
+</div>
+</form>
+</div>
+<!-- Payment Method Selection -->
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+<div class="mb-6 flex items-center justify-between">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Payment Method</h2>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-slate-400 text-2xl">lock</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 self-center font-medium">Encrypted &amp; Secure</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<!-- Card Option -->
+<label class="cursor-pointer relative group">
+<input checked="" class="peer sr-only" name="payment_method" type="radio"/>
+<div class="p-4 rounded-lg border-2 border-primary bg-primary/5 dark:bg-primary/10 peer-checked:border-primary peer-checked:bg-primary/5 dark:peer-checked:bg-primary/10 border-slate-200 dark:border-slate-700 hover:border-primary/50 dark:hover:border-primary/50 transition-all flex flex-col items-center gap-3 h-full">
+<span class="material-symbols-outlined text-3xl text-primary">credit_card</span>
+<span class="font-semibold text-slate-900 dark:text-white">Credit Card</span>
+<div class="absolute top-3 right-3 text-primary opacity-100 peer-checked:opacity-100 opacity-0 transition-opacity">
+<span class="material-symbols-outlined text-lg filled">check_circle</span>
+</div>
+</div>
+</label>
+<!-- PayPal Option -->
+<label class="cursor-pointer relative group">
+<input class="peer sr-only" name="payment_method" type="radio"/>
+<div class="p-4 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 peer-checked:border-primary peer-checked:bg-primary/5 dark:peer-checked:bg-primary/10 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex flex-col items-center gap-3 h-full">
+<span class="material-symbols-outlined text-3xl text-[#003087]">account_balance_wallet</span> <!-- Using generic wallet icon for PayPal approximation -->
+<span class="font-semibold text-slate-900 dark:text-white">PayPal</span>
+<div class="absolute top-3 right-3 text-primary opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg filled">check_circle</span>
+</div>
+</div>
+</label>
+<!-- Crypto Option -->
+<label class="cursor-pointer relative group">
+<input class="peer sr-only" name="payment_method" type="radio"/>
+<div class="p-4 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 peer-checked:border-primary peer-checked:bg-primary/5 dark:peer-checked:bg-primary/10 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex flex-col items-center gap-3 h-full">
+<span class="material-symbols-outlined text-3xl text-orange-500">currency_bitcoin</span>
+<span class="font-semibold text-slate-900 dark:text-white">Crypto</span>
+<div class="absolute top-3 right-3 text-primary opacity-0 peer-checked:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-lg filled">check_circle</span>
+</div>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Right Column: Order Summary (Sticky) -->
+<div class="lg:col-span-4 lg:sticky lg:top-24 flex flex-col gap-6">
+<div class="bg-white dark:bg-[#1a2632] rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden">
+<div class="p-6 border-b border-slate-100 dark:border-slate-700">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Order Summary</h3>
+</div>
+<!-- Event Item -->
+<div class="p-6 flex flex-col gap-4">
+<div class="flex gap-4 items-start">
+<div class="size-16 rounded-lg bg-cover bg-center shrink-0 shadow-sm" data-alt="Concert stage with colorful lights" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDjUjc4TWG8PZoM2R7ECRQsik9QzDr7f0WMOLkbes9PztUiRTwpY_iYuWO700qwuxLfvrRrpPhYa5hvAe_zy72nC7Gn5HiI5He7MGTb6-KhyPKyW2NaRdn2uRTFDFczqVodTSu41OJgtQzO9idcdmFqW2fOnsYEbrEYzvpEnrt3MGC88lcP-tMQDyqaCoR1AKpbexpT1ynqEtHicBCv8_XZ2x6TlZb_OyjbmLdWi5nKDMejBdaiJr_62OYvc7y-ovXp_lN_yOATBuMq");'></div>
+<div>
+<h4 class="font-bold text-slate-900 dark:text-white leading-tight">The Rolling Stones</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">General Admission</p>
+<p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Sat, Oct 24 • 8:00 PM</p>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-700 w-full my-1"></div>
+<!-- Pricing Breakdown -->
+<div class="flex flex-col gap-3 text-sm">
+<div class="flex justify-between text-slate-600 dark:text-slate-300">
+<span>Tickets (x2)</span>
+<span class="font-medium">$150.00</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-300">
+<span>Service Fee</span>
+<span class="font-medium">$15.00</span>
+</div>
+<div class="flex justify-between text-slate-600 dark:text-slate-300">
+<span>Tax</span>
+<span class="font-medium">$12.50</span>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-700 w-full my-1"></div>
+<!-- Total -->
+<div class="flex justify-between items-end">
+<span class="text-base font-bold text-slate-900 dark:text-white">Total</span>
+<span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">$177.50</span>
+</div>
+</div>
+<!-- Action Button Area -->
+<div class="p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
+<button class="w-full bg-primary hover:bg-sky-700 text-white font-bold py-4 rounded-lg shadow-md transition-transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 group">
+                                Continue to Payment
+                                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform text-lg">arrow_forward</span>
+</button>
+<div class="mt-4 flex items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+<span class="text-xs font-medium">SSL Encrypted Transaction</span>
+</div>
+<div class="mt-4 flex justify-center gap-3 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+<div class="h-6 w-10 bg-slate-300 dark:bg-slate-600 rounded"></div>
+<div class="h-6 w-10 bg-slate-300 dark:bg-slate-600 rounded"></div>
+<div class="h-6 w-10 bg-slate-300 dark:bg-slate-600 rounded"></div>
+</div>
+</div>
+</div>
+<!-- Additional Trust Info -->
+<div class="bg-white dark:bg-[#1a2632] rounded-lg border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-xl mt-0.5">sentiment_satisfied</span>
+<div>
+<p class="font-bold text-sm text-slate-900 dark:text-white">100% Buyer Guarantee</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Get valid tickets to any event or your money back. We go out of our way to get you in.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

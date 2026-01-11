@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Seat Management</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind & Theme Config -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a76b7",
+                        "primary-dark": "#145a8c",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111a21",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e2936",
+                        "border-light": "#e5e7eb",
+                        "border-dark": "#374151",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .seat-grid {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .dark .seat-grid {
+            background-image: radial-gradient(#334155 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display antialiased overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Sidebar -->
+<aside class="hidden lg:flex flex-col w-64 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex-shrink-0 transition-colors">
+<div class="p-5 border-b border-border-light dark:border-border-dark flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-10 shadow-sm" data-alt="TicketMaster Logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDH9Up1gflVxOnSQO1tnJTOUH80vBngpUAImzKrkn9hiORys0bI1LG8CxzI44W44caDHV2TIamI_T1nnZ7G7B-cizu7SHXkNo61TKw4PeXIYoJ16zfljJk2XfxO9-953te3IIgBHKBvVFz5uRunEABxHd9k3qujXwe4Oh9WCbcxbmSQwchv8k5xv2drBiULUJ_CSZvAvchCITxqOP1qak8zKB37qjr7eXtZ7uhDREhYnuH_MsnigHD2aJrc4fiAsq0SccpauenUPDb_");'></div>
+<div class="flex flex-col">
+<h1 class="text-base font-bold leading-tight">Venue Admin</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Super Admin</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:text-blue-400 font-medium" href="#">
+<span class="material-symbols-outlined">confirmation_number</span>
+<span class="text-sm">Konzerte</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">shopping_cart</span>
+<span class="text-sm font-medium">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">group</span>
+<span class="text-sm font-medium">Users</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-border-light dark:border-border-dark">
+<button class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm font-medium">Log out</span>
+</button>
+</div>
+</aside>
+<!-- Main Content -->
+<div class="flex flex-col flex-1 h-full min-w-0 bg-background-light dark:bg-background-dark">
+<!-- Top Navbar -->
+<header class="flex items-center justify-between h-16 px-6 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark flex-shrink-0 z-10">
+<!-- Mobile Menu Trigger -->
+<button class="lg:hidden p-2 -ml-2 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<!-- Breadcrumbs -->
+<div class="hidden md:flex items-center gap-2 text-sm">
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Admin</a>
+<span class="text-slate-400">/</span>
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Konzerte</a>
+<span class="text-slate-400">/</span>
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Eras Tour</a>
+<span class="text-slate-400">/</span>
+<span class="font-medium text-slate-900 dark:text-white">Seat Management</span>
+</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-4">
+<!-- Search -->
+<div class="relative hidden sm:block w-64">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</span>
+<input class="w-full h-10 pl-10 pr-4 rounded-lg bg-slate-100 dark:bg-slate-800 border-none text-sm focus:ring-2 focus:ring-primary text-slate-900 dark:text-white placeholder:text-slate-500" placeholder="Search seats..." type="text"/>
+</div>
+<!-- Icons -->
+<button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<div class="h-8 w-px bg-border-light dark:bg-border-dark mx-1"></div>
+<!-- Profile -->
+<button class="flex items-center gap-2">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 ring-2 ring-white dark:ring-slate-800 shadow-sm" data-alt="User Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCy1hlYkQiH4DK00mtdFt7MCdHoJ4CSfGMuxUOGxJ6un6qNAkMTBoBqdCskyhTSQecx--jpcwGc-Wj8aaKqvAmNlM37doh3I59zyydS8Xdp98G_g2IIR9NHoqOd0N1gyvZIKL7yjPKEMiXdn1QlGpK8tDWl1QM5E6uS3S4XoTjg2yz674DRoM8R7RWgt6ogyZw_STS-OBzsYSc5iPtzNd3NoCDpGeryHSjWXIGup0X1Sci_vTPO0WjvILdOEJgqf8vC9RlL4zFvsMXP");'></div>
+</button>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<main class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Seat Management</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Eras Tour 2024 - Wembley Stadium • <span class="text-green-600 font-medium">Live Editing</span></p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2.5 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark text-slate-700 dark:text-slate-200 font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                            Save Draft
+                        </button>
+<button class="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-dark text-white font-medium text-sm shadow-sm transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">publish</span>
+                            Publish Layout
+                        </button>
+</div>
+</div>
+<!-- Main Grid Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+<!-- Left Column: Generator & Summary -->
+<div class="xl:col-span-3 flex flex-col gap-6">
+<!-- Generator Card -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden">
+<div class="px-4 py-3 border-b border-border-light dark:border-border-dark bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
+<h3 class="font-semibold text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">Seat Generator</h3>
+<span class="material-symbols-outlined text-slate-400 text-[20px]">grid_on</span>
+</div>
+<div class="p-4 space-y-4">
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1.5">
+<label class="text-xs font-medium text-slate-500 dark:text-slate-400">Row Prefix</label>
+<input class="w-full rounded-md border-border-light dark:border-border-dark bg-white dark:bg-slate-900 text-sm focus:border-primary focus:ring-primary dark:text-white" type="text" value="A"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-medium text-slate-500 dark:text-slate-400">Count</label>
+<input class="w-full rounded-md border-border-light dark:border-border-dark bg-white dark:bg-slate-900 text-sm focus:border-primary focus:ring-primary dark:text-white" type="number" value="10"/>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-medium text-slate-500 dark:text-slate-400">Seats per Row</label>
+<input class="w-full rounded-md border-border-light dark:border-border-dark bg-white dark:bg-slate-900 text-sm focus:border-primary focus:ring-primary dark:text-white" type="number" value="20"/>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-medium text-slate-500 dark:text-slate-400">Pricing Category</label>
+<select class="w-full rounded-md border-border-light dark:border-border-dark bg-white dark:bg-slate-900 text-sm focus:border-primary focus:ring-primary dark:text-white">
+<option>Standard ($85.00)</option>
+<option>VIP Gold ($250.00)</option>
+<option>Balcony ($65.00)</option>
+</select>
+</div>
+<button class="w-full py-2.5 mt-2 bg-slate-900 dark:bg-primary text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+                                    Generate Block
+                                </button>
+</div>
+</div>
+<!-- Stats Card -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden p-4 space-y-4">
+<h3 class="font-semibold text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Capacity Summary</h3>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-blue-500"></div>
+<span class="text-sm text-slate-600 dark:text-slate-300">Standard</span>
+</div>
+<span class="text-sm font-bold">4,500</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+<span class="text-sm text-slate-600 dark:text-slate-300">VIP</span>
+</div>
+<span class="text-sm font-bold">850</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+<span class="text-sm text-slate-600 dark:text-slate-300">Blocked</span>
+</div>
+<span class="text-sm font-bold">120</span>
+</div>
+<div class="pt-3 mt-3 border-t border-border-light dark:border-border-dark flex items-center justify-between">
+<span class="text-sm font-medium text-slate-900 dark:text-white">Total Capacity</span>
+<span class="text-base font-bold text-slate-900 dark:text-white">5,470</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Visual Map & List -->
+<div class="xl:col-span-9 space-y-6">
+<!-- Visual Map Container -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm flex flex-col overflow-hidden h-[500px] relative group/map">
+<!-- Map Toolbar Overlay -->
+<div class="absolute top-4 left-4 z-10 flex flex-col gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-lg shadow-lg border border-border-light dark:border-border-dark">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300" title="Select Tool">
+<span class="material-symbols-outlined text-[20px]">near_me</span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300" title="Pan Tool">
+<span class="material-symbols-outlined text-[20px]">pan_tool</span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300" title="Eraser">
+<span class="material-symbols-outlined text-[20px]">ink_eraser</span>
+</button>
+<hr class="border-border-light dark:border-border-dark"/>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300" title="Zoom In">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-300" title="Zoom Out">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+</div>
+<!-- Map Canvas -->
+<div class="flex-1 overflow-auto seat-grid relative p-10 cursor-grab active:cursor-grabbing flex flex-col items-center">
+<!-- Stage -->
+<div class="w-1/2 h-16 bg-slate-200 dark:bg-slate-700 rounded-b-3xl mb-12 flex items-center justify-center border-b-4 border-slate-300 dark:border-slate-600 shadow-sm">
+<span class="text-xs font-bold tracking-[0.2em] text-slate-400 dark:text-slate-500 uppercase">Stage Area</span>
+</div>
+<!-- Seat Grid Simulation -->
+<div class="grid gap-2 mb-8">
+<!-- Row A -->
+<div class="flex gap-2 items-center justify-center">
+<span class="w-6 text-xs font-bold text-slate-400 text-right mr-2">A</span>
+<div class="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all" title="A-1 (VIP)"></div>
+<div class="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all" title="A-2 (VIP)"></div>
+<div class="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all" title="A-3 (VIP)"></div>
+<div class="w-6 h-6 rounded-full bg-slate-300 dark:bg-slate-600 cursor-not-allowed opacity-50" title="A-4 (Blocked)"></div>
+<div class="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all" title="A-5 (VIP)"></div>
+<div class="w-6 h-6 rounded-full bg-yellow-400 border border-yellow-500/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-yellow-400 transition-all" title="A-6 (VIP)"></div>
+<span class="w-6 text-xs font-bold text-slate-400 text-left ml-2">A</span>
+</div>
+<!-- Row B -->
+<div class="flex gap-2 items-center justify-center">
+<span class="w-6 text-xs font-bold text-slate-400 text-right mr-2">B</span>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all" title="B-1 (STD)"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all" title="B-2 (STD)"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all" title="B-3 (STD)"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all" title="B-4 (STD)"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all" title="B-5 (STD)"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all" title="B-6 (STD)"></div>
+<span class="w-6 text-xs font-bold text-slate-400 text-left ml-2">B</span>
+</div>
+<!-- Row C -->
+<div class="flex gap-2 items-center justify-center">
+<span class="w-6 text-xs font-bold text-slate-400 text-right mr-2">C</span>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all"></div>
+<div class="w-6 h-6 rounded-full bg-green-500 border border-green-600/50 shadow-sm cursor-pointer ring-2 ring-offset-1 ring-primary" title="C-2 (Selected)"></div>
+<div class="w-6 h-6 rounded-full bg-green-500 border border-green-600/50 shadow-sm cursor-pointer ring-2 ring-offset-1 ring-primary" title="C-3 (Selected)"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500 border border-blue-600/50 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-blue-500 transition-all"></div>
+<span class="w-6 text-xs font-bold text-slate-400 text-left ml-2">C</span>
+</div>
+<!-- Repeat for visual density -->
+<div class="flex gap-2 items-center justify-center opacity-50">
+<span class="w-6 text-xs font-bold text-slate-400 text-right mr-2">D</span>
+<div class="w-6 h-6 rounded-full bg-blue-500/50"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500/50"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500/50"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500/50"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500/50"></div>
+<div class="w-6 h-6 rounded-full bg-blue-500/50"></div>
+<span class="w-6 text-xs font-bold text-slate-400 text-left ml-2">D</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-4 right-4 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-lg text-xs font-mono border border-border-light dark:border-border-dark text-slate-600 dark:text-slate-300">
+                                Zoom: 100%
+                            </div>
+</div>
+<!-- Data Table Section -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden flex flex-col">
+<!-- Table Actions -->
+<div class="px-5 py-4 border-b border-border-light dark:border-border-dark flex flex-wrap items-center justify-between gap-4">
+<h3 class="font-bold text-slate-900 dark:text-white">Seat Inventory</h3>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">upload</span>
+                                        Import CSV
+                                    </button>
+<button class="px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                                        Export CSV
+                                    </button>
+<div class="h-4 w-px bg-border-light dark:bg-border-dark mx-1"></div>
+<button class="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+                                        Bulk Delete
+                                    </button>
+</div>
+</div>
+<!-- Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-border-light dark:border-border-dark">
+<th class="p-4 w-12">
+<input class="rounded border-gray-300 text-primary focus:ring-primary bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
+</th>
+<th class="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Row</th>
+<th class="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Seat Num</th>
+<th class="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Category</th>
+<th class="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Price</th>
+<th class="p-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+<th class="p-4 w-12"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-light dark:divide-border-dark">
+<!-- Row 1 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="p-4">
+<input class="rounded border-gray-300 text-primary focus:ring-primary bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
+</td>
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">A</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-300 font-mono">01</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">VIP Gold</span>
+</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-mono text-right">$250.00</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                                    Available
+                                                </span>
+</td>
+<td class="p-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="p-4">
+<input class="rounded border-gray-300 text-primary focus:ring-primary bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
+</td>
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">A</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-300 font-mono">02</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">VIP Gold</span>
+</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-mono text-right">$250.00</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400">
+<span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                                                    Held (Admin)
+                                                </span>
+</td>
+<td class="p-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 (Selected) -->
+<tr class="bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+<td class="p-4">
+<input checked="" class="rounded border-gray-300 text-primary focus:ring-primary bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
+</td>
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">C</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-300 font-mono">02</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">Standard</span>
+</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-mono text-right">$85.00</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                                    Available
+                                                </span>
+</td>
+<td class="p-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 (Selected) -->
+<tr class="bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+<td class="p-4">
+<input checked="" class="rounded border-gray-300 text-primary focus:ring-primary bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
+</td>
+<td class="p-4 text-sm font-medium text-slate-900 dark:text-white">C</td>
+<td class="p-4 text-sm text-slate-600 dark:text-slate-300 font-mono">03</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">Standard</span>
+</td>
+<td class="p-4 text-sm text-slate-900 dark:text-white font-mono text-right">$85.00</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                                    Available
+                                                </span>
+</td>
+<td class="p-4">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-5 py-3 border-t border-border-light dark:border-border-dark flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
+<span class="text-sm text-slate-500 dark:text-slate-400">Showing 1-4 of 240 seats</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 rounded border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50">Prev</button>
+<button class="px-3 py-1 rounded border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm hover:bg-slate-50 dark:hover:bg-slate-700">Next</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

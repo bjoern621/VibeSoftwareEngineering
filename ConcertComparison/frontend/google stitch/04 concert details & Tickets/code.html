@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Heavy Metal Night - Concert Details</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                        "highlight-orange": "#FF7F0E",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-[#121517] dark:text-gray-100 flex flex-col min-h-screen antialiased">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-white dark:bg-[#1a2630] border-b border-gray-200 dark:border-gray-700">
+<div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<!-- Logo & Search -->
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 cursor-pointer">
+<span class="material-symbols-outlined text-primary text-4xl">confirmation_number</span>
+<h2 class="text-[#121517] dark:text-white text-xl font-bold tracking-tight hidden md:block">TicketMaster Clone</h2>
+</div>
+<div class="hidden md:flex relative max-w-md w-64">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg leading-5 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition duration-150 ease-in-out" placeholder="Search events, artists..." type="search"/>
+</div>
+</div>
+<!-- Nav Links & Actions -->
+<div class="flex items-center gap-6">
+<nav class="hidden lg:flex gap-6">
+<a class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary transition-colors" href="#">Concerts</a>
+<a class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary transition-colors" href="#">Sports</a>
+<a class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary transition-colors" href="#">Arts</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center h-9 px-4 rounded-lg bg-primary text-white text-sm font-bold hover:bg-blue-700 transition-colors">
+                            Log In
+                        </button>
+<button class="flex items-center justify-center size-9 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<!-- Breadcrumbs -->
+<nav aria-label="Breadcrumb" class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+<a class="hover:text-primary" href="#">Home</a>
+<span class="mx-2">/</span>
+<a class="hover:text-primary" href="#">Concerts</a>
+<span class="mx-2">/</span>
+<span class="text-gray-900 dark:text-white font-medium">Heavy Metal Night</span>
+</nav>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+<!-- Left Column: Content (60% approx -> 7 cols) -->
+<div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+<!-- Hero Image -->
+<div class="relative w-full aspect-video rounded-xl overflow-hidden shadow-sm group">
+<div class="absolute inset-0 bg-gray-200 animate-pulse"></div>
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Large concert crowd with stage lights and heavy metal band performing" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBhbnUy-bwCImwSKXUoxd1WgVd5h6vXt1OiSNsJpcAlnYLTOI_veTzZJ47ZGMvWHg9fO_kD31ElqCsr_ien0zuuYmrneyv7_vWzUdn-rlgPM8LsSs3sCohQYp6mODeJZz4yBtw7_qqH-XkcvbOjDRgva2UGs47Af1s1gzglcT-7I2pbXxCy8F38Byn3n3_H81hdY3q8E_dgIMI5_EmZh37_s8Rbs-bAL_HIxMx5Y1kVCXD3MQ3XNgc2aKPGwOPU6wE12UNnxqrrJQ9T');">
+</div>
+<div class="absolute top-4 right-4 bg-white/90 dark:bg-black/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-gray-900 dark:text-white flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-sm">local_fire_department</span> Selling Fast
+                    </div>
+</div>
+<!-- Event Header Info -->
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-wide">
+<span>Metal</span>
+<span class="size-1 bg-gray-300 rounded-full"></span>
+<span>Rock</span>
+</div>
+<h1 class="text-3xl sm:text-4xl font-extrabold text-[#121517] dark:text-white tracking-tight leading-tight">Heavy Metal Night 2023</h1>
+</div>
+<div class="flex flex-wrap items-center gap-x-6 gap-y-3 text-gray-600 dark:text-gray-300">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">calendar_month</span>
+<span class="text-base font-medium">Tue, Oct 31 • 20:00</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">location_on</span>
+<a class="text-base font-medium hover:underline hover:text-primary" href="#">Olympiahalle, Munich</a>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-yellow-400 text-lg fill-current" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-bold text-[#121517] dark:text-white">4.8</span>
+<span class="text-sm text-gray-500">(1,240 reviews)</span>
+</div>
+</div>
+</div>
+<!-- Tabs Navigation -->
+<div class="border-b border-gray-200 dark:border-gray-700 mt-2">
+<nav aria-label="Tabs" class="-mb-px flex space-x-8 overflow-x-auto">
+<a class="border-primary text-primary whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" href="#">Overview</a>
+<a class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" href="#">Lineup</a>
+<a class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" href="#">Venue Info</a>
+<a class="border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" href="#">Reviews</a>
+</nav>
+</div>
+<!-- Tab Content: Overview -->
+<div class="py-4 text-gray-600 dark:text-gray-300 leading-relaxed space-y-4">
+<p>Prepare for the loudest night of the year! Heavy Metal Night returns to Munich with a lineup that will shake the foundations of the Olympiahalle. Featuring legendary headliners and the hottest upcoming acts from the global metal scene.</p>
+<p>Experience a high-octane production with pyrotechnics, massive LED walls, and a sound system designed to deliver every riff with bone-crushing clarity. Don't miss out on this unforgettable celebration of heavy music.</p>
+<h3 class="text-lg font-bold text-[#121517] dark:text-white mt-6 mb-2">Important Information</h3>
+<ul class="list-disc pl-5 space-y-1">
+<li>Doors open at 18:00. Show starts at 20:00.</li>
+<li>This event is 16+. ID required for entry.</li>
+<li>No professional cameras or recording equipment allowed.</li>
+<li>Bag policy: Only small clear bags allowed (max A4 size).</li>
+</ul>
+</div>
+<!-- Reviews Snapshot -->
+<div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+<h3 class="text-xl font-bold text-[#121517] dark:text-white mb-6">Rating &amp; Reviews</h3>
+<div class="flex flex-col md:flex-row gap-8 items-start">
+<!-- Rating Big Number -->
+<div class="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-xl p-6 min-w-[160px]">
+<span class="text-5xl font-black text-[#121517] dark:text-white tracking-tighter">4.8</span>
+<div class="flex gap-0.5 my-2">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-current" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-current" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-current" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-current" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-current" style="font-variation-settings: 'FILL' 1;">star_half</span>
+</div>
+<span class="text-sm text-gray-500 font-medium">1,240 verified ratings</span>
+</div>
+<!-- Rating Bars -->
+<div class="flex-1 w-full space-y-2">
+<div class="flex items-center gap-3 text-sm">
+<span class="w-3 text-right font-medium">5</span>
+<div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[77%] rounded-full"></div>
+</div>
+<span class="w-8 text-right text-gray-500">77%</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<span class="w-3 text-right font-medium">4</span>
+<div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[15%] rounded-full"></div>
+</div>
+<span class="w-8 text-right text-gray-500">15%</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<span class="w-3 text-right font-medium">3</span>
+<div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[5%] rounded-full"></div>
+</div>
+<span class="w-8 text-right text-gray-500">5%</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<span class="w-3 text-right font-medium">2</span>
+<div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[1%] rounded-full"></div>
+</div>
+<span class="w-8 text-right text-gray-500">1%</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<span class="w-3 text-right font-medium">1</span>
+<div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[2%] rounded-full"></div>
+</div>
+<span class="w-8 text-right text-gray-500">2%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Sticky Ticket Selector (40% approx -> 5 cols) -->
+<div class="lg:col-span-5 xl:col-span-4">
+<div class="sticky top-24 flex flex-col gap-4">
+<!-- Real-time Alert -->
+<div class="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900 rounded-lg p-3 flex items-center gap-3 animate-fade-in">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+</span>
+<p class="text-sm font-medium text-red-700 dark:text-red-300">
+                            High demand! 128 people are viewing this event.
+                        </p>
+</div>
+<!-- Booking Card -->
+<div class="bg-white dark:bg-[#1a2630] rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+<!-- Header / Timer -->
+<div class="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+<span class="text-sm font-medium text-gray-600 dark:text-gray-300">Select Tickets</span>
+<div class="flex items-center gap-1.5 text-primary text-sm font-mono font-medium bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
+<span class="material-symbols-outlined text-base">timer</span>
+                                09:45
+                            </div>
+</div>
+<div class="p-6 flex flex-col gap-6">
+<!-- Ticket Options -->
+<div class="flex flex-col gap-3">
+<!-- Option 1: VIP -->
+<label class="relative flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-gray-50 dark:hover:bg-gray-800 group has-[:checked]:border-primary has-[:checked]:bg-blue-50/50 dark:has-[:checked]:bg-blue-900/10 border-gray-200 dark:border-gray-600">
+<input class="peer sr-only" name="ticket-type" type="radio"/>
+<div class="flex flex-col">
+<span class="font-bold text-[#121517] dark:text-white group-hover:text-primary transition-colors">VIP Package</span>
+<span class="text-xs text-gray-500 dark:text-gray-400">Early entry + Meet &amp; Greet</span>
+</div>
+<div class="text-right">
+<span class="block font-bold text-[#121517] dark:text-white text-lg">€150.00</span>
+<span class="text-xs font-medium text-green-600 dark:text-green-400">Available</span>
+</div>
+<div class="absolute inset-0 rounded-lg ring-2 ring-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+<!-- Option 2: Front Row -->
+<label class="relative flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-gray-50 dark:hover:bg-gray-800 group has-[:checked]:border-primary has-[:checked]:bg-blue-50/50 dark:has-[:checked]:bg-blue-900/10 border-gray-200 dark:border-gray-600">
+<input checked="" class="peer sr-only" name="ticket-type" type="radio"/>
+<div class="flex flex-col">
+<span class="font-bold text-[#121517] dark:text-white group-hover:text-primary transition-colors">Front Row</span>
+<span class="text-xs text-gray-500 dark:text-gray-400">Section A, Rows 1-5</span>
+</div>
+<div class="text-right">
+<span class="block font-bold text-[#121517] dark:text-white text-lg">€90.00</span>
+<span class="text-xs font-medium text-orange-600 dark:text-orange-400">Only 4 left</span>
+</div>
+<div class="absolute inset-0 rounded-lg ring-2 ring-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+<!-- Option 3: Standard -->
+<label class="relative flex items-center justify-between p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-gray-50 dark:hover:bg-gray-800 group has-[:checked]:border-primary has-[:checked]:bg-blue-50/50 dark:has-[:checked]:bg-blue-900/10 border-gray-200 dark:border-gray-600">
+<input class="peer sr-only" name="ticket-type" type="radio"/>
+<div class="flex flex-col">
+<span class="font-bold text-[#121517] dark:text-white group-hover:text-primary transition-colors">Standard</span>
+<span class="text-xs text-gray-500 dark:text-gray-400">General Admission</span>
+</div>
+<div class="text-right">
+<span class="block font-bold text-[#121517] dark:text-white text-lg">€45.00</span>
+<span class="text-xs font-medium text-green-600 dark:text-green-400">Available</span>
+</div>
+<div class="absolute inset-0 rounded-lg ring-2 ring-primary opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+</label>
+</div>
+<!-- Quantity Selector -->
+<div class="flex items-center justify-between py-2">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</span>
+<div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800">
+<button class="px-3 py-1.5 text-gray-600 dark:text-gray-400 hover:text-primary disabled:opacity-50">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="px-2 w-8 text-center font-medium text-[#121517] dark:text-white">2</span>
+<button class="px-3 py-1.5 text-gray-600 dark:text-gray-400 hover:text-primary">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- Divider -->
+<hr class="border-gray-100 dark:border-gray-700"/>
+<!-- Price Breakdown -->
+<div class="space-y-2">
+<div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+<span>2 x Front Row</span>
+<span>€180.00</span>
+</div>
+<div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+<span>Service Fee</span>
+<span>€5.50</span>
+</div>
+<div class="flex justify-between items-center mt-2 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700">
+<span class="font-bold text-[#121517] dark:text-white">Total</span>
+<span class="text-2xl font-black text-highlight-orange tracking-tight">€185.50</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-3 mt-2">
+<button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-lg shadow-md transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+                                    Zu Warenkorb hinzufügen
+                                </button>
+<button class="w-full bg-white dark:bg-transparent border border-gray-300 dark:border-gray-600 text-[#121517] dark:text-white font-bold py-3.5 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all active:scale-[0.98]">
+                                    Direkt kaufen
+                                </button>
+</div>
+<!-- Trust Badges -->
+<div class="flex justify-center items-center gap-4 pt-2">
+<div class="flex items-center gap-1.5 text-[10px] text-gray-500 uppercase tracking-wide font-medium">
+<span class="material-symbols-outlined text-base text-green-600">verified_user</span>
+                                    Secure Payment
+                                </div>
+<div class="flex items-center gap-1.5 text-[10px] text-gray-500 uppercase tracking-wide font-medium">
+<span class="material-symbols-outlined text-base text-primary">confirmation_number</span>
+                                    Verified Tickets
+                                </div>
+</div>
+</div>
+</div>
+<!-- Venue Map Preview -->
+<div class="rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-700 h-32 relative group cursor-pointer">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-location="Munich" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAk0T_S9xNbsISSGMzomR9kUwcn8pcdLru7Hn8wPP6tn6syzcT8Jf315k9c5rBLxcI-_uZm7a6dPLzWg36OdHHtRiriHJS5-BQ2d6vxAoukhvCU3YQMhVXWmUixsCplQc7EaCTZsy-ANIFngP2Jugz9ca5U_nAdwjsrPwVTFZF1lDm3B74zaVgbWcT5SBxubOsF6ZUkWH45k_bbksDylJTySrrRwOW7QVtaTafYZAWcNw_UJoQJfIm_QZ48dYIdfF9nrFy9xxlkUlGf');">
+</div>
+<div class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+<div class="bg-white/90 dark:bg-black/70 backdrop-blur px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm font-bold text-[#121517] dark:text-white shadow-sm">
+<span class="material-symbols-outlined text-primary text-sm">map</span>
+                                View Seat Map
+                            </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Simple Footer -->
+<footer class="bg-white dark:bg-[#1a2630] border-t border-gray-200 dark:border-gray-700 mt-12 py-8">
+<div class="max-w-[1280px] mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
+<p>© 2023 TicketMaster Clone. All rights reserved.</p>
+</div>
+</footer>
+</body></html>
