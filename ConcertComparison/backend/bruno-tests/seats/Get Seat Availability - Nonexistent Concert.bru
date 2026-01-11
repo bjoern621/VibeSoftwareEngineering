@@ -1,0 +1,23 @@
+meta {
+  name: Get Seat Availability - Nonexistent Concert
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/concerts/999/seats
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Empty response for nonexistent concert", function() {
+    expect(res.body.totalSeats).to.equal(0);
+    expect(res.body.availableSeats).to.equal(0);
+    expect(res.body.seats).to.be.an('array').that.is.empty;
+  });
+}
