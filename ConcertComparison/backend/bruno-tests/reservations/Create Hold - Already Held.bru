@@ -1,0 +1,32 @@
+meta {
+  name: Create Hold - Already Held
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/seats/31/hold
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "userId": "user_test_456"
+  }
+}
+
+tests {
+  test("Status code is 409", function() {
+    expect(res.status).to.equal(409);
+  });
+  
+  test("Response has error code", function() {
+    expect(res.body.code).to.be.a('string');
+    expect(res.body.code).to.match(/SEAT_NOT_AVAILABLE|CONCURRENCY_CONFLICT/);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.body.message).to.be.a('string');
+  });
+}
