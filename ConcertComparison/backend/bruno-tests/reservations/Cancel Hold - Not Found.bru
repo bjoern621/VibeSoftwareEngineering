@@ -1,0 +1,21 @@
+meta {
+  name: Cancel Hold - Not Found
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{baseUrl}}/api/reservations/99999
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 404", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Response has error code", function() {
+    expect(res.body.code).to.equal("HOLD_NOT_FOUND");
+  });
+}

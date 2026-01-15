@@ -1,0 +1,43 @@
+meta {
+  name: Create Hold - Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/seats/1/hold
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "userId": "user_test_123"
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has holdId as string", function() {
+    expect(res.body.holdId).to.be.a('string');
+  });
+  
+  test("Response has seatId as string", function() {
+    expect(res.body.seatId).to.equal("1");
+  });
+  
+  test("Response has ttlSeconds", function() {
+    expect(res.body.ttlSeconds).to.be.a('number');
+    expect(res.body.ttlSeconds).to.be.greaterThan(0);
+  });
+  
+  test("Response has expiresAt", function() {
+    expect(res.body.expiresAt).to.be.a('string');
+    // Check it's a valid ISO datetime
+    const expiresAt = new Date(res.body.expiresAt);
+    expect(expiresAt.getTime()).to.be.greaterThan(Date.now());
+  });
+}

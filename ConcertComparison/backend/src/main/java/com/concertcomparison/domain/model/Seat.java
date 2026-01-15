@@ -270,6 +270,18 @@ public class Seat {
             && holdExpiresAt != null 
             && LocalDateTime.now().isAfter(holdExpiresAt);
     }
+
+    /**
+     * Aktualisiert die holdReservationId (wird nach Reservation-Erstellung aufgerufen).
+     * Nur erlaubt für Seats im Status HELD.
+     */
+    public void updateHoldReservationId(String reservationId) {
+        if (this.status != SeatStatus.HELD) {
+            throw new IllegalStateException("Nur HELD Seats können holdReservationId updaten");
+        }
+        this.holdReservationId = reservationId;
+        this.updatedAt = LocalDateTime.now();
+    }
     
     /**
      * Prüft, ob der Seat derzeit verfügbar ist.

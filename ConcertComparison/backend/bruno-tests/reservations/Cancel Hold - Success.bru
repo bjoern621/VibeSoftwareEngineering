@@ -1,0 +1,23 @@
+meta {
+  name: Cancel Hold - Success
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/api/reservations/1
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 204 or 404", function() {
+    expect([204, 404]).to.include(res.status);
+  });
+  
+  test("If 204: No content in response", function() {
+    if (res.status === 204) {
+      expect(res.body).to.be.undefined;
+    }
+  });
+}
