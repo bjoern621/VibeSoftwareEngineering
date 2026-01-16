@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-concerts-table
+      author: concert-comparison-team
+      changes:
+        - createTable:
+            tableName: concerts
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_concerts
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: venue
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2000)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValue: 0
+        - createIndex:
+            indexName: idx_concert_date
+            tableName: concerts
+            columns:
+              - column:
+                  name: event_date
+        - createIndex:
+            indexName: idx_concert_venue
+            tableName: concerts
+            columns:
+              - column:
+                  name: venue
+      rollback:
+        - dropTable:
+            tableName: concerts

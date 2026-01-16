@@ -49,6 +49,24 @@ public interface SeatRepository {
     Optional<Seat> findById(Long id);
     
     /**
+     * Findet einen Seat mit Pessimistic Write Lock (FOR UPDATE).
+     * 
+     * ⚠️ HIGH-PERFORMANCE MODE für kritische Szenarien:
+     * - Verwendung bei > 10.000 Requests/Sekunde auf denselben Seat
+     * - Verhindert Optimistic Lock Retries bei hoher Konfliktrate
+     * - Blockiert andere Transaktionen bis Lock freigegeben wird
+     * 
+     * Transaktionsgarantie: Keine parallelen Änderungen möglich.
+     * DB-Query: SELECT ... FROM seats WHERE id = ? FOR UPDATE
+     * 
+     * WICHTIG: Nur in @Transactional Context verwenden!
+     * 
+     * @param id Seat-ID
+     * @return Optional mit Seat (locked), falls gefunden
+     */
+    Optional<Seat> findByIdForUpdate(Long id);
+    
+    /**
      * Findet alle Seats mit abgelaufenen Holds für automatische Bereinigung.
      * 
      * Wird vom Scheduler verwendet, um abgelaufene Reservierungen freizugeben.
@@ -105,4 +123,16 @@ public interface SeatRepository {
      * @return Anzahl der Seats
      */
     long countByConcertId(Long concertId);
+    
+    /**
+     * Löscht alle Seats (nur für Tests).
+     */
+    void deleteAll();
+    
+    /**
+     * Findet alle Seats (nur für Tests).
+     * 
+     * @return Liste aller Seats
+     */
+    List<Seat> findAll();
 }
