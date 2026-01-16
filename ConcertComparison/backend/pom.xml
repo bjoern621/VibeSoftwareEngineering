@@ -23,6 +23,9 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <scala.version>2.13.12</scala.version>
+        <gatling.version>3.13.5</gatling.version>
+        <netty.version>4.1.104.Final</netty.version>
     </properties>
 
     <dependencies>
@@ -78,6 +81,24 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Gatling Load Testing -->
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Netty Dependencies für Gatling 3.13.1 -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -85,6 +106,35 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- Scala Compiler Plugin für Gatling Tests -->
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>4.8.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scalaVersion>${scala.version}</scalaVersion>
+                </configuration>
+            </plugin>
+            <!-- Gatling Maven Plugin -->
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>4.9.6</version>
+                <configuration>
+                    <runMultipleSimulations>true</runMultipleSimulations>
+                    <jvmArgs>
+                        <jvmArg>--add-opens=java.base/java.lang=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/java.util=ALL-UNNAMED</jvmArg>
+                    </jvmArgs>
+                </configuration>
             </plugin>
         </plugins>
     </build>
