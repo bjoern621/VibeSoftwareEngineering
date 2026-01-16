@@ -3,7 +3,9 @@ package com.concertcomparison.infrastructure.persistence;
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.model.SeatStatus;
 import com.concertcomparison.domain.repository.SeatRepository;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +55,27 @@ public interface JpaSeatRepository extends JpaRepository<Seat, Long>, SeatReposi
     @Query("SELECT s FROM Seat s WHERE s.status = 'HELD' AND s.holdExpiresAt < :now")
     @Override
     List<Seat> findExpiredHolds(@Param("now") LocalDateTime now);
+    
+    /**
+     * {@inheritDoc}
+     * 
+     * PESSIMISTIC WRITE LOCK für High-Traffic Szenarien.
+     * 
+     * DB-Query: SELECT * FROM seats WHERE id = ? FOR UPDATE
+     * 
+     * Verhindert parallele Zugriffe während der Transaktion.
+     * Andere Threads warten bis Lock freigegeben wird.
+     * 
+     * Performance Trade-off:
+     * - Pro: Keine Optimistic Lock Retries bei hoher Konfliktrate
+     * - Contra: Serialisierung der Requests, niedrigerer Durchsatz
+     * 
+     * Empfohlen für: Ticket-Verkaufsstart mit 10.000+ req/s auf populäre Seats
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM Seat s WHERE s.id = :id")
+    @Override
+    Optional<Seat> findByIdForUpdate(@Param("id") Long id);
     
     /**
      * {@inheritDoc}

@@ -59,4 +59,16 @@ public interface ReservationRepository {
      * Zählt aktive Reservations für einen User.
      */
     long countActiveByUserId(String userId);
+    
+    /**
+     * Löscht alle Reservations (nur für Tests).
+     */
+    void deleteAll();
+    
+    /**
+     * Findet alle Reservations (nur für Tests).
+     * 
+     * @return Liste aller Reservations
+     */
+    List<Reservation> findAll();
 }
