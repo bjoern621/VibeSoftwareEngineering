@@ -1,9 +1,0 @@
-### 09 - Logout Without Token
-# Converted from bruno-tests/auth/09-logout-without-token.bru
-# No Authorization header
-# Expected: 403 Forbidden
-
-POST http://localhost:8080/api/kunden/logout
-Content-Type: application/json
-
-###
