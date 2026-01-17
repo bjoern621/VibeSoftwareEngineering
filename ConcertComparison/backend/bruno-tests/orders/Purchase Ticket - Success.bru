@@ -1,0 +1,56 @@
+meta {
+  name: Purchase Ticket - Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/orders
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "reservationId": 1,
+    "userId": "test_user"
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has orderId", function() {
+    expect(res.body.orderId).to.be.a('string');
+  });
+  
+  test("Response has seatId", function() {
+    expect(res.body.seatId).to.be.a('string');
+  });
+  
+  test("Response has userId", function() {
+    expect(res.body.userId).to.equal("test_user");
+  });
+  
+  test("Response has seatNumber", function() {
+    expect(res.body.seatNumber).to.be.a('string');
+  });
+  
+  test("Response has category", function() {
+    expect(res.body.category).to.be.a('string');
+  });
+  
+  test("Response has totalPrice", function() {
+    expect(res.body.totalPrice).to.be.a('number');
+  });
+  
+  test("Response has status CONFIRMED", function() {
+    expect(res.body.status).to.equal("CONFIRMED");
+  });
+  
+  test("Response has createdAt", function() {
+    expect(res.body.createdAt).to.be.a('string');
+  });
+}

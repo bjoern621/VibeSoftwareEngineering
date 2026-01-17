@@ -1,0 +1,27 @@
+meta {
+  name: Purchase Ticket - Missing Fields
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/orders
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "reservationId": 1
+  }
+}
+
+tests {
+  test("Status code is 400", function() {
+    expect(res.status).to.equal(400);
+  });
+  
+  test("Response contains validation error", function() {
+    expect(res.body).to.be.an('object');
+  });
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Purchase Ticket - Reservation Not Found
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/orders
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "reservationId": 99999,
+    "userId": "test_user"
+  }
+}
+
+tests {
+  test("Status code is 404", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Response has error code", function() {
+    expect(res.body.code).to.equal("INVALID_REQUEST");
+  });
+  
+  test("Response has error message", function() {
+    expect(res.body.message).to.contain("Reservation");
+  });
+}

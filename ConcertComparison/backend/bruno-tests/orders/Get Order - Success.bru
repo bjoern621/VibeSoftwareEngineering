@@ -1,0 +1,32 @@
+meta {
+  name: Get Order - Success
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/orders/1
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has orderId", function() {
+    expect(res.body.orderId).to.be.a('string');
+  });
+  
+  test("Response has userId", function() {
+    expect(res.body.userId).to.be.a('string');
+  });
+  
+  test("Response has status CONFIRMED", function() {
+    expect(res.body.status).to.equal("CONFIRMED");
+  });
+  
+  test("Response has totalPrice", function() {
+    expect(res.body.totalPrice).to.be.a('number');
+  });
+}

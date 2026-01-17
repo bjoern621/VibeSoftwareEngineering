@@ -1,0 +1,24 @@
+meta {
+  name: Get Order - Not Found
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/orders/99999
+  auth: none
+}
+
+tests {
+  test("Status code is 404", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Response has error code", function() {
+    expect(res.body.code).to.equal("INVALID_REQUEST");
+  });
+  
+  test("Response has error message", function() {
+    expect(res.body.message).to.contain("Order");
+  });
+}

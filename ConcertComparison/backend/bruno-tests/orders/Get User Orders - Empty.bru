@@ -1,0 +1,21 @@
+meta {
+  name: Get User Orders - Empty
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/orders?userId=user_without_orders
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an empty array", function() {
+    expect(res.body).to.be.an('array');
+    expect(res.body).to.have.length(0);
+  });
+}

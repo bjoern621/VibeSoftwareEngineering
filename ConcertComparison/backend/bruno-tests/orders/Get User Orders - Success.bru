@@ -1,0 +1,32 @@
+meta {
+  name: Get User Orders - Success
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/orders?userId=test_user
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+  
+  test("Each order has orderId", function() {
+    res.body.forEach(function(order) {
+      expect(order.orderId).to.be.a('string');
+    });
+  });
+  
+  test("Each order has status", function() {
+    res.body.forEach(function(order) {
+      expect(order.status).to.equal("CONFIRMED");
+    });
+  });
+}
