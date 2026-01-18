@@ -13,7 +13,7 @@ jobs:
 
         defaults:
             run:
-                working-directory: RentACar/backend
+                working-directory: ConcertComparison/backend
 
         steps:
             - name: Checkout Repository
@@ -28,5 +28,3 @@ jobs:
 
             - name: Run Unit Tests
               run: mvn test
-              env:
-                  JASYPT_ENCRYPTOR_PASSWORD: test-secret-key
