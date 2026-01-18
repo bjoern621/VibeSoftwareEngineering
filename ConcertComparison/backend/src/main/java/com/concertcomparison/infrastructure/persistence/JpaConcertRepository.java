@@ -3,6 +3,7 @@ package com.concertcomparison.infrastructure.persistence;
 import com.concertcomparison.domain.model.Concert;
 import com.concertcomparison.domain.repository.ConcertRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -14,10 +15,12 @@ import java.util.List;
  * 
  * Infrastructure Layer: Implementiert das Domain Repository Interface.
  * Verwendet Spring Data JPA für automatische Query-Generierung.
+ * JpaSpecificationExecutor ermöglicht dynamische Filterung mit Specifications.
  */
 @Repository
-public interface JpaConcertRepository extends JpaRepository<Concert, Long>, ConcertRepository {
-    
+public interface JpaConcertRepository extends JpaRepository<Concert, Long>,
+        JpaSpecificationExecutor<Concert>, ConcertRepository {
+
     // Spring Data JPA generiert automatisch Queries basierend auf Methodennamen
     
     @Override

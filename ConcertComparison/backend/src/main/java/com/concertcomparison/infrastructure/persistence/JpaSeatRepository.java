@@ -112,6 +112,23 @@ public interface JpaSeatRepository extends JpaRepository<Seat, Long>, SeatReposi
     long countByConcertId(Long concertId);
     
     /**
+     * {@inheritDoc}
+     *
+     * Optimierte Existenz-Prüfung (stoppt bei erstem Treffer).
+     */
+    @Override
+    boolean existsByConcertIdAndStatus(Long concertId, SeatStatus status);
+
+    /**
+     * {@inheritDoc}
+     *
+     * DB-Aggregation mit MIN() für minimalen Preis.
+     */
+    @Query("SELECT MIN(s.price) FROM Seat s WHERE s.concertId = :concertId")
+    @Override
+    Double findMinPriceByConcertId(@Param("concertId") Long concertId);
+
+    /**
      * Projection Interface für DB-Aggregation Query.
      * 
      * Wird von Spring Data JPA automatisch gemappt.

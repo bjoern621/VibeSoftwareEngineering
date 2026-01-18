@@ -125,6 +125,27 @@ public interface SeatRepository {
     long countByConcertId(Long concertId);
     
     /**
+     * Prüft, ob für ein Konzert mindestens ein Seat mit dem gegebenen Status existiert.
+     *
+     * Performance-optimiert für Availability-Check (stoppt bei erstem Treffer).
+     *
+     * @param concertId ID des Konzerts
+     * @param status Seat-Status
+     * @return true wenn mindestens ein Seat mit dem Status existiert
+     */
+    boolean existsByConcertIdAndStatus(Long concertId, SeatStatus status);
+
+    /**
+     * Findet den minimalen Preis aller Seats für ein Konzert.
+     *
+     * Performance-optimiert mit DB-aggregation (MIN()).
+     *
+     * @param concertId ID des Konzerts
+     * @return Minimaler Preis, oder null wenn keine Seats vorhanden
+     */
+    Double findMinPriceByConcertId(Long concertId);
+
+    /**
      * Löscht alle Seats (nur für Tests).
      */
     void deleteAll();

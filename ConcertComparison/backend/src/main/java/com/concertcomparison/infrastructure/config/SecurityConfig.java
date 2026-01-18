@@ -29,6 +29,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/api/**",           // Alle API Endpoints
+                    "/events/**",        // Concert-Liste Endpoint
                     "/actuator/health",  // Health Check (Load Balancer braucht das!)
                     "/h2-console/**",    // H2 Console
                     "/swagger-ui/**",    // Swagger UI

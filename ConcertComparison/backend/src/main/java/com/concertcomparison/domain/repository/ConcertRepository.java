@@ -1,6 +1,10 @@
 package com.concertcomparison.domain.repository;
 
 import com.concertcomparison.domain.model.Concert;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +40,17 @@ public interface ConcertRepository {
      */
     List<Concert> findAll();
     
+    /**
+     * Liefert paginierte und gefilterte Concerts.
+     *
+     * Verwendet JPA Specifications für dynamische Filterung.
+     *
+     * @param spec Specification für Filter (kann null sein)
+     * @param pageable Pagination und Sortierung
+     * @return Paginierte Liste der Concerts
+     */
+    Page<Concert> findAll(Specification<Concert> spec, Pageable pageable);
+
     /**
      * Sucht Concerts nach Name (Teilstring-Suche, case-insensitive).
      * 
@@ -91,4 +106,9 @@ public interface ConcertRepository {
      * @return true wenn Concert existiert
      */
     boolean existsById(Long id);
+
+    /**
+     * Löscht alle Concerts (nur für Tests).
+     */
+    void deleteAll();
 }
