@@ -67,7 +67,7 @@ public class AuthService {
         String hashedPassword = passwordEncoder.encode(request.password());
         
         // 3. User Entity erstellen
-        User user = User.create(
+        User user = User.createUser(
                 request.email(),
                 hashedPassword,
                 request.firstName(),

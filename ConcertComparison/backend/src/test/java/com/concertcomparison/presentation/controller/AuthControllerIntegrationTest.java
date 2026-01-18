@@ -2,7 +2,7 @@ package com.concertcomparison.presentation.controller;
 
 import com.concertcomparison.domain.model.User;
 import com.concertcomparison.domain.model.UserRole;
-import com.concertcomparison.domain.repository.UserRepository;
+import com.concertcomparison.infrastructure.persistence.JpaUserRepository;
 import com.concertcomparison.presentation.dto.LoginRequest;
 import com.concertcomparison.presentation.dto.RegisterRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +43,7 @@ class AuthControllerIntegrationTest {
     private ObjectMapper objectMapper;
     
     @Autowired
-    private UserRepository userRepository;
+    private JpaUserRepository userRepository;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -55,14 +55,14 @@ class AuthControllerIntegrationTest {
         userRepository.deleteAll();
         
         // Test User erstellen
-        testUser = User.create(
+        testUser = User.createUser(
                 "existing@example.com",
                 passwordEncoder.encode("password123"),
                 "Max",
                 "Mustermann",
                 UserRole.USER
         );
-        userRepository.save(testUser);
+        ((com.concertcomparison.domain.repository.UserRepository) userRepository).save(testUser);
     }
     
     // ==================== REGISTRATION TESTS ====================

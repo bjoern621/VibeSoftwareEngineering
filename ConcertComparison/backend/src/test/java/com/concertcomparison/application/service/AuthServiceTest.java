@@ -67,7 +67,7 @@ class AuthServiceTest {
                 "Mustermann"
         );
         
-        testUser = User.create(
+        testUser = User.createUser(
                 "test@example.com",
                 "$2a$10$hashedPassword",
                 "Max",
@@ -146,7 +146,6 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUsername()).thenReturn("test@example.com");
         when(jwtTokenProvider.generateToken(userDetails)).thenReturn("jwt-token-123");
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
         
