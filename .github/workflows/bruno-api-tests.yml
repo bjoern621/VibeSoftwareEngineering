@@ -31,19 +31,17 @@ jobs:
               run: npm install -g @usebruno/cli
 
             - name: Build and Start Backend
-              working-directory: RentACar/backend
+              working-directory: ConcertComparison/backend
               run: |
                   ./mvnw clean package -DskipTests -q
-                  JASYPT_ENCRYPTOR_PASSWORD=test-secret-key java -jar target/*.jar &
+                  java -jar target/*.jar &
                   echo "Waiting for backend to start..."
                   sleep 30
-              env:
-                  JASYPT_ENCRYPTOR_PASSWORD: test-secret-key
 
             - name: Wait for Backend Health
               run: |
                   for i in {1..30}; do
-                    if curl -s http://localhost:8080/api/vehicle-types > /dev/null; then
+                    if curl -s http://localhost:8080/api/actuator/health > /dev/null; then
                       echo "Backend is ready!"
                       exit 0
                     fi
@@ -54,5 +52,5 @@ jobs:
                   exit 1
 
             - name: Run Bruno Tests
-              working-directory: RentACar/backend/bruno-tests
+              working-directory: ConcertComparison/backend/bruno-tests
               run: bru run --env local
