@@ -41,7 +41,7 @@ jobs:
             - name: Wait for Backend Health
               run: |
                   for i in {1..30}; do
-                    if curl -s http://localhost:8080/api/actuator/health > /dev/null; then
+                    if curl -s http://localhost:8080/actuator/health > /dev/null; then
                       echo "Backend is ready!"
                       exit 0
                     fi
