@@ -1,6 +1,9 @@
 package com.concertcomparison.presentation.controller;
 
 import com.concertcomparison.application.service.SeatApplicationService;
+import com.concertcomparison.infrastructure.security.CustomUserDetailsService;
+import com.concertcomparison.infrastructure.security.JwtAuthenticationFilter;
+import com.concertcomparison.infrastructure.security.JwtTokenProvider;
 import com.concertcomparison.presentation.dto.AvailabilityByCategoryDTO;
 import com.concertcomparison.presentation.dto.SeatAvailabilityResponseDTO;
 import com.concertcomparison.presentation.dto.SeatResponseDTO;
@@ -9,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -23,7 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Controller Tests für Seat Availability Endpoint.
  * Testet REST API und JSON Response Structure gemäß OpenAPI Spec.
  */
-@WebMvcTest(SeatController.class)
+@WebMvcTest(controllers = SeatController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, 
+                classes = {JwtAuthenticationFilter.class}))
 class SeatControllerTest {
 
     @Autowired
@@ -31,6 +38,12 @@ class SeatControllerTest {
 
     @MockBean
     private SeatApplicationService seatApplicationService;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
 
     @Test
     @WithMockUser

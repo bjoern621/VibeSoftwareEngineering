@@ -1,5 +1,6 @@
 package com.concertcomparison.infrastructure.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -60,7 +61,7 @@ public class SecurityConfiguration {
                         // Public Endpoints (kein Login erforderlich)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         
                         // Events & Seats - Read-Only für alle
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
@@ -81,17 +82,28 @@ public class SecurityConfiguration {
                         .anyRequest().authenticated()
                 )
                 
-                // JWT Authentication Filter vor UsernamePasswordAuthenticationFilter
+                // Authentication Entry Point: Return 401 for unauthenticated requests
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"Authentifizierung erforderlich\"}");
+                        })
+                )
+                
+                // Authentication Provider
+                .authenticationProvider(authenticationProvider())
+                
+                // JWT Filter vor UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }
     
     /**
-     * Password Encoder Bean (BCrypt).
+     * Password Encoder Bean.
      * 
-     * BCrypt ist ein adaptiver Hash-Algorithmus mit Salt.
-     * Strength 10 = guter Kompromiss zwischen Security und Performance.
+     * BCrypt mit Strength 10.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -99,9 +111,9 @@ public class SecurityConfiguration {
     }
     
     /**
-     * Authentication Provider.
+     * Authentication Provider Bean.
      * 
-     * Verwendet CustomUserDetailsService und BCrypt Password Encoder.
+     * Verbindet UserDetailsService mit PasswordEncoder.
      */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
