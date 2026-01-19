@@ -67,6 +67,9 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/seats/**").permitAll()
                         
+                        // Seat Hold - User kann Seats reservieren
+                        .requestMatchers(HttpMethod.POST, "/api/seats/*/hold").hasAnyRole("USER", "ADMIN")
+                        
                         // Admin-Only Endpoints
                         .requestMatchers(HttpMethod.POST, "/api/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/events/**").hasRole("ADMIN")

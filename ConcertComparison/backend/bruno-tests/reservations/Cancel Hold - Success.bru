@@ -7,7 +7,11 @@ meta {
 delete {
   url: {{baseUrl}}/api/reservations/1
   body: none
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
 }
 
 tests {
