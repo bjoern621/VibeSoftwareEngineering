@@ -7,7 +7,11 @@ meta {
 delete {
   url: {{baseUrl}}/api/reservations/1
   body: none
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
 }
 
 tests {
@@ -17,7 +21,8 @@ tests {
   
   test("If 204: No content in response", function() {
     if (res.status === 204) {
-      expect(res.body).to.be.undefined;
+      // 204 responses have empty body (undefined or empty string)
+      expect(res.body === undefined || res.body === '').to.be.true;
     }
   });
 }

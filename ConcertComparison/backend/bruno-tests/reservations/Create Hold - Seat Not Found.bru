@@ -7,7 +7,11 @@ meta {
 post {
   url: {{baseUrl}}/api/seats/99999/hold
   body: json
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
 }
 
 body:json {

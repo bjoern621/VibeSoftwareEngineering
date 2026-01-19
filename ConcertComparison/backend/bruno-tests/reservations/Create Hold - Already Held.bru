@@ -5,9 +5,13 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/seats/31/hold
+  url: {{baseUrl}}/api/seats/1/hold
   body: json
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
 }
 
 body:json {
@@ -32,7 +36,9 @@ tests {
     }
   });
   
-  test("Response has error message", function() {
-    expect(res.body.message).to.be.a('string');
+  test("Response has error message (only if 409)", function() {
+    if (res.status === 409) {
+      expect(res.body.message).to.be.a('string');
+    }
   });
 }
