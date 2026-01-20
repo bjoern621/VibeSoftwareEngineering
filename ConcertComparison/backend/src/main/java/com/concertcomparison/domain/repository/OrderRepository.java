@@ -103,4 +103,11 @@ public interface OrderRepository {
      * @return true wenn Order existiert
      */
     boolean existsBySeatId(Long seatId);
+    
+    /**
+     * Löscht alle Orders.
+     * 
+     * ACHTUNG: Nur für Tests verwenden!
+     */
+    void deleteAll();
 }

@@ -102,4 +102,11 @@ public interface UserRepository {
      * @return true wenn User existiert
      */
     boolean existsByEmail(String email);
+    
+    /**
+     * Löscht alle Users.
+     * 
+     * ACHTUNG: Nur für Tests verwenden!
+     */
+    void deleteAll();
 }

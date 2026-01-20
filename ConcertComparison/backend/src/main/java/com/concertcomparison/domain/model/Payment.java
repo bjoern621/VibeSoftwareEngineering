@@ -118,6 +118,7 @@ public class Payment {
      * Markiert das Payment als erfolgreich abgeschlossen.
      * 
      * Business Rule: Nur PENDING Payments können completed werden.
+     * Package-private: Nur von Order (Aggregate Root) aufrufbar.
      * 
      * @param transactionId Transaktions-ID vom Zahlungsanbieter
      * @throws IllegalStateException wenn Payment nicht PENDING ist
