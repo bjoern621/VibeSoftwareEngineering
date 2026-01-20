@@ -91,4 +91,11 @@ public interface ConcertRepository {
      * @return true wenn Concert existiert
      */
     boolean existsById(Long id);
+    
+    /**
+     * Löscht alle Concerts.
+     * 
+     * ACHTUNG: Nur für Tests verwenden!
+     */
+    void deleteAll();
 }

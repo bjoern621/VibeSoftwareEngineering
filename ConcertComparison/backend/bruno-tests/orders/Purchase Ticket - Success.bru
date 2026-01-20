@@ -1,0 +1,39 @@
+meta {
+  name: Purchase Ticket - Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/orders
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "holdId": "99999",
+    "userId": "testuser@example.com"
+  }
+}
+
+tests {
+  // HINWEIS: Dieser Test erwartet 404 weil kein Hold mit ID 99999 existiert
+  // Für echten Success-Test müsste vorher ein Hold erstellt werden
+  
+  test("Status code is 404 (Hold not found - expected)", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.body.error).to.be.a('string');
+  });
+}

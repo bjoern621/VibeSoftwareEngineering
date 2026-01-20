@@ -25,10 +25,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * - BCrypt Password Encoding
  * - Endpoint-Autorisierung (Public vs. Protected)
  * - CORS und CSRF Einstellungen
+ * 
+ * WICHTIG: Diese Konfiguration ist NICHT aktiv im "performance" Profil.
+ * Für Performance-Tests (Gatling) siehe {@link PerformanceSecurityConfiguration}.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@org.springframework.context.annotation.Profile("!performance")
 public class SecurityConfiguration {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

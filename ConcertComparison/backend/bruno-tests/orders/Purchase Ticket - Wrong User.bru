@@ -1,0 +1,36 @@
+meta {
+  name: Purchase Ticket - Wrong User
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/orders
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "holdId": "77777",
+    "userId": "wrong-user@example.com"
+  }
+}
+
+tests {
+  test("Status code is 403, 404 or 409", function() {
+    expect(res.status).to.be.oneOf([403, 404, 409]);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.body.error).to.be.a('string');
+  });
+}

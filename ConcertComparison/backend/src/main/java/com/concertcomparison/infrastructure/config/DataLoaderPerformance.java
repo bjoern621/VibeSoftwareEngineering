@@ -13,25 +13,28 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 /**
- * DataLoader für Mock-Daten beim Anwendungsstart.
+ * DataLoader für Performance- und Load-Tests.
  * 
- * Lädt Testdaten in die H2 In-Memory-Datenbank für Entwicklung und manuelles Testen.
- * Wird nur im 'default' oder 'dev' Profil ausgeführt (nicht in 'prod').
+ * Lädt große Datenmengen in die Datenbank für Performance-Tests und Gatling Load-Tests.
+ * Wird nur im 'performance' Profil ausgeführt.
  * 
  * Mock-Daten:
  * - Concert 1: Ed Sheeran - Stadion Tour 2026 (100 Seats)
  * - Concert 2: Taylor Swift - Eras Tour 2026 (150 Seats)
  */
 @Component
-@Profile({"default", "dev"})
-public class DataLoader implements CommandLineRunner {
+@Profile("performance")
+public class DataLoaderPerformance implements CommandLineRunner {
     
-    private static final Logger log = LoggerFactory.getLogger(DataLoader.class);
+    private static final Logger log = LoggerFactory.getLogger(DataLoaderPerformance.class);
     
     private final SeatRepository seatRepository;
     private final ConcertRepository concertRepository;
     
-    public DataLoader(SeatRepository seatRepository, ConcertRepository concertRepository) {
+    private Long concert1Id;
+    private Long concert2Id;
+    
+    public DataLoaderPerformance(SeatRepository seatRepository, ConcertRepository concertRepository) {
         this.seatRepository = seatRepository;
         this.concertRepository = concertRepository;
     }
@@ -46,7 +49,7 @@ public class DataLoader implements CommandLineRunner {
         loadConcert1Seats();
         loadConcert2Seats();
         
-        long totalSeats = seatRepository.countByConcertId(1L) + seatRepository.countByConcertId(2L);
+        long totalSeats = seatRepository.countByConcertId(concert1Id) + seatRepository.countByConcertId(concert2Id);
         log.info("=== Mock Data Loaded: {} total seats ===", totalSeats);
     }
     
@@ -61,7 +64,8 @@ public class DataLoader implements CommandLineRunner {
             "Olympiastadion Berlin",
             "Ed Sheeran live auf seiner großen Stadion-Tour 2026. Ein unvergessliches Konzert mit allen Hits!"
         );
-        concertRepository.save(concert1);
+        concert1 = concertRepository.save(concert1);
+        concert1Id = concert1.getId();
         
         // Concert 2: Taylor Swift - Eras Tour 2026
         Concert concert2 = Concert.createConcert(
@@ -70,7 +74,8 @@ public class DataLoader implements CommandLineRunner {
             "Allianz Arena München",
             "Taylor Swift präsentiert The Eras Tour - eine spektakuläre Reise durch ihre gesamte Karriere!"
         );
-        concertRepository.save(concert2);
+        concert2 = concertRepository.save(concert2);
+        concert2Id = concert2.getId();
         
         log.info("Concerts loaded: 2 concerts");
     }
@@ -80,7 +85,7 @@ public class DataLoader implements CommandLineRunner {
      * 100 Seats: alle AVAILABLE (50 VIP, 30 CATEGORY_A, 20 CATEGORY_B)
      */
     private void loadConcert1Seats() {
-        long concertId = 1L;
+        long concertId = concert1Id;
         
         // VIP Section (50 Seats): alle AVAILABLE
         for (int i = 1; i <= 50; i++) {
@@ -126,7 +131,7 @@ public class DataLoader implements CommandLineRunner {
      * 150 Seats: alle AVAILABLE (75 VIP, 50 CATEGORY_A, 25 CATEGORY_B)
      */
     private void loadConcert2Seats() {
-        long concertId = 2L;
+        long concertId = concert2Id;
         
         // VIP Section (75 Seats): alle AVAILABLE für Load Tests
         for (int i = 1; i <= 75; i++) {
