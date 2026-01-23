@@ -8,6 +8,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -26,6 +27,7 @@ import java.io.IOException;
  * OncePerRequestFilter stellt sicher, dass Filter pro Request nur einmal ausgeführt wird.
  */
 @Component
+@Profile("!test")
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtTokenProvider jwtTokenProvider;

@@ -87,8 +87,18 @@ public interface SeatRepository {
      */
     Seat save(Seat seat);
     
-    // saveAll(List<Seat> seats) - Geerbt von JpaRepository
-    // List<Seat> saveAll(Iterable<Seat> seats)
+    /**
+     * Speichert mehrere Seats in einer Batch-Operation (Create oder Update).
+     * 
+     * Performance-optimiert mit JDBC Batch Processing (wenn konfiguriert):
+     * spring.jpa.properties.hibernate.jdbc.batch_size=20
+     * 
+     * Nutzt saveAll() statt einzelner save() Calls für bessere Performance bei Bulk-Operationen.
+     * 
+     * @param seats Zu speichernde Seats
+     * @return Liste der gespeicherten Seats
+     */
+    List<Seat> saveAll(List<Seat> seats);
     
     /**
      * Zählt verfügbare Seats pro Kategorie für ein Konzert.
