@@ -2,12 +2,16 @@ package com.concertcomparison.infrastructure.config;
 
 import com.concertcomparison.domain.model.Concert;
 import com.concertcomparison.domain.model.Seat;
+import com.concertcomparison.domain.model.User;
+import com.concertcomparison.domain.model.UserRole;
 import com.concertcomparison.domain.repository.ConcertRepository;
 import com.concertcomparison.domain.repository.SeatRepository;
+import com.concertcomparison.domain.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -29,15 +33,23 @@ public class DataLoaderDev implements CommandLineRunner {
     
     private final SeatRepository seatRepository;
     private final ConcertRepository concertRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     
-    public DataLoaderDev(SeatRepository seatRepository, ConcertRepository concertRepository) {
+    public DataLoaderDev(SeatRepository seatRepository, ConcertRepository concertRepository,
+                         UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.seatRepository = seatRepository;
         this.concertRepository = concertRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
     
     @Override
     public void run(String... args) {
         log.info("=== Loading Development Mock Data ===");
+        
+        // Lade oder erstelle Admin-Benutzer für Bruno API Tests
+        loadAdminUser();
         
         // Idempotent: Anlegen nur, wenn nicht bereits vorhanden (verhindert doppelte Läufe)
         Concert concert = concertRepository.findByNameContainingIgnoreCase("Test Concert - Development")
@@ -61,6 +73,23 @@ public class DataLoaderDev implements CommandLineRunner {
         
         long totalSeats = seatRepository.countByConcertId(concert.getId());
         log.info("=== Development Mock Data Loaded: {} seats ===", totalSeats);
+    }
+    
+    /**
+     * Erstellt einen Admin-Benutzer für Tests, falls nicht vorhanden.
+     * Credentials: email=admin@example.com, password=adminpassword123
+     */
+    private void loadAdminUser() {
+        String adminEmail = "admin@example.com";
+        
+        if (userRepository.findByEmail(adminEmail).isEmpty()) {
+            String hashedPassword = passwordEncoder.encode("adminpassword123");
+            User admin = User.createAdmin(adminEmail, hashedPassword, "Admin", "User");
+            userRepository.save(admin);
+            log.info("✓ Admin user created: {}", adminEmail);
+        } else {
+            log.info("✓ Admin user already exists: {}", adminEmail);
+        }
     }
     
     /**

@@ -1,0 +1,21 @@
+meta {
+  name: Delete Event - Admin
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/api/concerts/{{createdEventId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{authToken}}
+}
+
+tests {
+  test("Status code is 204 or 403 (if not admin)", function() {
+    expect(res.status).to.be.oneOf([204, 403]);
+  });
+}

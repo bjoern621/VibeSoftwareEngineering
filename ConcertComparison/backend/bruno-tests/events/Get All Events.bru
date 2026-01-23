@@ -1,0 +1,21 @@
+meta {
+  name: Get All Events
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/concerts
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+}
