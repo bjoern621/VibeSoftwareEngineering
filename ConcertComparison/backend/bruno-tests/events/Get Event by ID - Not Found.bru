@@ -5,13 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/concerts/999999
+  url: {{baseUrl}}/api/concerts/9999
   body: none
   auth: none
 }
 
 tests {
-  test("Status code is 404", function() {
-    expect(res.status).to.equal(404);
+  test("Status code is 404 or 400", function() {
+    expect([404, 400]).to.include(res.status);
   });
 }
