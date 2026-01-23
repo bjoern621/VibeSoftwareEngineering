@@ -67,6 +67,14 @@ public class SecurityConfiguration {
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         
+                        // Concerts - Read-Only (GET) für alle
+                        .requestMatchers(HttpMethod.GET, "/api/concerts/**").permitAll()
+                        
+                        // Concerts - Admin-Only (POST, PUT, DELETE)
+                        .requestMatchers(HttpMethod.POST, "/api/concerts/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/concerts/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/concerts/**").hasRole("ADMIN")
+                        
                         // Events & Seats - Read-Only für alle
                         .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/seats/**").permitAll()
@@ -74,7 +82,7 @@ public class SecurityConfiguration {
                         // Seat Hold - User kann Seats reservieren
                         .requestMatchers(HttpMethod.POST, "/api/seats/*/hold").hasAnyRole("USER", "ADMIN")
                         
-                        // Admin-Only Endpoints
+                        // Admin-Only Endpoints (Events, Seats Bulk)
                         .requestMatchers(HttpMethod.POST, "/api/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/events/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")

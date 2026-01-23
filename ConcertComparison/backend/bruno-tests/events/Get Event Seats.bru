@@ -1,0 +1,32 @@
+meta {
+  name: Get Event Seats
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/events/1/seats
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has seats array", function() {
+    expect(res.body).to.have.property('seats');
+    expect(res.body.seats).to.be.an('array');
+  });
+  
+  test("If seats exist, they have required properties", function() {
+    if (res.body.seats && res.body.seats.length > 0) {
+      expect(res.body.seats[0]).to.have.property('id');
+      expect(res.body.seats[0]).to.have.property('number');
+      expect(res.body.seats[0]).to.have.property('status');
+      expect(res.body.seats[0]).to.have.property('price');
+      expect(res.body.seats[0]).to.have.property('row');
+    }
+  });
+}

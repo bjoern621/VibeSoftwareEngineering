@@ -1,0 +1,35 @@
+meta {
+  name: Login Admin User
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "admin@example.com",
+    "password": "adminpassword123"
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has token", function() {
+    expect(res.body.token).to.be.a('string');
+  });
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.token) {
+    bru.setEnvVar("authToken", res.body.token);
+    bru.setEnvVar("adminToken", res.body.token);
+  }
+}

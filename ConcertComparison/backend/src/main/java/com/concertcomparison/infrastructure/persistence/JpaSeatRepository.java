@@ -34,6 +34,16 @@ public interface JpaSeatRepository extends JpaRepository<Seat, Long>, SeatReposi
     /**
      * {@inheritDoc}
      * 
+     * Implementiert via Spring Data saveAll(), nutzt JPA Batch Processing.
+     */
+    @Override
+    default List<Seat> saveAllBatch(List<Seat> seats) {
+        return saveAll(seats);
+    }
+    
+    /**
+     * {@inheritDoc}
+     * 
      * Nutzt Index idx_concert_id für Performance.
      */
     @Override
