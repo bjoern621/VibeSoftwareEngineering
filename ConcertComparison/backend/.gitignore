@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignore local Bruno environment containing secrets
+bruno-tests/environments/local.bru

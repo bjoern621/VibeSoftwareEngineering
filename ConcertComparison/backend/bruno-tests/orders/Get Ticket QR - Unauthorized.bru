@@ -1,0 +1,17 @@
+meta {
+  name: Get Ticket QR - Unauthorized
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/orders/1/ticket
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 401", function() {
+    expect(res.status).to.equal(401);
+  });
+}

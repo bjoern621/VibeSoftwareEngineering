@@ -6,6 +6,7 @@ import com.concertcomparison.domain.repository.OrderRepository;
 import com.concertcomparison.domain.repository.ReservationRepository;
 import com.concertcomparison.domain.repository.SeatRepository;
 import com.concertcomparison.domain.repository.ConcertRepository;
+import com.concertcomparison.presentation.dto.OrderHistoryItemDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Integration Tests für OrderApplicationService (US-03).
+ * Integration Tests für OrderApplicationService (US-03, US-179).
  * 
  * Nutzt echte Datenbank (H2 in-memory) und echte Daten.
  * 
@@ -31,6 +32,8 @@ import static org.assertj.core.api.Assertions.*;
  * - Abgelaufener Hold
  * - Hold gehört anderem User
  * - Seat nicht HELD
+ * - Order History mit Enrichment (US-179)
+ * - QR Code Generierung (US-179)
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -256,6 +259,157 @@ class OrderApplicationServiceTest {
         // Assert
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getUserId()).isEqualTo(USER_ID);
+    }
+
+    // ==================== US-179 TESTS ====================
+
+    @Test
+    @DisplayName("getOrderHistoryForUser - Sollte angereicherte Order History liefern")
+    void getOrderHistoryForUser_Success() {
+        // Arrange - Erstelle Order in DB
+        testSeat.hold(String.valueOf(testSeat.getId()), 15);
+        testSeat = seatRepository.save(testSeat);
+
+        Reservation testReservation = Reservation.createHold(testSeat.getId(), USER_ID, 15);
+        testReservation = reservationRepository.save(testReservation);
+
+        testSeat.updateHoldReservationId(String.valueOf(testReservation.getId()));
+        testSeat = seatRepository.save(testSeat);
+
+        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+
+        // Act
+        List<OrderHistoryItemDTO> result = orderApplicationService.getOrderHistoryForUser(USER_ID);
+
+        // Assert
+        assertThat(result).hasSize(1);
+
+        OrderHistoryItemDTO historyItem = result.get(0);
+        assertThat(historyItem.getOrderId()).isEqualTo(order.getId());
+        assertThat(historyItem.getTotalPrice()).isEqualTo(99.99);
+        assertThat(historyItem.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+
+        // Concert Details
+        assertThat(historyItem.getConcertId()).isEqualTo(testConcert.getId());
+        assertThat(historyItem.getConcertName()).isEqualTo("Test Concert");
+        assertThat(historyItem.getVenue()).isEqualTo("Test Arena");
+        assertThat(historyItem.getConcertDate()).isEqualTo(testConcert.getDate());
+
+        // Seat Details
+        assertThat(historyItem.getSeatId()).isEqualTo(testSeat.getId());
+        assertThat(historyItem.getSeatNumber()).isEqualTo("A-1-VIP");
+        assertThat(historyItem.getCategory()).isEqualTo("VIP");
+        assertThat(historyItem.getBlock()).isEqualTo("A");
+        assertThat(historyItem.getRow()).isEqualTo("1");
+        assertThat(historyItem.getNumber()).isEqualTo("1");
+    }
+
+    @Test
+    @DisplayName("getOrderHistoryForUser - Sollte leere Liste für User ohne Orders liefern")
+    void getOrderHistoryForUser_EmptyList() {
+        // Act
+        List<OrderHistoryItemDTO> result = orderApplicationService.getOrderHistoryForUser(USER_ID);
+
+        // Assert
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getOrderHistoryForUser - Sollte nur Orders des angegebenen Users liefern")
+    void getOrderHistoryForUser_FiltersByUser() {
+        // Arrange - Erstelle Order für USER_ID
+        testSeat.hold(String.valueOf(testSeat.getId()), 15);
+        testSeat = seatRepository.save(testSeat);
+
+        Reservation reservation1 = Reservation.createHold(testSeat.getId(), USER_ID, 15);
+        reservation1 = reservationRepository.save(reservation1);
+
+        testSeat.updateHoldReservationId(String.valueOf(reservation1.getId()));
+        testSeat = seatRepository.save(testSeat);
+
+        orderApplicationService.purchaseTicket(reservation1.getId(), USER_ID);
+
+        // Erstelle Order für OTHER_USER_ID
+        Seat otherSeat = new Seat(testConcert.getId(), "B-2-VIP", "VIP", "B", "2", "2", 79.99);
+        otherSeat = seatRepository.save(otherSeat);
+        otherSeat.hold(String.valueOf(otherSeat.getId()), 15);
+        otherSeat = seatRepository.save(otherSeat);
+
+        Reservation reservation2 = Reservation.createHold(otherSeat.getId(), OTHER_USER_ID, 15);
+        reservation2 = reservationRepository.save(reservation2);
+
+        otherSeat.updateHoldReservationId(String.valueOf(reservation2.getId()));
+        otherSeat = seatRepository.save(otherSeat);
+
+        orderApplicationService.purchaseTicket(reservation2.getId(), OTHER_USER_ID);
+
+        // Act - Hole nur Orders von USER_ID
+        List<OrderHistoryItemDTO> result = orderApplicationService.getOrderHistoryForUser(USER_ID);
+
+        // Assert
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getSeatNumber()).isEqualTo("A-1-VIP");
+    }
+
+    @Test
+    @DisplayName("generateTicketQRCode - Sollte QR Code für eigenes Ticket generieren")
+    void generateTicketQRCode_Success() {
+        // Arrange - Erstelle Order in DB
+        testSeat.hold(String.valueOf(testSeat.getId()), 15);
+        testSeat = seatRepository.save(testSeat);
+
+        Reservation testReservation = Reservation.createHold(testSeat.getId(), USER_ID, 15);
+        testReservation = reservationRepository.save(testReservation);
+
+        testSeat.updateHoldReservationId(String.valueOf(testReservation.getId()));
+        testSeat = seatRepository.save(testSeat);
+
+        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+
+        // Act
+        byte[] qrCode = orderApplicationService.generateTicketQRCode(order.getId(), USER_ID);
+
+        // Assert
+        assertThat(qrCode).isNotEmpty();
+        assertThat(qrCode.length).isGreaterThan(100); // PNG sollte > 100 Bytes sein
+
+        // PNG Header validieren (89 50 4E 47)
+        assertThat(qrCode[0]).isEqualTo((byte) 0x89);
+        assertThat(qrCode[1]).isEqualTo((byte) 0x50);
+        assertThat(qrCode[2]).isEqualTo((byte) 0x4E);
+        assertThat(qrCode[3]).isEqualTo((byte) 0x47);
+    }
+
+    @Test
+    @DisplayName("generateTicketQRCode - Sollte Exception werfen wenn Order nicht dem User gehört")
+    void generateTicketQRCode_UnauthorizedAccess() {
+        // Arrange - Erstelle Order für USER_ID
+        testSeat.hold(String.valueOf(testSeat.getId()), 15);
+        testSeat = seatRepository.save(testSeat);
+
+        Reservation testReservation = Reservation.createHold(testSeat.getId(), USER_ID, 15);
+        testReservation = reservationRepository.save(testReservation);
+
+        testSeat.updateHoldReservationId(String.valueOf(testReservation.getId()));
+        testSeat = seatRepository.save(testSeat);
+
+        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+
+        // Act & Assert - OTHER_USER versucht QR Code zu generieren
+        assertThatThrownBy(() -> 
+            orderApplicationService.generateTicketQRCode(order.getId(), OTHER_USER_ID))
+            .isInstanceOf(SecurityException.class)
+            .hasMessageContaining("gehört nicht zu User");
+    }
+
+    @Test
+    @DisplayName("generateTicketQRCode - Sollte Exception werfen wenn Order nicht existiert")
+    void generateTicketQRCode_OrderNotFound() {
+        // Act & Assert
+        assertThatThrownBy(() -> 
+            orderApplicationService.generateTicketQRCode(999L, USER_ID))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Order mit ID 999 nicht gefunden");
     }
 
     // ==================== HELPER METHODS ====================
