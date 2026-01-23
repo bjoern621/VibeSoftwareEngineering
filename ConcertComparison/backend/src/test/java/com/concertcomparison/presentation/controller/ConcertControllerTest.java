@@ -15,12 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import com.concertcomparison.infrastructure.security.JwtTokenProvider;
+import com.concertcomparison.infrastructure.security.CustomUserDetailsService;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -51,9 +52,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * - POST /api/concerts/{id}/seats (201 Created)
  * - GET /api/concerts (200 OK, public endpoint)
  */
+import com.concertcomparison.infrastructure.security.TestSecurityConfig;
+import com.concertcomparison.presentation.exception.GlobalExceptionHandler;
+
 @WebMvcTest(ConcertController.class)
 @ActiveProfiles("test")
-@EnableMethodSecurity
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
 @DisplayName("ConcertController Integration Tests")
 class ConcertControllerTest {
     
@@ -65,6 +69,12 @@ class ConcertControllerTest {
     
     @MockBean
     private ConcertApplicationService concertApplicationService;
+
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
     
     private static final LocalDateTime FUTURE_DATE = LocalDateTime.now().plusMonths(1);
     private static final String ADMIN_ROLE = "ADMIN";

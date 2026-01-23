@@ -32,7 +32,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@org.springframework.context.annotation.Profile("!performance & !test")
+@org.springframework.context.annotation.Profile("!performance")
 public class SecurityConfiguration {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

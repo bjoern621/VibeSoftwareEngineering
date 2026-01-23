@@ -371,14 +371,14 @@ class ConcertApplicationServiceTest {
             concert.setId(1L);
             
             when(concertRepository.findById(1L)).thenReturn(Optional.of(concert));
-            when(seatRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+            when(seatRepository.saveAllBatch(anyList())).thenReturn(new ArrayList<>());
             
             // Act
             concertApplicationService.createSeats(1L, validSeats);
             
             // Assert
             verify(concertRepository, times(1)).findById(1L);
-            verify(seatRepository, times(1)).saveAll(anyList());
+            verify(seatRepository, times(1)).saveAllBatch(anyList());
         }
         
         @Test
@@ -392,7 +392,7 @@ class ConcertApplicationServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Mindestens 1 Sitzplatz erforderlich");
             
-            verify(seatRepository, never()).saveAll(anyList());
+            verify(seatRepository, never()).saveAllBatch(anyList());
         }
         
         @Test
@@ -403,7 +403,7 @@ class ConcertApplicationServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Mindestens 1 Sitzplatz erforderlich");
             
-            verify(seatRepository, never()).saveAll(anyList());
+            verify(seatRepository, never()).saveAllBatch(anyList());
         }
         
         @Test
@@ -417,7 +417,7 @@ class ConcertApplicationServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Concert mit ID 999 nicht gefunden");
             
-            verify(seatRepository, never()).saveAll(anyList());
+            verify(seatRepository, never()).saveAllBatch(anyList());
         }
         
         @Test
@@ -446,13 +446,13 @@ class ConcertApplicationServiceTest {
             }
             
             when(concertRepository.findById(1L)).thenReturn(Optional.of(concert));
-            when(seatRepository.saveAll(anyList())).thenReturn(new ArrayList<>());
+            when(seatRepository.saveAllBatch(anyList())).thenReturn(new ArrayList<>());
             
             // Act
             concertApplicationService.createSeats(1L, manySeats);
             
             // Assert
-            verify(seatRepository, times(1)).saveAll(anyList());
+            verify(seatRepository, times(1)).saveAllBatch(anyList());
         }
     }
     

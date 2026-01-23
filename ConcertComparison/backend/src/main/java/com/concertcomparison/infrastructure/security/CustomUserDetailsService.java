@@ -2,7 +2,6 @@ package com.concertcomparison.infrastructure.security;
 
 import com.concertcomparison.domain.model.User;
 import com.concertcomparison.domain.repository.UserRepository;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +18,6 @@ import java.util.Collections;
  * Lädt User-Daten aus der Datenbank und konvertiert sie zu Spring Security UserDetails.
  */
 @Service
-@Profile("!test")
 public class CustomUserDetailsService implements UserDetailsService {
     
     private final UserRepository userRepository;

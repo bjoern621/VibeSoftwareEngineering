@@ -4,6 +4,7 @@ import com.concertcomparison.domain.exception.SeatNotAvailableException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -67,6 +68,14 @@ public class GlobalExceptionHandler {
         body.put("code", "UNAUTHORIZED");
         body.put("message", "Authentifizierung fehlgeschlagen");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("code", "FORBIDDEN");
+        body.put("message", "Zugriff verweigert - keine ausreichenden Berechtigungen");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
     @ExceptionHandler(Exception.class)

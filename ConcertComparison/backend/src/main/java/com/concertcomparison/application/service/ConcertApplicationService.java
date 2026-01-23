@@ -199,9 +199,9 @@ public class ConcertApplicationService {
             ))
             .collect(Collectors.toList());
         
-        // Batch Insert: saveAll() ist optimiert für Batch Processing
+        // Batch Insert: saveAllBatch() ist optimiert für Batch Processing
         // Hibernate nutzt JDBC Batching wenn konfiguriert
-        List<Seat> saved = seatRepository.saveAll(seatsToCreate);
+        List<Seat> saved = seatRepository.saveAllBatch(seatsToCreate);
         
         logger.info("Successfully created {} seats for concert ID: {}", saved.size(), concertId);
     }

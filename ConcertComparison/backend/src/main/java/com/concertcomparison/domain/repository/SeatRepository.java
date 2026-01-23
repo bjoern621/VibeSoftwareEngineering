@@ -93,12 +93,14 @@ public interface SeatRepository {
      * Performance-optimiert mit JDBC Batch Processing (wenn konfiguriert):
      * spring.jpa.properties.hibernate.jdbc.batch_size=20
      * 
-     * Nutzt saveAll() statt einzelner save() Calls für bessere Performance bei Bulk-Operationen.
+     * Nutzt eine Batch-Operation statt einzelner save() Calls für bessere Performance.
+     * Diese Port-Methode ist absichtlich anders benannt, um Überschneidungen
+     * mit Spring Data Basis-Methoden zu vermeiden.
      * 
      * @param seats Zu speichernde Seats
      * @return Liste der gespeicherten Seats
      */
-    List<Seat> saveAll(List<Seat> seats);
+    List<Seat> saveAllBatch(List<Seat> seats);
     
     /**
      * Zählt verfügbare Seats pro Kategorie für ein Konzert.
