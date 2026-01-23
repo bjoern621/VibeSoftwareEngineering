@@ -3,6 +3,7 @@ package com.concertcomparison.presentation.controller;
 import com.concertcomparison.application.service.OrderApplicationService;
 import com.concertcomparison.domain.exception.ReservationExpiredException;
 import com.concertcomparison.domain.model.Order;
+import com.concertcomparison.presentation.dto.OrderHistoryItemDTO;
 import com.concertcomparison.presentation.dto.OrderResponseDTO;
 import com.concertcomparison.presentation.dto.PurchaseTicketRequestDTO;
 import jakarta.persistence.OptimisticLockException;
@@ -10,22 +11,26 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * REST Controller für Order-Operationen (US-03).
+ * REST Controller für Order-Operationen (US-03, US-179).
  * 
  * Endpoints:
  * - POST /api/orders - Ticket kaufen
- * - GET /api/orders/{id} - Order-Details abrufen
- * - GET /api/users/{userId}/orders - Alle Orders eines Users
+ * - GET /api/orders/{id} - Order-Details abrufen (mit Ownership Check)
+ * - GET /api/users/me/orders - Orders des aktuellen Users (US-179)
+ * - GET /api/orders/{id}/ticket - QR Code für Ticket (US-179)
  */
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/api")
 public class OrderController {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
@@ -62,7 +67,7 @@ public class OrderController {
      * @param request Purchase Request (holdId, userId)
      * @return OrderResponseDTO
      */
-    @PostMapping
+    @PostMapping("/orders")
     public ResponseEntity<?> purchaseTicket(@Valid @RequestBody PurchaseTicketRequestDTO request) {
         logger.info("POST /api/orders - holdId={}, userId={}", request.getHoldId(), request.getUserId());
 
@@ -131,7 +136,7 @@ public class OrderController {
      * @param orderId Order-ID
      * @return OrderResponseDTO
      */
-    @GetMapping("/{id}")
+    @GetMapping("/orders/{id}")
     public ResponseEntity<?> getOrder(@PathVariable("id") Long orderId) {
         logger.info("GET /api/orders/{}", orderId);
 
@@ -159,7 +164,7 @@ public class OrderController {
      * @param userId User-ID
      * @return Liste von OrderResponseDTO
      */
-    @GetMapping("/user/{userId}")
+    @GetMapping("/orders/user/{userId}")
     public ResponseEntity<List<OrderResponseDTO>> getUserOrders(@PathVariable String userId) {
         logger.info("GET /api/users/{}/orders", userId);
 
@@ -169,6 +174,112 @@ public class OrderController {
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Ruft Order History des aktuellen Users ab (US-179).
+     * 
+     * Endpoint: GET /api/users/me/orders
+     * 
+     * Enthält angereicherte Informationen (Concert, Seat Details).
+     * Security: Nur authenticated User kann seine eigenen Orders abrufen.
+     * 
+     * Success Response: 200 OK
+     * [
+     *   {
+     *     "orderId": 1,
+     *     "status": "CONFIRMED",
+     *     "totalPrice": 99.99,
+     *     "purchaseDate": "2026-01-20T15:30:00",
+     *     "paymentStatus": "COMPLETED",
+     *     "concertId": 1,
+     *     "concertName": "Rock Festival 2026",
+     *     "venue": "Olympiastadion Berlin",
+     *     "concertDate": "2026-07-15T20:00:00",
+     *     "seatId": 42,
+     *     "seatNumber": "A-1-5",
+     *     "category": "VIP",
+     *     "block": "A",
+     *     "row": "1",
+     *     "number": "5"
+     *   }
+     * ]
+     * 
+     * @param authentication Spring Security Authentication (JWT)
+     * @return Liste von OrderHistoryItemDTO
+     */
+    @GetMapping("/users/me/orders")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<OrderHistoryItemDTO>> getCurrentUserOrderHistory(
+            Authentication authentication) {
+        
+        String userId = authentication.getName();
+        logger.info("GET /api/users/me/orders - userId={}", userId);
+
+        List<OrderHistoryItemDTO> orderHistory = 
+            orderApplicationService.getOrderHistoryForUser(userId);
+
+        return ResponseEntity.ok(orderHistory);
+    }
+
+    /**
+     * Generiert QR Code für ein Ticket (US-179).
+     * 
+     * Endpoint: GET /api/orders/{id}/ticket
+     * 
+     * Security: User darf nur QR Codes seiner eigenen Orders abrufen.
+     * 
+     * QR Code Content: orderId|concertId|seatId|userId
+     * Format: PNG Image (300x300px)
+     * 
+     * Success Response: 200 OK (image/png)
+     * Error Responses:
+     * - 403 Forbidden: Order gehört anderem User
+     * - 404 Not Found: Order nicht gefunden
+     * 
+     * @param orderId Order-ID
+     * @param authentication Spring Security Authentication (JWT)
+     * @return PNG Image als byte array
+     */
+    @GetMapping("/orders/{id}/ticket")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getTicketQRCode(
+            @PathVariable("id") Long orderId,
+            Authentication authentication) {
+        
+        String userId = authentication.getName();
+        logger.info("GET /api/orders/{}/ticket - userId={}", orderId, userId);
+
+        try {
+            byte[] qrCode = orderApplicationService.generateTicketQRCode(orderId, userId);
+
+            return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .header("Content-Disposition", 
+                    "attachment; filename=\"ticket-" + orderId + ".png\"")
+                .body(qrCode);
+
+        } catch (IllegalArgumentException e) {
+            // Order nicht gefunden
+            logger.warn("Ticket QR code failed (Not Found): {}", e.getMessage());
+            return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(e.getMessage()));
+
+        } catch (SecurityException e) {
+            // Order gehört anderem User
+            logger.warn("Ticket QR code failed (Forbidden): {}", e.getMessage());
+            return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("Sie haben keine Berechtigung für dieses Ticket."));
+
+        } catch (Exception e) {
+            // Unerwarteter Fehler
+            logger.error("Ticket QR code failed (Unexpected Error): {}", e.getMessage(), e);
+            return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("Fehler beim Generieren des QR Codes."));
+        }
     }
 
     // ==================== PRIVATE HELPER METHODS ====================

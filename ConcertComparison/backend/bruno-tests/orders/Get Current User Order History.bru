@@ -1,0 +1,33 @@
+meta {
+  name: Get Current User Order History
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/users/me/orders
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+tests {
+  // Erwartet 200 mit Liste (ggf. leer). Falls Token fehlt/ungültig: 401.
+  test("Status code is 200 or 401", function() {
+    expect(res.status).to.be.oneOf([200, 401]);
+  });
+
+  test("Body ist Array wenn 200", function() {
+    if (res.status === 200) {
+      expect(res.body).to.be.an('array');
+      if (res.body.length > 0) {
+        expect(res.body[0].orderId).to.exist;
+        expect(res.body[0].concertId).to.exist;
+        expect(res.body[0].seatId).to.exist;
+      }
+    }
+  });
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Get Ticket QR - Auth
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/orders/1/ticket
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+tests {
+  // Erwartet 200 (PNG) falls Order 1 dem User gehört, sonst 403/404.
+  test("Status code is 200 or 403 or 404", function() {
+    expect(res.status).to.be.oneOf([200, 403, 404]);
+  });
+
+  test("Content-Type ist image/png bei 200", function() {
+    if (res.status === 200) {
+      expect(res.headers['content-type']).to.contain('image/png');
+      expect(res.body.length).to.be.greaterThan(50);
+    }
+  });
+}

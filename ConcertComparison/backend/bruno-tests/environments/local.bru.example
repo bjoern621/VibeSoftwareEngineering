@@ -1,8 +1,8 @@
 vars {
   baseUrl: http://localhost:8080
-  authToken: 
+  authToken: <YOUR_TOKEN>
   userEmail: testuser@example.com
-  userPassword: testpassword123
+  userPassword: <YOUR_PASSWORD>
   seatId: 1
-  holdId: 
+  holdId: <HOLD_ID>
 }

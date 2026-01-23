@@ -16,13 +16,13 @@ import java.time.LocalDateTime;
  * DataLoader für Entwicklung und manuelle Tests (Bruno API).
  * 
  * Lädt minimale Testdaten für schnelle Entwicklung und API-Tests.
- * Wird im 'default' oder 'dev' Profil ausgeführt (Standard).
+ * Wird nur geladen wenn Performance DataLoader NICHT aktiv ist (Profil-Check).
  * 
  * Mock-Daten:
  * - Concert 1: Test Concert (20 Seats)
  */
 @Component
-@Profile({"default", "dev"})
+@Profile("!performance")  // Läuft in allen Profilen AUSSER performance
 public class DataLoaderDev implements CommandLineRunner {
     
     private static final Logger log = LoggerFactory.getLogger(DataLoaderDev.class);
@@ -39,18 +39,25 @@ public class DataLoaderDev implements CommandLineRunner {
     public void run(String... args) {
         log.info("=== Loading Development Mock Data ===");
         
-        // Concert erstellen
-        Concert concert = Concert.createConcert(
-            "Test Concert - Development",
-            LocalDateTime.of(2026, 7, 15, 20, 0),
-            "Test Arena",
-            "Minimal Test-Daten für Entwicklung und Bruno API Tests"
-        );
-        concert = concertRepository.save(concert);
+        // Idempotent: Anlegen nur, wenn nicht bereits vorhanden (verhindert doppelte Läufe)
+        Concert concert = concertRepository.findByNameContainingIgnoreCase("Test Concert - Development")
+            .stream()
+            .findFirst()
+            .orElseGet(() -> {
+                Concert created = Concert.createConcert(
+                    "Test Concert - Development",
+                    LocalDateTime.of(2026, 7, 15, 20, 0),
+                    "Test Arena",
+                    "Minimal Test-Daten für Entwicklung und Bruno API Tests"
+                );
+                return concertRepository.save(created);
+            });
         log.info("Concert loaded: {}", concert.getName());
         
-        // 20 Seats für schnelles Tests
-        loadTestSeats(concert.getId());
+        // Seats nur anlegen, wenn noch keine Seats existieren
+        if (seatRepository.countByConcertId(concert.getId()) == 0) {
+            loadTestSeats(concert.getId());
+        }
         
         long totalSeats = seatRepository.countByConcertId(concert.getId());
         log.info("=== Development Mock Data Loaded: {} seats ===", totalSeats);
