@@ -133,7 +133,7 @@ class OrderApplicationServiceEventIntegrationTest {
         Long nonExistentHoldId = 99999L;
         
         assertThatThrownBy(() -> orderApplicationService.purchaseTicket(nonExistentHoldId, USER_ID))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(com.concertcomparison.domain.exception.ReservationNotFoundException.class);
 
         // Verify: Keine Events gepublisht
         await().pollDelay(500, TimeUnit.MILLISECONDS)
