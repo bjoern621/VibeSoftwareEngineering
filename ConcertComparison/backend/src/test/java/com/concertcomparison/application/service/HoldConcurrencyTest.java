@@ -1,5 +1,6 @@
 package com.concertcomparison.application.service;
 
+import com.concertcomparison.domain.exception.SeatNotAvailableException;
 import com.concertcomparison.domain.model.Reservation;
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.model.SeatStatus;
@@ -114,7 +115,10 @@ class HoldConcurrencyTest {
                     // Erwarteter Concurrency Conflict
                     conflictCount.incrementAndGet();
                 } catch (IllegalStateException e) {
-                    // Seat already held
+                    // Seat already held (legacy)
+                    conflictCount.incrementAndGet();
+                } catch (SeatNotAvailableException e) {
+                    // Seat already held (new domain exception)
                     conflictCount.incrementAndGet();
                 } catch (Exception e) {
                     // Unerwarteter Fehler

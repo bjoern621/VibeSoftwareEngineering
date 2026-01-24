@@ -17,6 +17,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -454,6 +455,34 @@ public class GlobalExceptionHandler {
                 "error.general.bad-request",
                 new Object[]{},
                 ex.getMessage(),
+                locale
+        );
+        
+        ErrorResponseDTO response = ErrorResponseDTO.builder()
+                .code("BAD_REQUEST")
+                .message(message)
+                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(LocalDateTime.now())
+                .path(request.getRequestURI())
+                .build();
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    /**
+     * Behandelt MethodArgumentTypeMismatchException (z.B. ungültige ID-Formate).
+     * HTTP Status: 400 BAD_REQUEST
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+        Locale locale = LocaleContextHolder.getLocale();
+        
+        String message = messageSource.getMessage(
+                "error.general.bad-request",
+                new Object[]{},
+                "Ungültiges Format für Parameter: " + ex.getName(),
                 locale
         );
         
