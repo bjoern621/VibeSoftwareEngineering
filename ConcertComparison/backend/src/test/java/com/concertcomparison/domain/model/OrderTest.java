@@ -23,16 +23,20 @@ class OrderTest {
     class CreateOrderTests {
 
         @Test
-        @DisplayName("Sollte Order erfolgreich mit Payment erstellen")
-        void shouldCreateOrderWithPaymentSuccessfully() {
+        @DisplayName("Sollte Order erfolgreich mit Payment und ReservationId erstellen")
+        void shouldCreateOrderWithPaymentAndReservationIdSuccessfully() {
+            // Given
+            Long reservationId = 123L;
+            
             // When
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, reservationId);
 
             // Then
             assertThat(order).isNotNull();
             assertThat(order.getSeatId()).isEqualTo(SEAT_ID);
             assertThat(order.getUserId()).isEqualTo(USER_ID);
             assertThat(order.getTotalPrice()).isEqualTo(TOTAL_PRICE);
+            assertThat(order.getReservationId()).isEqualTo(reservationId);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(order.getPurchaseDate()).isNotNull();
             assertThat(order.getPayment()).isNotNull();
@@ -40,12 +44,36 @@ class OrderTest {
             assertThat(order.getPayment().getMethod()).isEqualTo(PaymentMethod.CREDIT_CARD);
             assertThat(order.getPayment().getStatus()).isEqualTo(PaymentStatus.PENDING);
         }
+        
+        @Test
+        @DisplayName("Sollte Order mit null ReservationId erstellen (optional)")
+        void shouldCreateOrderWithNullReservationId() {
+            // When
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.PAYPAL, null);
+
+            // Then
+            assertThat(order).isNotNull();
+            assertThat(order.getReservationId()).isNull();
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
+        }
+        
+        @Test
+        @DisplayName("Sollte Order mit verschiedenen PaymentMethods erstellen")
+        void shouldCreateOrderWithDifferentPaymentMethods() {
+            // Test BITCOIN
+            Order bitcoinOrder = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.BITCOIN, 1L);
+            assertThat(bitcoinOrder.getPayment().getMethod()).isEqualTo(PaymentMethod.BITCOIN);
+            
+            // Test PAYPAL
+            Order paypalOrder = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.PAYPAL, 2L);
+            assertThat(paypalOrder.getPayment().getMethod()).isEqualTo(PaymentMethod.PAYPAL);
+        }
 
         @Test
         @DisplayName("Sollte NullPointerException werfen wenn SeatId null ist")
         void shouldThrowExceptionWhenSeatIdIsNull() {
             // When & Then
-            assertThatThrownBy(() -> Order.createOrder(null, USER_ID, TOTAL_PRICE, PaymentMethod.PAYPAL))
+            assertThatThrownBy(() -> Order.createOrder(null, USER_ID, TOTAL_PRICE, PaymentMethod.PAYPAL, 1L))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("SeatId darf nicht null sein");
         }
@@ -54,7 +82,7 @@ class OrderTest {
         @DisplayName("Sollte NullPointerException werfen wenn UserId null ist")
         void shouldThrowExceptionWhenUserIdIsNull() {
             // When & Then
-            assertThatThrownBy(() -> Order.createOrder(SEAT_ID, null, TOTAL_PRICE, PaymentMethod.PAYPAL))
+            assertThatThrownBy(() -> Order.createOrder(SEAT_ID, null, TOTAL_PRICE, PaymentMethod.PAYPAL, 1L))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("UserId darf nicht null sein");
         }
@@ -63,7 +91,7 @@ class OrderTest {
         @DisplayName("Sollte IllegalArgumentException werfen wenn TotalPrice negativ ist")
         void shouldThrowExceptionWhenTotalPriceIsNegative() {
             // When & Then
-            assertThatThrownBy(() -> Order.createOrder(SEAT_ID, USER_ID, -10.0, PaymentMethod.PAYPAL))
+            assertThatThrownBy(() -> Order.createOrder(SEAT_ID, USER_ID, -10.0, PaymentMethod.PAYPAL, 1L))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("TotalPrice muss positiv sein");
         }
@@ -72,7 +100,7 @@ class OrderTest {
         @DisplayName("Sollte NullPointerException werfen wenn PaymentMethod null ist")
         void shouldThrowExceptionWhenPaymentMethodIsNull() {
             // When & Then
-            assertThatThrownBy(() -> Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, null))
+            assertThatThrownBy(() -> Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, null, 1L))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("PaymentMethod darf nicht null sein");
         }
@@ -86,7 +114,7 @@ class OrderTest {
         @DisplayName("Sollte Order bestätigen wenn Payment erfolgreich ist")
         void shouldConfirmOrderWhenPaymentIsSuccessful() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             order.completePayment("TXN-12345");
 
             // When
@@ -101,7 +129,7 @@ class OrderTest {
         @DisplayName("Sollte IllegalStateException werfen wenn Order nicht PENDING ist")
         void shouldThrowExceptionWhenOrderNotPending() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             order.completePayment("TXN-12345");
             assertThat(order.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
 
@@ -115,7 +143,7 @@ class OrderTest {
         @DisplayName("Sollte IllegalStateException werfen wenn Payment nicht erfolgreich ist")
         void shouldThrowExceptionWhenPaymentNotSuccessful() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             // Payment ist noch PENDING
 
             // When & Then
@@ -133,7 +161,7 @@ class OrderTest {
         @DisplayName("Sollte PENDING Order stornieren")
         void shouldCancelPendingOrder() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
 
             // When
@@ -148,7 +176,7 @@ class OrderTest {
         @DisplayName("Sollte CONFIRMED Order stornieren")
         void shouldCancelConfirmedOrder() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             order.completePayment("TXN-12345");
             assertThat(order.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
 
@@ -164,7 +192,7 @@ class OrderTest {
         @DisplayName("Sollte IllegalStateException werfen wenn Order bereits storniert ist")
         void shouldThrowExceptionWhenOrderAlreadyCancelled() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             order.cancel();
 
             // When & Then
@@ -182,7 +210,7 @@ class OrderTest {
         @DisplayName("Sollte CONFIRMED Order erstatten")
         void shouldRefundConfirmedOrder() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             order.completePayment("TXN-12345");
             assertThat(order.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
 
@@ -199,7 +227,7 @@ class OrderTest {
         @DisplayName("Sollte IllegalStateException werfen wenn Order nicht CONFIRMED ist")
         void shouldThrowExceptionWhenOrderNotConfirmed() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
 
             // When & Then
@@ -217,7 +245,7 @@ class OrderTest {
         @DisplayName("Sollte Payment als erfolgreich markieren und Order bestätigen")
         void shouldCompletePaymentAndConfirmOrder() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.PAYPAL);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.PAYPAL, null);
             String transactionId = "PAYPAL-TXN-789";
 
             // When
@@ -233,7 +261,7 @@ class OrderTest {
         @DisplayName("Sollte Payment als fehlgeschlagen markieren und Order stornieren")
         void shouldFailPaymentAndCancelOrder() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
 
             // When
             order.failPayment();
@@ -252,7 +280,7 @@ class OrderTest {
         @DisplayName("Sollte kompletten Order-Lifecycle durchlaufen: PENDING → CONFIRMED → REFUNDED")
         void shouldCompleteFullOrderLifecycle() {
             // Given - Order erstellen
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
             assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
             assertThat(order.getPayment().getStatus()).isEqualTo(PaymentStatus.PENDING);
 
@@ -275,7 +303,7 @@ class OrderTest {
         @DisplayName("Sollte Order-Lifecycle mit fehlgeschlagenem Payment durchlaufen")
         void shouldHandleFailedPaymentLifecycle() {
             // Given
-            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD);
+            Order order = Order.createOrder(SEAT_ID, USER_ID, TOTAL_PRICE, PaymentMethod.CREDIT_CARD, null);
 
             // When - Payment schlägt fehl
             order.failPayment();

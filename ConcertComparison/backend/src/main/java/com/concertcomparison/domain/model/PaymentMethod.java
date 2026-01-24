@@ -33,7 +33,12 @@ public enum PaymentMethod {
     /**
      * Google Pay
      */
-    GOOGLE_PAY("Google Pay");
+    GOOGLE_PAY("Google Pay"),
+    
+    /**
+     * Bitcoin (Kryptowährung)
+     */
+    BITCOIN("Bitcoin");
     
     private final String displayName;
     
