@@ -299,7 +299,8 @@ class OrderControllerUS179IntegrationTest {
         mockMvc.perform(get("/api/orders/" + orderId + "/ticket")
                 .header("Authorization", "Bearer " + otherUserToken))
             .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.error").value("Sie haben keine Berechtigung für dieses Ticket."));
+            .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
+            .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
     @Test
@@ -309,7 +310,8 @@ class OrderControllerUS179IntegrationTest {
         mockMvc.perform(get("/api/orders/999/ticket")
                 .header("Authorization", "Bearer " + jwtToken))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error").exists());
+            .andExpect(jsonPath("$.code").value("ORDER_NOT_FOUND"))
+            .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
     @Test

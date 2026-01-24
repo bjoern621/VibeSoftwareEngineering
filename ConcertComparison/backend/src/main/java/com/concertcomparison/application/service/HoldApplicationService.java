@@ -1,5 +1,8 @@
 package com.concertcomparison.application.service;
 
+import com.concertcomparison.domain.exception.ReservationNotFoundException;
+import com.concertcomparison.domain.exception.SeatNotAvailableException;
+import com.concertcomparison.domain.exception.SeatNotFoundException;
 import com.concertcomparison.domain.event.SeatStatusChangedEvent;
 import com.concertcomparison.domain.model.Reservation;
 import com.concertcomparison.domain.model.Seat;
@@ -63,13 +66,11 @@ public class HoldApplicationService {
 
         // 1. Seat laden
         Seat seat = seatRepository.findById(seatId)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("Seat mit ID %d nicht gefunden", seatId)
-            ));
+            .orElseThrow(() -> new SeatNotFoundException(seatId));
 
         // 2. Prüfen ob bereits ein aktiver Hold existiert
         reservationRepository.findActiveBySeatId(seatId).ifPresent(existingHold -> {
-            throw new IllegalStateException(
+            throw new SeatNotAvailableException(
                 String.format("Seat %d hat bereits einen aktiven Hold (holdId=%d)", 
                     seatId, existingHold.getId())
             );
@@ -89,13 +90,13 @@ public class HoldApplicationService {
 
         // 6. Event publishen für Cache-Invalidierung (AVAILABLE → HELD)
         SeatStatusChangedEvent event = SeatStatusChangedEvent.holdCreated(
-            seatId, 
-            seat.getConcertId(), 
+            seatId,
+            seat.getConcertId(),
             userId
         );
         eventPublisher.publishEvent(event);
 
-        logger.info("Hold created: holdId={}, seatId={}, expiresAt={}", 
+        logger.info("Hold created: holdId={}, seatId={}, expiresAt={}",
             reservation.getId(), seatId, reservation.getExpiresAt());
 
         // 7. Response DTO erstellen
@@ -126,9 +127,7 @@ public class HoldApplicationService {
 
         // 1. Reservation laden
         Reservation reservation = reservationRepository.findById(holdId)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("Hold mit ID %d nicht gefunden", holdId)
-            ));
+            .orElseThrow(() -> new ReservationNotFoundException(holdId));
 
         if (!reservation.isActive()) {
             throw new IllegalStateException(
@@ -147,11 +146,11 @@ public class HoldApplicationService {
         if (seat.getStatus() == SeatStatus.HELD) {
             seat.releaseHold();
             seatRepository.save(seat);
-            
+
             // Event publishen für Cache-Invalidierung (HELD → AVAILABLE)
             SeatStatusChangedEvent event = SeatStatusChangedEvent.holdCancelled(
-                reservation.getSeatId(), 
-                seat.getConcertId(), 
+                reservation.getSeatId(),
+                seat.getConcertId(),
                 reservation.getUserId()
             );
             eventPublisher.publishEvent(event);
@@ -169,9 +168,7 @@ public class HoldApplicationService {
     @Transactional(readOnly = true)
     public HoldResponseDTO getHold(Long holdId) {
         Reservation reservation = reservationRepository.findById(holdId)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("Hold mit ID %d nicht gefunden", holdId)
-            ));
+            .orElseThrow(() -> new ReservationNotFoundException(holdId));
 
         int ttlSeconds = (int) Duration.between(
             java.time.LocalDateTime.now(), 

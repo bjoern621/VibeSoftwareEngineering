@@ -1,5 +1,6 @@
 package com.concertcomparison.application.service;
 
+import com.concertcomparison.domain.exception.ConcertNotFoundException;
 import com.concertcomparison.domain.model.Concert;
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.model.SeatStatus;
@@ -102,7 +103,7 @@ public class ConcertApplicationService {
         
         // Concert laden
         Concert concert = concertRepository.findById(concertId)
-            .orElseThrow(() -> new IllegalArgumentException("Concert mit ID " + concertId + " nicht gefunden"));
+            .orElseThrow(() -> new ConcertNotFoundException(concertId));
         
         // Update durchführen (mit Validierung in Concert.update())
         concert.update(
@@ -137,8 +138,8 @@ public class ConcertApplicationService {
         logger.warn("Deleting concert with ID: {}", concertId);
         
         // Prüfe ob Concert existiert
-        Concert concert = concertRepository.findById(concertId)
-            .orElseThrow(() -> new IllegalArgumentException("Concert mit ID " + concertId + " nicht gefunden"));
+        concertRepository.findById(concertId)
+            .orElseThrow(() -> new ConcertNotFoundException(concertId));
         
         // NOTE: In echter Anwendung sollte hier auch geprüft werden,
         // ob für dieses Concert noch aktive Reservierungen existieren.
@@ -228,14 +229,14 @@ public class ConcertApplicationService {
      * 
      * @param concertId ID des Concerts
      * @return ConcertResponseDTO
-     * @throws IllegalArgumentException wenn Concert nicht gefunden
+     * @throws ConcertNotFoundException wenn Concert nicht gefunden
      */
     @Transactional(readOnly = true)
     public ConcertResponseDTO getConcertById(Long concertId) {
         logger.debug("Fetching concert with ID: {}", concertId);
         
         Concert concert = concertRepository.findById(concertId)
-            .orElseThrow(() -> new IllegalArgumentException("Concert mit ID " + concertId + " nicht gefunden"));
+            .orElseThrow(() -> new ConcertNotFoundException(concertId));
         
         return mapToResponseDTO(concert);
     }
