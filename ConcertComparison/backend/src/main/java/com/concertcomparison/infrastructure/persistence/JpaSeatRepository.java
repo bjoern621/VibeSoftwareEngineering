@@ -3,13 +3,13 @@ package com.concertcomparison.infrastructure.persistence;
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.model.SeatStatus;
 import com.concertcomparison.domain.repository.SeatRepository;
+import com.concertcomparison.domain.repository.SeatAvailabilityAggregate;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +112,36 @@ public interface JpaSeatRepository extends JpaRepository<Seat, Long>, SeatReposi
                 CategoryCountProjection::getCount
             ));
     }
+
+    /**
+     * Aggregiert Availability und Preisrange für mehrere Concert-IDs in einem Query.
+     */
+    @Query("SELECT s.concertId as concertId, " +
+           "SUM(CASE WHEN s.status = 'AVAILABLE' THEN 1 ELSE 0 END) as availableSeats, " +
+           "COUNT(s) as totalSeats, " +
+           "MIN(s.price) as minPrice, " +
+           "MAX(s.price) as maxPrice " +
+           "FROM Seat s WHERE s.concertId IN :concertIds GROUP BY s.concertId")
+    List<AvailabilityProjection> aggregateAvailabilityRaw(@Param("concertIds") List<Long> concertIds);
+
+    @Override
+    default Map<Long, SeatAvailabilityAggregate> aggregateAvailabilityByConcertIds(List<Long> concertIds) {
+        if (concertIds == null || concertIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return aggregateAvailabilityRaw(concertIds).stream()
+            .collect(Collectors.toMap(
+                AvailabilityProjection::getConcertId,
+                projection -> new SeatAvailabilityAggregate(
+                    projection.getConcertId(),
+                    projection.getAvailableSeats(),
+                    projection.getTotalSeats(),
+                    projection.getMinPrice(),
+                    projection.getMaxPrice()
+                )
+            ));
+    }
     
     /**
      * {@inheritDoc}
@@ -129,5 +159,16 @@ public interface JpaSeatRepository extends JpaRepository<Seat, Long>, SeatReposi
     interface CategoryCountProjection {
         String getCategory();
         Long getCount();
+    }
+
+    /**
+     * Projection für Availability-Aggregation.
+     */
+    interface AvailabilityProjection {
+        Long getConcertId();
+        Long getAvailableSeats();
+        Long getTotalSeats();
+        Double getMinPrice();
+        Double getMaxPrice();
     }
 }

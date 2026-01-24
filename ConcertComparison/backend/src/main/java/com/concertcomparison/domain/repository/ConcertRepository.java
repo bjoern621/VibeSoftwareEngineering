@@ -4,6 +4,8 @@ import com.concertcomparison.domain.model.Concert;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Repository Interface für Concert Aggregate Root.
@@ -35,6 +37,18 @@ public interface ConcertRepository {
      * @return Liste aller Concerts
      */
     List<Concert> findAll();
+
+    /**
+     * Liefert Concerts gefiltert, sortiert und paginiert.
+     *
+     * Unterstützte Filter: Datum (ganzer Tag), Venue (Teilstring, case-insensitive),
+     * minimale/maximale Ticketpreise (über Seats). Sortierung via Pageable (date, name, price).
+     *
+     * @param filter   Filterkriterien
+     * @param pageable Pageable mit Sortierung
+     * @return Page der Concerts
+     */
+    Page<Concert> findAllWithFilters(ConcertFilterCriteria filter, Pageable pageable);
     
     /**
      * Sucht Concerts nach Name (Teilstring-Suche, case-insensitive).

@@ -1,9 +1,11 @@
 package com.concertcomparison.presentation.controller;
 
 import com.concertcomparison.application.service.ConcertApplicationService;
+import com.concertcomparison.domain.repository.ConcertFilterCriteria;
 import com.concertcomparison.presentation.dto.CreateConcertRequestDTO;
 import com.concertcomparison.presentation.dto.CreateSeatsRequestDTO;
 import com.concertcomparison.presentation.dto.ConcertResponseDTO;
+import com.concertcomparison.presentation.dto.PagedConcertResponseDTO;
 import com.concertcomparison.presentation.dto.UpdateConcertRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,9 +20,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * REST Controller für Admin-Operationen auf Concerts und Seats.
@@ -318,7 +325,7 @@ public class ConcertController {
     @PreAuthorize("permitAll()")
     @Operation(
         summary = "Alle Konzerte abrufen",
-        description = "Liefert eine Liste aller Konzerte mit ihren Metadaten. Öffentlicher Zugriff."
+        description = "Liefert eine paginierte Liste aller Konzerte mit Verfügbarkeitsindikator und Preisrange. Öffentlicher Zugriff."
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -326,15 +333,42 @@ public class ConcertController {
             description = "Liste der Konzerte erfolgreich abgerufen",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ConcertResponseDTO.class)
+                schema = @Schema(implementation = PagedConcertResponseDTO.class)
             )
         )
     })
-    public ResponseEntity<List<ConcertResponseDTO>> getAllConcerts() {
-        logger.debug("Fetching all concerts");
-        
-        List<ConcertResponseDTO> concerts = concertApplicationService.getAllConcerts();
-        return ResponseEntity.ok(concerts);
+    @SuppressWarnings("null")
+    public ResponseEntity<PagedConcertResponseDTO> getConcerts(
+        @Parameter(description = "Filter nach Datum (YYYY-MM-DD)")
+        @RequestParam(required = false) LocalDate date,
+        @Parameter(description = "Filter nach Venue (Teilstring)")
+        @RequestParam(required = false) String venue,
+        @Parameter(description = "Mindestpreis")
+        @RequestParam(required = false) Double minPrice,
+        @Parameter(description = "Höchstpreis")
+        @RequestParam(required = false) Double maxPrice,
+        @Parameter(description = "Sortierfeld: date|name|price", example = "date")
+        @RequestParam(defaultValue = "date") String sortBy,
+        @Parameter(description = "Sortierreihenfolge: asc|desc", example = "asc")
+        @RequestParam(defaultValue = "asc") String sortOrder,
+        @Parameter(description = "Page (0-basiert)", example = "0")
+        @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Seitengröße", example = "20")
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        logger.debug("Fetching concerts with filters: date={}, venue={}, priceRange=[{},{}], sort={} {} page={} size={}",
+            date, venue, minPrice, maxPrice, sortBy, sortOrder, page, size);
+
+        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+            throw new IllegalArgumentException("minPrice darf nicht größer als maxPrice sein");
+        }
+
+        ConcertFilterCriteria filter = new ConcertFilterCriteria(date, venue, minPrice, maxPrice);
+        Sort sort = Objects.requireNonNullElse(buildSort(sortBy, sortOrder), Sort.unsorted());
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        PagedConcertResponseDTO response = concertApplicationService.getConcerts(filter, pageable);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -373,6 +407,23 @@ public class ConcertController {
         
         ConcertResponseDTO concert = concertApplicationService.getConcertById(concertId);
         return ResponseEntity.ok(concert);
+    }
+
+    private Sort buildSort(String sortBy, String sortOrder) {
+        String safeSortOrder = sortOrder == null ? "" : sortOrder;
+        Sort.Direction direction = Objects.requireNonNullElse(
+            Sort.Direction.fromOptionalString(safeSortOrder).orElse(Sort.Direction.ASC),
+            Sort.Direction.ASC
+        );
+
+        String normalizedSort = sortBy == null ? "" : sortBy.toLowerCase();
+        String property = switch (normalizedSort) {
+            case "name" -> "name";
+            case "price" -> "price";
+            default -> "date";
+        };
+
+        return Sort.by(direction == null ? Sort.Direction.ASC : direction, property);
     }
     
     /**

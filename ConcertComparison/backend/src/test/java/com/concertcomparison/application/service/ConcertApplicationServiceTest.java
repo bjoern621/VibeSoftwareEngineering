@@ -2,12 +2,14 @@ package com.concertcomparison.application.service;
 
 import com.concertcomparison.domain.exception.InvalidConcertDateException;
 import com.concertcomparison.domain.model.Concert;
-import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.repository.ConcertRepository;
+import com.concertcomparison.domain.repository.ConcertFilterCriteria;
 import com.concertcomparison.domain.repository.SeatRepository;
+import com.concertcomparison.domain.repository.SeatAvailabilityAggregate;
 import com.concertcomparison.presentation.dto.CreateConcertRequestDTO;
 import com.concertcomparison.presentation.dto.CreateSeatRequestDTO;
 import com.concertcomparison.presentation.dto.ConcertResponseDTO;
+import com.concertcomparison.presentation.dto.PagedConcertResponseDTO;
 import com.concertcomparison.presentation.dto.UpdateConcertRequestDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,11 +25,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Unit Tests für ConcertApplicationService.
@@ -60,6 +67,70 @@ class ConcertApplicationServiceTest {
     private static final LocalDateTime FUTURE_DATE = LocalDateTime.now().plusMonths(1);
     private static final LocalDateTime PAST_DATE = LocalDateTime.now().minusMonths(1);
     
+    @Nested
+    @DisplayName("getConcerts - Filter, Sort, Pagination")
+    class GetConcertsTests {
+
+        private Concert concert1;
+        private Concert concert2;
+        private Pageable pageable;
+
+        @BeforeEach
+        void setUp() {
+            concert1 = Concert.createConcert(
+                "Alpha",
+                FUTURE_DATE,
+                "Venue A",
+                "Desc"
+            );
+            concert1.setId(1L);
+
+            concert2 = Concert.createConcert(
+                "Beta",
+                FUTURE_DATE.plusDays(1),
+                "Venue B",
+                "Desc"
+            );
+            concert2.setId(2L);
+
+            pageable = PageRequest.of(0, 10);
+        }
+
+        @Test
+        @DisplayName("Sollte paginierte Concerts mit Availability zurückgeben")
+        @SuppressWarnings("null")
+        void shouldReturnPagedConcertsWithAvailability() {
+            // Arrange
+            Page<Concert> page = new PageImpl<>(List.of(concert1, concert2), pageable, 2);
+            when(concertRepository.findAllWithFilters(any(ConcertFilterCriteria.class), any(Pageable.class)))
+                .thenReturn(page);
+
+            Map<Long, SeatAvailabilityAggregate> availability = Map.of(
+                1L, new SeatAvailabilityAggregate(1L, 5, 10, 50.0, 100.0),
+                2L, new SeatAvailabilityAggregate(2L, 0, 4, 120.0, 150.0)
+            );
+            when(seatRepository.aggregateAvailabilityByConcertIds(List.of(1L, 2L))).thenReturn(availability);
+
+            // Act
+            PagedConcertResponseDTO response = concertApplicationService.getConcerts(new ConcertFilterCriteria(null, null, null, null), pageable);
+
+            // Assert
+            assertThat(response.getConcerts()).hasSize(2);
+            assertThat(response.getConcerts().get(0).getName()).isEqualTo("Alpha");
+            assertThat(response.getConcerts().get(0).getAvailableSeats()).isEqualTo(5);
+            assertThat(response.getConcerts().get(0).getAvailabilityStatus()).isEqualTo("AVAILABLE");
+
+            assertThat(response.getConcerts().get(1).getName()).isEqualTo("Beta");
+            assertThat(response.getConcerts().get(1).getAvailabilityStatus()).isEqualTo("SOLD_OUT");
+            assertThat(response.getConcerts().get(1).getMinPrice()).isEqualTo(120.0);
+
+            assertThat(response.getPage().getTotalElements()).isEqualTo(2);
+            assertThat(response.getPage().getTotalPages()).isEqualTo(1);
+
+            verify(concertRepository).findAllWithFilters(any(ConcertFilterCriteria.class), any(Pageable.class));
+            verify(seatRepository).aggregateAvailabilityByConcertIds(List.of(1L, 2L));
+        }
+    }
     @Nested
     @DisplayName("createConcert - Concert-Erstellung")
     class CreateConcertTests {
