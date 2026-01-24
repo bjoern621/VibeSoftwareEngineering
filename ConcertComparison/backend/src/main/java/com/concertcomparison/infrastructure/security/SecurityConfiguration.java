@@ -1,5 +1,7 @@
 package com.concertcomparison.infrastructure.security;
 
+import com.concertcomparison.infrastructure.ratelimit.RateLimitConfig;
+import com.concertcomparison.infrastructure.ratelimit.RateLimitFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
  * Spring Security Konfiguration mit JWT Authentication.
@@ -37,11 +40,24 @@ public class SecurityConfiguration {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
+    private final RateLimitConfig.RateLimitService rateLimitService;
     
     public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter,
-                                CustomUserDetailsService userDetailsService) {
+                                CustomUserDetailsService userDetailsService,
+                                RateLimitConfig.RateLimitService rateLimitService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
+        this.rateLimitService = rateLimitService;
+    }
+    
+    /**
+     * Rate Limit Filter Bean.
+     * 
+     * @return RateLimitFilter für Rate Limiting
+     */
+    @Bean
+    public RateLimitFilter rateLimitFilter(HandlerExceptionResolver handlerExceptionResolver) {
+        return new RateLimitFilter(rateLimitService, handlerExceptionResolver);
     }
     
     /**
@@ -51,7 +67,7 @@ public class SecurityConfiguration {
      * @return SecurityFilterChain
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimitFilter rateLimitFilter) throws Exception {
         http
                 // CSRF deaktivieren (JWT ist CSRF-resistent)
                 .csrf(AbstractHttpConfigurer::disable)
@@ -108,6 +124,9 @@ public class SecurityConfiguration {
                 
                 // Authentication Provider
                 .authenticationProvider(authenticationProvider())
+                
+                // Rate Limit Filter vor JwtAuthenticationFilter
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 
                 // JWT Filter vor UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

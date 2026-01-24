@@ -1,5 +1,6 @@
 package com.concertcomparison.presentation.exception;
 
+import com.concertcomparison.domain.exception.RateLimitExceededException;
 import com.concertcomparison.domain.exception.SeatNotAvailableException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,18 @@ public class GlobalExceptionHandler {
         body.put("code", "SEAT_NOT_AVAILABLE");
         body.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleRateLimitExceeded(RateLimitExceededException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("code", "RATE_LIMIT_EXCEEDED");
+        body.put("message", ex.getMessage());
+        body.put("retryAfter", ex.getRetryAfterSeconds());
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(body);
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)
