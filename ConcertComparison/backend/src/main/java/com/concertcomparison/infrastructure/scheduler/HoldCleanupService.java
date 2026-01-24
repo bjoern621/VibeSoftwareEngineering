@@ -1,5 +1,6 @@
 package com.concertcomparison.infrastructure.scheduler;
 
+import com.concertcomparison.domain.event.SeatStatusChangedEvent;
 import com.concertcomparison.domain.model.Reservation;
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.model.SeatStatus;
@@ -7,6 +8,7 @@ import com.concertcomparison.domain.repository.ReservationRepository;
 import com.concertcomparison.domain.repository.SeatRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +26,15 @@ public class HoldCleanupService {
 
     private final ReservationRepository reservationRepository;
     private final SeatRepository seatRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public HoldCleanupService(
             ReservationRepository reservationRepository,
-            SeatRepository seatRepository) {
+            SeatRepository seatRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.reservationRepository = reservationRepository;
         this.seatRepository = seatRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -70,11 +75,19 @@ public class HoldCleanupService {
                     // 3. Release Seat
                     seat.releaseHold();
                     seatRepository.save(seat);
+                    
+                    // 4. Event publishen für Cache-Invalidierung (HELD → AVAILABLE)
+                    SeatStatusChangedEvent event = SeatStatusChangedEvent.holdExpired(
+                        seat.getId(), 
+                        seat.getConcertId()
+                    );
+                    eventPublisher.publishEvent(event);
+                    
                     logger.debug("Released seat {} from expired hold {}", 
                         seat.getId(), reservation.getId());
                 }
 
-                // 4. Lösche Reservation
+                // 5. Lösche Reservation
                 reservationRepository.delete(reservation);
                 cleaned++;
                 

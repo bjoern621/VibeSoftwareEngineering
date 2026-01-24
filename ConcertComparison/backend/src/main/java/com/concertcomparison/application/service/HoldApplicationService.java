@@ -1,5 +1,6 @@
 package com.concertcomparison.application.service;
 
+import com.concertcomparison.domain.event.SeatStatusChangedEvent;
 import com.concertcomparison.domain.model.Reservation;
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.model.SeatStatus;
@@ -10,6 +11,7 @@ import jakarta.persistence.OptimisticLockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,15 +28,18 @@ public class HoldApplicationService {
 
     private final SeatRepository seatRepository;
     private final ReservationRepository reservationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${concert.hold.ttl-minutes:15}")
     private int holdTtlMinutes;
 
     public HoldApplicationService(
             SeatRepository seatRepository,
-            ReservationRepository reservationRepository) {
+            ReservationRepository reservationRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.seatRepository = seatRepository;
         this.reservationRepository = reservationRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -82,10 +87,18 @@ public class HoldApplicationService {
         seat.updateHoldReservationId(String.valueOf(reservation.getId()));
         seatRepository.save(seat);
 
+        // 6. Event publishen für Cache-Invalidierung (AVAILABLE → HELD)
+        SeatStatusChangedEvent event = SeatStatusChangedEvent.holdCreated(
+            seatId, 
+            seat.getConcertId(), 
+            userId
+        );
+        eventPublisher.publishEvent(event);
+
         logger.info("Hold created: holdId={}, seatId={}, expiresAt={}", 
             reservation.getId(), seatId, reservation.getExpiresAt());
 
-        // 6. Response DTO erstellen
+        // 7. Response DTO erstellen
         int ttlSeconds = (int) Duration.ofMinutes(holdTtlMinutes).getSeconds();
         return new HoldResponseDTO(
             String.valueOf(reservation.getId()),
@@ -134,6 +147,14 @@ public class HoldApplicationService {
         if (seat.getStatus() == SeatStatus.HELD) {
             seat.releaseHold();
             seatRepository.save(seat);
+            
+            // Event publishen für Cache-Invalidierung (HELD → AVAILABLE)
+            SeatStatusChangedEvent event = SeatStatusChangedEvent.holdCancelled(
+                reservation.getSeatId(), 
+                seat.getConcertId(), 
+                reservation.getUserId()
+            );
+            eventPublisher.publishEvent(event);
         }
 
         // 3. Reservation löschen

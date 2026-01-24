@@ -134,6 +134,13 @@
             <artifactId>bucket4j-core</artifactId>
             <version>7.6.0</version>
         </dependency>
+        <!-- Awaitility for async test assertions -->
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.2.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
