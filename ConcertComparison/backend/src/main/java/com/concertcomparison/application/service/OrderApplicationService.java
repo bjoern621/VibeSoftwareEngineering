@@ -1,6 +1,9 @@
 package com.concertcomparison.application.service;
 
 import com.concertcomparison.domain.exception.ReservationExpiredException;
+import com.concertcomparison.domain.exception.ReservationNotFoundException;
+import com.concertcomparison.domain.exception.SeatNotFoundException;
+import com.concertcomparison.domain.exception.OrderNotFoundException;
 import com.concertcomparison.domain.model.*;
 import com.concertcomparison.domain.repository.ConcertRepository;
 import com.concertcomparison.domain.repository.OrderRepository;
@@ -12,10 +15,10 @@ import com.concertcomparison.presentation.dto.TicketDTO;
 import jakarta.persistence.OptimisticLockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,9 +76,7 @@ public class OrderApplicationService {
 
         // 1. Reservation laden und validieren
         Reservation reservation = reservationRepository.findById(holdId)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("Reservation mit ID %d nicht gefunden", holdId)
-            ));
+            .orElseThrow(() -> new ReservationNotFoundException(holdId));
 
         // 2. Prüfen ob Reservation abgelaufen ist
         if (reservation.isExpired()) {
@@ -97,9 +98,7 @@ public class OrderApplicationService {
 
         // 4. Seat laden
         Seat seat = seatRepository.findById(reservation.getSeatId())
-            .orElseThrow(() -> new IllegalStateException(
-                String.format("Seat mit ID %d nicht gefunden", reservation.getSeatId())
-            ));
+            .orElseThrow(() -> new SeatNotFoundException(reservation.getSeatId()));
 
         // 5. Prüfen ob Seat HELD ist
         if (seat.getStatus() != SeatStatus.HELD) {
@@ -149,9 +148,7 @@ public class OrderApplicationService {
     @Transactional(readOnly = true)
     public Order getOrderById(Long orderId) {
         return orderRepository.findById(orderId)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("Order mit ID %d nicht gefunden", orderId)
-            ));
+            .orElseThrow(() -> new OrderNotFoundException(orderId));
     }
 
     /**
@@ -251,9 +248,7 @@ public class OrderApplicationService {
         if (!order.getUserId().equals(userId)) {
             logger.warn("Unauthorized QR code access: order {} does not belong to user {}", 
                 orderId, userId);
-            throw new SecurityException(
-                String.format("Order %d gehört nicht zu User %s", orderId, userId)
-            );
+            throw new AccessDeniedException("Sie haben keine Berechtigung für dieses Ticket.");
         }
 
         // Seat laden um concertId zu bekommen

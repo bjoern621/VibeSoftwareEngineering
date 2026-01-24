@@ -118,7 +118,12 @@ public class SecurityConfiguration {
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setContentType("application/json");
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            response.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"Authentifizierung erforderlich\"}");
+                            response.getWriter().write("{\"code\":\"AUTHENTICATION_FAILED\",\"message\":\"Authentifizierung erforderlich\",\"status\":401,\"path\":\"" + request.getRequestURI() + "\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.getWriter().write("{\"code\":\"ACCESS_DENIED\",\"message\":\"Zugriff verweigert\",\"status\":403,\"path\":\"" + request.getRequestURI() + "\"}");
                         })
                 )
                 

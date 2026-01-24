@@ -187,7 +187,8 @@ class OrderControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error").value("Reservation mit ID 999 nicht gefunden"));
+            .andExpect(jsonPath("$.code").value("RESERVATION_NOT_FOUND"))
+            .andExpect(jsonPath("$.message").isNotEmpty());
 
         // Verify keine Order erstellt
         var orders = orderRepository.findByUserId(USER_ID);
@@ -214,7 +215,8 @@ class OrderControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.error").value(org.hamcrest.Matchers.containsString("abgelaufen")));
+            .andExpect(jsonPath("$.code").value("RESERVATION_EXPIRED"))
+            .andExpect(jsonPath("$.message").isNotEmpty());
 
         // Verify keine Order erstellt
         var orders = orderRepository.findByUserId(USER_ID);
@@ -237,7 +239,8 @@ class OrderControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.error").value(org.hamcrest.Matchers.containsString("gehört nicht zum User")));
+            .andExpect(jsonPath("$.code").value("ILLEGAL_STATE"))
+            .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("gehört nicht zum User")));
 
         // Verify Hold noch vorhanden, keine Order erstellt
         var hold = reservationRepository.findById(holdId);
@@ -295,7 +298,8 @@ class OrderControllerIntegrationTest {
         mockMvc.perform(get("/api/orders/999")
                 .header("Authorization", "Bearer " + jwtToken))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.error").value("Order mit ID 999 nicht gefunden"));
+            .andExpect(jsonPath("$.code").value("ORDER_NOT_FOUND"))
+            .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
     // ==================== GET /api/orders/user/{userId} TESTS ====================

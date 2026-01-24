@@ -1,17 +1,14 @@
 package com.concertcomparison.presentation.controller;
 
 import com.concertcomparison.application.service.OrderApplicationService;
-import com.concertcomparison.domain.exception.ReservationExpiredException;
 import com.concertcomparison.domain.model.Order;
 import com.concertcomparison.presentation.dto.OrderHistoryItemDTO;
 import com.concertcomparison.presentation.dto.OrderResponseDTO;
 import com.concertcomparison.presentation.dto.PurchaseTicketRequestDTO;
-import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -28,6 +25,9 @@ import java.util.stream.Collectors;
  * - GET /api/orders/{id} - Order-Details abrufen (mit Ownership Check)
  * - GET /api/users/me/orders - Orders des aktuellen Users (US-179)
  * - GET /api/orders/{id}/ticket - QR Code für Ticket (US-179)
+ * 
+ * Alle Exception Handling wird von GlobalExceptionHandler zentralisiert verwaltet.
+ * Dieser Controller wirft Domain Exceptions die automatisch gemappt werden.
  */
 @RestController
 @RequestMapping("/api")
@@ -68,61 +68,20 @@ public class OrderController {
      * @return OrderResponseDTO
      */
     @PostMapping("/orders")
-    public ResponseEntity<?> purchaseTicket(@Valid @RequestBody PurchaseTicketRequestDTO request) {
+    public ResponseEntity<OrderResponseDTO> purchaseTicket(@Valid @RequestBody PurchaseTicketRequestDTO request) {
         logger.info("POST /api/orders - holdId={}, userId={}", request.getHoldId(), request.getUserId());
 
-        try {
-            // 1. Ticket kaufen via Application Service
-            Order order = orderApplicationService.purchaseTicket(
-                request.getHoldId(),
-                request.getUserId()
-            );
+        Order order = orderApplicationService.purchaseTicket(
+            request.getHoldId(),
+            request.getUserId()
+        );
 
-            // 2. Order → DTO mappen
-            OrderResponseDTO response = mapToDTO(order);
+        OrderResponseDTO response = mapToDTO(order);
+        logger.info("Purchase successful: orderId={}, seatId={}", order.getId(), order.getSeatId());
 
-            logger.info("Purchase successful: orderId={}, seatId={}", order.getId(), order.getSeatId());
-
-            // 3. 201 Created zurückgeben
-            return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
-
-        } catch (IllegalArgumentException e) {
-            // Reservation nicht gefunden oder ungültige Parameter
-            logger.warn("Purchase failed (Not Found): {}", e.getMessage());
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse(e.getMessage()));
-
-        } catch (ReservationExpiredException e) {
-            // Reservation abgelaufen
-            logger.warn("Purchase failed (Expired): {}", e.getMessage());
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse(e.getMessage()));
-
-        } catch (IllegalStateException e) {
-            // Seat nicht HELD oder Reservation gehört anderem User
-            logger.warn("Purchase failed (Conflict): {}", e.getMessage());
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse(e.getMessage()));
-
-        } catch (OptimisticLockException e) {
-            // Concurrency Conflict
-            logger.warn("Purchase failed (Optimistic Lock): {}", e.getMessage());
-            return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse("Gleichzeitiger Zugriff erkannt. Bitte erneut versuchen."));
-
-        } catch (Exception e) {
-            // Unerwarteter Fehler
-            logger.error("Purchase failed (Unexpected Error): {}", e.getMessage(), e);
-            return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Ein unerwarteter Fehler ist aufgetreten."));
-        }
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(response);
     }
 
     /**
@@ -137,27 +96,19 @@ public class OrderController {
      * @return OrderResponseDTO
      */
     @GetMapping("/orders/{id}")
-    public ResponseEntity<?> getOrder(@PathVariable("id") Long orderId) {
+    public ResponseEntity<OrderResponseDTO> getOrder(@PathVariable("id") Long orderId) {
         logger.info("GET /api/orders/{}", orderId);
 
-        try {
-            Order order = orderApplicationService.getOrderById(orderId);
-            OrderResponseDTO response = mapToDTO(order);
+        Order order = orderApplicationService.getOrderById(orderId);
+        OrderResponseDTO response = mapToDTO(order);
 
-            return ResponseEntity.ok(response);
-
-        } catch (IllegalArgumentException e) {
-            logger.warn("Order not found: {}", orderId);
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse(e.getMessage()));
-        }
+        return ResponseEntity.ok(response);
     }
 
     /**
      * Ruft alle Orders eines Users ab.
      * 
-     * Endpoint: GET /api/users/{userId}/orders
+     * Endpoint: GET /api/orders/user/{userId}
      * 
      * Success Response: 200 OK (Liste von Orders)
      * 
@@ -166,7 +117,7 @@ public class OrderController {
      */
     @GetMapping("/orders/user/{userId}")
     public ResponseEntity<List<OrderResponseDTO>> getUserOrders(@PathVariable String userId) {
-        logger.info("GET /api/users/{}/orders", userId);
+        logger.info("GET /api/orders/user/{}", userId);
 
         List<Order> orders = orderApplicationService.getOrdersByUserId(userId);
         List<OrderResponseDTO> response = orders.stream()
@@ -243,43 +194,20 @@ public class OrderController {
      */
     @GetMapping("/orders/{id}/ticket")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getTicketQRCode(
+    public ResponseEntity<byte[]> getTicketQRCode(
             @PathVariable("id") Long orderId,
             Authentication authentication) {
         
         String userId = authentication.getName();
         logger.info("GET /api/orders/{}/ticket - userId={}", orderId, userId);
 
-        try {
-            byte[] qrCode = orderApplicationService.generateTicketQRCode(orderId, userId);
+        byte[] qrCode = orderApplicationService.generateTicketQRCode(orderId, userId);
 
-            return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
-                .header("Content-Disposition", 
-                    "attachment; filename=\"ticket-" + orderId + ".png\"")
-                .body(qrCode);
-
-        } catch (IllegalArgumentException e) {
-            // Order nicht gefunden
-            logger.warn("Ticket QR code failed (Not Found): {}", e.getMessage());
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse(e.getMessage()));
-
-        } catch (SecurityException e) {
-            // Order gehört anderem User
-            logger.warn("Ticket QR code failed (Forbidden): {}", e.getMessage());
-            return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(new ErrorResponse("Sie haben keine Berechtigung für dieses Ticket."));
-
-        } catch (Exception e) {
-            // Unerwarteter Fehler
-            logger.error("Ticket QR code failed (Unexpected Error): {}", e.getMessage(), e);
-            return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Fehler beim Generieren des QR Codes."));
-        }
+        return ResponseEntity.ok()
+            .header("Content-Type", "image/png")
+            .header("Content-Disposition", 
+                "attachment; filename=\"ticket-" + orderId + ".png\"")
+            .body(qrCode);
     }
 
     // ==================== PRIVATE HELPER METHODS ====================
@@ -297,26 +225,5 @@ public class OrderController {
             order.getPurchaseDate(),
             order.getPayment() != null ? order.getPayment().getStatus().toString() : "UNKNOWN"
         );
-    }
-
-    /**
-     * Error Response DTO für konsistente Fehlerausgabe.
-     */
-    private static class ErrorResponse {
-        private final String error;
-        private final long timestamp;
-
-        public ErrorResponse(String error) {
-            this.error = error;
-            this.timestamp = System.currentTimeMillis();
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
     }
 }

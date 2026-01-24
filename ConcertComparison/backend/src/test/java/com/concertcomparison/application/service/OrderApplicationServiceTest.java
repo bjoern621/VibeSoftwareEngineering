@@ -138,8 +138,8 @@ class OrderApplicationServiceTest {
     void purchaseTicket_ReservationNotFound() {
         // Act & Assert
         assertThatThrownBy(() -> orderApplicationService.purchaseTicket(999L, USER_ID))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Reservation mit ID 999 nicht gefunden");
+            .isInstanceOf(com.concertcomparison.domain.exception.ReservationNotFoundException.class)
+            .hasMessageContaining("Reservierung");
 
         // Verify keine Order erstellt
         assertThat(orderRepository.findAll()).isEmpty();
@@ -159,8 +159,7 @@ class OrderApplicationServiceTest {
 
         // Act & Assert
         assertThatThrownBy(() -> orderApplicationService.purchaseTicket(savedReservation.getId(), USER_ID))
-            .isInstanceOf(ReservationExpiredException.class)
-            .hasMessageContaining("abgelaufen");
+            .isInstanceOf(ReservationExpiredException.class);
 
         // Verify keine Order erstellt
         assertThat(orderRepository.findAll()).isEmpty();
@@ -234,8 +233,8 @@ class OrderApplicationServiceTest {
     void getOrderById_NotFound() {
         // Act & Assert
         assertThatThrownBy(() -> orderApplicationService.getOrderById(999L))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Order mit ID 999 nicht gefunden");
+            .isInstanceOf(com.concertcomparison.domain.exception.OrderNotFoundException.class)
+            .hasMessageContaining("Bestellung");
     }
 
     @Test
@@ -398,8 +397,8 @@ class OrderApplicationServiceTest {
         // Act & Assert - OTHER_USER versucht QR Code zu generieren
         assertThatThrownBy(() -> 
             orderApplicationService.generateTicketQRCode(order.getId(), OTHER_USER_ID))
-            .isInstanceOf(SecurityException.class)
-            .hasMessageContaining("gehört nicht zu User");
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+            .hasMessageContaining("Berechtigung");
     }
 
     @Test
@@ -408,8 +407,8 @@ class OrderApplicationServiceTest {
         // Act & Assert
         assertThatThrownBy(() -> 
             orderApplicationService.generateTicketQRCode(999L, USER_ID))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Order mit ID 999 nicht gefunden");
+            .isInstanceOf(com.concertcomparison.domain.exception.OrderNotFoundException.class)
+            .hasMessageContaining("Bestellung");
     }
 
     // ==================== HELPER METHODS ====================

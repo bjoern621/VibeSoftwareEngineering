@@ -272,8 +272,8 @@ class ConcertApplicationServiceTest {
             
             // Act & Assert
             assertThatThrownBy(() -> concertApplicationService.updateConcert(999L, updateRequest))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Concert mit ID 999 nicht gefunden");
+                .isInstanceOf(com.concertcomparison.domain.exception.ConcertNotFoundException.class)
+                .hasMessageContaining("Konzert");
             
             verify(concertRepository, never()).save(any());
         }
@@ -338,8 +338,8 @@ class ConcertApplicationServiceTest {
             
             // Act & Assert
             assertThatThrownBy(() -> concertApplicationService.deleteConcert(999L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Concert mit ID 999 nicht gefunden");
+                .isInstanceOf(com.concertcomparison.domain.exception.ConcertNotFoundException.class)
+                .hasMessageContaining("Konzert");
         }
     }
     

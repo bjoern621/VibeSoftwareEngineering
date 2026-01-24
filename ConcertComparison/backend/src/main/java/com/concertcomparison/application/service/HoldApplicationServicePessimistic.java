@@ -1,5 +1,6 @@
 package com.concertcomparison.application.service;
 
+import com.concertcomparison.domain.exception.SeatNotFoundException;
 import com.concertcomparison.domain.model.Reservation;
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.repository.ReservationRepository;
@@ -90,9 +91,7 @@ public class HoldApplicationServicePessimistic {
         // → DB führt SELECT ... FOR UPDATE aus
         // → Andere Transaktionen warten bis Lock frei ist
         Seat seat = seatRepository.findByIdForUpdate(seatId)
-            .orElseThrow(() -> new IllegalArgumentException(
-                String.format("Seat mit ID %d nicht gefunden", seatId)
-            ));
+            .orElseThrow(() -> new SeatNotFoundException(seatId));
 
         logger.debug("[PESSIMISTIC] Seat {} locked, status: {}", seatId, seat.getStatus());
 

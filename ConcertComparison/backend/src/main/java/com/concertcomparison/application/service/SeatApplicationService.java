@@ -100,6 +100,38 @@ public class SeatApplicationService {
     }
     
     /**
+     * Findet alternative verfügbare Sitzplätze in der gleichen Kategorie.
+     * 
+     * Use Case: User versucht, einen nicht verfügbaren Sitzplatz zu reservieren.
+     * Wir schlagen bis zu 5 alternative Sitzplätze in der gleichen Kategorie vor.
+     * 
+     * Filterkriterien:
+     * - Gleiche Kategorie wie der ursprüngliche Sitzplatz
+     * - Status muss AVAILABLE sein
+     * - Maximal 5 Alternativen
+     * - Sortiert nach Blocknummer und Reihe
+     * 
+     * @param concertId ID des Konzerts
+     * @param category Kategorie des ursprünglichen Sitzplatzes
+     * @param excludeSeatId ID des nicht verfügbaren Sitzplatzes (ausschließen)
+     * @return Liste von alternativen SeatResponseDTO (maximal 5)
+     */
+    @Transactional(readOnly = true)
+    public List<SeatResponseDTO> findAlternativeSeats(Long concertId, String category, Long excludeSeatId) {
+        return seatRepository.findByConcertId(concertId).stream()
+            .filter(seat -> seat.getCategory().equals(category))                    // Gleiche Kategorie
+            .filter(seat -> seat.getStatus() == SeatStatus.AVAILABLE)              // Nur verfügbare Seats
+            .filter(seat -> !seat.getId().equals(excludeSeatId))                   // Ausgeschlossenen Seat filtern
+            .sorted((s1, s2) -> {                                                   // Nach Block und Reihe sortieren
+                int blockCompare = s1.getBlock().compareTo(s2.getBlock());
+                return blockCompare != 0 ? blockCompare : s1.getRow().compareTo(s2.getRow());
+            })
+            .limit(5)                                                               // Maximal 5 Alternativen
+            .map(this::mapToSeatDTO)
+            .collect(Collectors.toList());
+    }
+    
+    /**
      * Mappt Domain Entity zu Response DTO.
      * 
      * Konvertiert Long IDs zu String (OpenAPI-Konformität).
