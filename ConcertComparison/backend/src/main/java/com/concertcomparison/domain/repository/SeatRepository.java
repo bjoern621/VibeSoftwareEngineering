@@ -2,7 +2,6 @@ package com.concertcomparison.domain.repository;
 
 import com.concertcomparison.domain.model.Seat;
 import com.concertcomparison.domain.model.SeatStatus;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +111,14 @@ public interface SeatRepository {
      * @return Map: Kategorie → Anzahl verfügbarer Seats
      */
     Map<String, Long> countAvailableSeatsPerCategory(Long concertId);
+
+    /**
+     * Aggregiert Verfügbarkeit, Gesamtanzahl und Preisrange für mehrere Concerts in einem Query.
+     *
+     * @param concertIds Liste der Concert-IDs
+     * @return Map Concert-ID -> Aggregatwerte
+     */
+    Map<Long, SeatAvailabilityAggregate> aggregateAvailabilityByConcertIds(List<Long> concertIds);
     
     /**
      * Löscht einen Seat (nur für Admin/Testing).

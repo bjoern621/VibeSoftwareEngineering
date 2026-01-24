@@ -3,23 +3,31 @@ package com.concertcomparison.application.service;
 import com.concertcomparison.domain.exception.ConcertNotFoundException;
 import com.concertcomparison.domain.model.Concert;
 import com.concertcomparison.domain.model.Seat;
-import com.concertcomparison.domain.model.SeatStatus;
+import com.concertcomparison.domain.repository.ConcertFilterCriteria;
 import com.concertcomparison.domain.repository.ConcertRepository;
+import com.concertcomparison.domain.repository.SeatAvailabilityAggregate;
 import com.concertcomparison.domain.repository.SeatRepository;
+import com.concertcomparison.presentation.dto.ConcertListItemDTO;
 import com.concertcomparison.presentation.dto.CreateConcertRequestDTO;
 import com.concertcomparison.presentation.dto.CreateSeatRequestDTO;
 import com.concertcomparison.presentation.dto.ConcertResponseDTO;
+import com.concertcomparison.presentation.dto.PagedConcertResponseDTO;
 import com.concertcomparison.presentation.dto.UpdateConcertRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Sort;
 
 /**
  * Application Service für Concert Management (Admin-Operationen).
@@ -184,7 +192,7 @@ public class ConcertApplicationService {
         logger.info("Creating {} seats for concert ID: {}", seatDTOs.size(), concertId);
         
         // Prüfe ob Concert existiert
-        Concert concert = concertRepository.findById(concertId)
+        concertRepository.findById(concertId)
             .orElseThrow(() -> new IllegalArgumentException("Concert mit ID " + concertId + " nicht gefunden"));
         
         // Erstelle Seat Entities aus DTOs
@@ -222,6 +230,76 @@ public class ConcertApplicationService {
         return concerts.stream()
             .map(this::mapToResponseDTO)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Ruft Konzerte gefiltert, sortiert und paginiert ab.
+     *
+     * @param filter   Filterkriterien (Datum, Venue, Preisrange)
+     * @param pageable Pageable inkl. Sortierung
+     * @return Paginierte Antwort mit Availability
+     */
+    @Transactional(readOnly = true)
+    public PagedConcertResponseDTO getConcerts(ConcertFilterCriteria filter, Pageable pageable) {
+        boolean sortByPrice = pageable.getSort().stream()
+            .anyMatch(order -> "price".equalsIgnoreCase(order.getProperty()));
+
+        Page<Concert> concertPage = sortByPrice
+            ? concertRepository.findAllWithFilters(filter, Pageable.unpaged())
+            : concertRepository.findAllWithFilters(filter, pageable);
+
+        List<Long> concertIds = concertPage.stream()
+            .map(Concert::getId)
+            .toList();
+
+        Map<Long, SeatAvailabilityAggregate> availability = seatRepository.aggregateAvailabilityByConcertIds(concertIds);
+
+        List<ConcertListItemDTO> items = concertPage.stream()
+            .map(concert -> mapToListItem(concert, availability.get(concert.getId())))
+            .toList();
+
+        if (sortByPrice) {
+            Optional<Sort.Order> priceOrder = pageable.getSort().get().findFirst();
+            Comparator<ConcertListItemDTO> comparator = Comparator.<ConcertListItemDTO, Double>comparing(
+                ConcertListItemDTO::getMinPrice,
+                Comparator.nullsLast(Double::compareTo)
+            );
+
+            if (priceOrder.map(Sort.Order::getDirection).orElse(Sort.Direction.ASC) == Sort.Direction.DESC) {
+                comparator = comparator.reversed();
+            }
+
+            items = items.stream()
+                .sorted(comparator)
+                .collect(Collectors.toList());
+
+            int fromIndex = Math.toIntExact(Math.min((long) pageable.getPageNumber() * pageable.getPageSize(), items.size()));
+            int toIndex = Math.min(fromIndex + pageable.getPageSize(), items.size());
+            List<ConcertListItemDTO> pageItems = items.subList(fromIndex, toIndex);
+
+            long totalElements = items.size();
+            int totalPages = pageable.getPageSize() == 0
+                ? 1
+                : (int) Math.ceil((double) totalElements / pageable.getPageSize());
+
+            PagedConcertResponseDTO.PageMetadata metadata = new PagedConcertResponseDTO.PageMetadata(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                totalElements,
+                totalPages
+            );
+
+            return new PagedConcertResponseDTO(pageItems, metadata);
+        }
+
+        PagedConcertResponseDTO.PageMetadata metadata = new PagedConcertResponseDTO.PageMetadata(
+            concertPage.getNumber(),
+            concertPage.getSize(),
+            concertPage.getTotalElements(),
+            concertPage.getTotalPages()
+        );
+
+        return new PagedConcertResponseDTO(items, metadata);
     }
     
     /**
@@ -273,6 +351,35 @@ public class ConcertApplicationService {
             .description(concert.getDescription())
             .createdAt(concert.getCreatedAt())
             .updatedAt(concert.getUpdatedAt())
+            .build();
+    }
+
+    private ConcertListItemDTO mapToListItem(Concert concert, SeatAvailabilityAggregate aggregate) {
+        long totalSeats = aggregate != null ? aggregate.totalSeats() : 0L;
+        long availableSeats = aggregate != null ? aggregate.availableSeats() : 0L;
+        Double minPrice = aggregate != null ? aggregate.minPrice() : null;
+        Double maxPrice = aggregate != null ? aggregate.maxPrice() : null;
+
+        String availabilityStatus;
+        if (totalSeats == 0) {
+            availabilityStatus = "UNKNOWN";
+        } else if (availableSeats == 0) {
+            availabilityStatus = "SOLD_OUT";
+        } else {
+            availabilityStatus = "AVAILABLE";
+        }
+
+        return ConcertListItemDTO.builder()
+            .id(String.valueOf(concert.getId()))
+            .name(concert.getName())
+            .date(concert.getDate())
+            .venue(concert.getVenue())
+            .description(concert.getDescription())
+            .totalSeats(totalSeats)
+            .availableSeats(availableSeats)
+            .minPrice(minPrice)
+            .maxPrice(maxPrice)
+            .availabilityStatus(availabilityStatus)
             .build();
     }
 }
