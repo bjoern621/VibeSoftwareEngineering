@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,9 +15,12 @@ import java.util.concurrent.TimeUnit;
  * 
  * Nutzt Caffeine (lokale In-Memory Cache) für Entwicklung.
  * Production kann auf Redis gewechselt werden.
+ * 
+ * @EnableAsync ermöglicht asynchrone Event-Verarbeitung (@Async in EventListener).
  */
 @Configuration
 @EnableCaching
+@EnableAsync
 public class CacheConfig {
     
     /**

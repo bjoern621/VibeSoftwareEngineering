@@ -1,5 +1,6 @@
 package com.concertcomparison.application.service;
 
+import com.concertcomparison.domain.event.SeatStatusChangedEvent;
 import com.concertcomparison.domain.exception.ReservationExpiredException;
 import com.concertcomparison.domain.model.*;
 import com.concertcomparison.domain.repository.ConcertRepository;
@@ -12,6 +13,7 @@ import com.concertcomparison.presentation.dto.TicketDTO;
 import jakarta.persistence.OptimisticLockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,18 +37,21 @@ public class OrderApplicationService {
     private final SeatRepository seatRepository;
     private final ConcertRepository concertRepository;
     private final QrCodeService qrCodeService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OrderApplicationService(
             OrderRepository orderRepository,
             ReservationRepository reservationRepository,
             SeatRepository seatRepository,
             ConcertRepository concertRepository,
-            QrCodeService qrCodeService) {
+            QrCodeService qrCodeService,
+            ApplicationEventPublisher eventPublisher) {
         this.orderRepository = orderRepository;
         this.reservationRepository = reservationRepository;
         this.seatRepository = seatRepository;
         this.concertRepository = concertRepository;
         this.qrCodeService = qrCodeService;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -115,7 +120,15 @@ public class OrderApplicationService {
         seat.sell(String.valueOf(holdId));
         seatRepository.save(seat);
 
-        // 7. Order erstellen (Domain Logic)
+        // 7. Event publishen für Cache-Invalidierung (HELD → SOLD)
+        SeatStatusChangedEvent event = SeatStatusChangedEvent.ticketPurchased(
+            seat.getId(), 
+            seat.getConcertId(), 
+            userId
+        );
+        eventPublisher.publishEvent(event);
+
+        // 8. Order erstellen (Domain Logic)
         Order order = Order.createOrder(
             seat.getId(),
             userId,
@@ -123,14 +136,14 @@ public class OrderApplicationService {
             PaymentMethod.CREDIT_CARD  // Default für MVP
         );
 
-        // 8. Payment completen und Order bestätigen (via Aggregate Root)
+        // 9. Payment completen und Order bestätigen (via Aggregate Root)
         // DDD: Payment.complete() ist package-private, nur Order darf es aufrufen
         order.completePayment("TXN-" + System.currentTimeMillis());
 
-        // 9. Order speichern
+        // 10. Order speichern
         order = orderRepository.save(order);
 
-        // 9. Reservation löschen (Hold wird nicht mehr benötigt)
+        // 11. Reservation löschen (Hold wird nicht mehr benötigt)
         reservationRepository.delete(reservation);
 
         logger.info("Purchase completed: orderId={}, seatId={}, userId={}, price={}", 

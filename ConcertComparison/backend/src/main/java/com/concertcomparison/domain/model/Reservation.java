@@ -172,6 +172,16 @@ public class Reservation {
         return version;
     }
 
+    // ======================== Business Methods ========================
+
+    /**
+     * Lässt die Reservation sofort ablaufen (für Tests).
+     * Setzt expiresAt auf jetzt - 1 Minute.
+     */
+    public void expireNow() {
+        this.expiresAt = LocalDateTime.now().minusMinutes(1);
+    }
+
     // ======================== Lifecycle Callbacks ========================
 
     @PrePersist
