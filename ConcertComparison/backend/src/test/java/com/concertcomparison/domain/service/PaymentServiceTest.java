@@ -151,17 +151,17 @@ class PaymentServiceTest {
     }
     
     @Test
-    @DisplayName("PaymentService mit Default-Constructor sollte funktionieren (mit Delay - SLOW)")
+    @DisplayName("PaymentService mit Default-Constructor sollte funktionieren (testMode=true)")
     void testPaymentServiceDefaultConstructor() {
-        // Given & When - ACHTUNG: Dieser Test dauert 1-3 Sekunden!
+        // Given & When - Test-Modus ist aktiviert (kein Delay)
         PaymentService service = new PaymentService();
         long startTime = System.currentTimeMillis();
         PaymentResult result = service.processPayment();
         long duration = System.currentTimeMillis() - startTime;
         
-        // Then
+        // Then - Test-Modus: kein Delay, immer SUCCESS
         assertNotNull(result);
-        assertTrue(duration >= 1000, "Produktions-Modus sollte Delay haben (>= 1s)");
-        assertTrue(duration <= 3500, "Delay sollte maximal 3.5s sein");
+        assertTrue(result.isSuccess(), "Test-Modus sollte immer SUCCESS liefern");
+        assertTrue(duration < 500, "Test-Modus sollte keinen Delay haben (< 500ms)");
     }
 }
