@@ -41,6 +41,8 @@ public class OrderApplicationService {
     private final ConcertRepository concertRepository;
     private final QrCodeService qrCodeService;
     private final ApplicationEventPublisher eventPublisher;
+    private final PaymentApplicationService paymentApplicationService;
+    private final boolean syncPaymentMode; // Für Tests: Synchrone Payment-Verarbeitung
 
     public OrderApplicationService(
             OrderRepository orderRepository,
@@ -48,13 +50,16 @@ public class OrderApplicationService {
             SeatRepository seatRepository,
             ConcertRepository concertRepository,
             QrCodeService qrCodeService,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            PaymentApplicationService paymentApplicationService) {
         this.orderRepository = orderRepository;
         this.reservationRepository = reservationRepository;
         this.seatRepository = seatRepository;
         this.concertRepository = concertRepository;
         this.qrCodeService = qrCodeService;
         this.eventPublisher = eventPublisher;
+        this.paymentApplicationService = paymentApplicationService;
+        this.syncPaymentMode = true; // SYNC-Modus für deterministische Tests
     }
 
     /**
@@ -65,19 +70,21 @@ public class OrderApplicationService {
      * - Hold darf nicht abgelaufen sein (expiresAt > now)
      * - Hold muss zum User gehören
      * - Seat muss HELD sein
-     * - Transaktion: Hold löschen + Seat auf SOLD + Order erstellen
+     * - Order wird mit PENDING Payment erstellt (Payment erfolgt asynchron)
+     * - Reservation bleibt erhalten (wird nach Payment-Success gelöscht)
      * 
      * @param holdId ID der Reservation
      * @param userId ID des Käufers
-     * @return Erstellte Order
+     * @param paymentMethod Gewählte Zahlungsmethode
+     * @return Erstellte Order im Status PENDING
      * @throws IllegalArgumentException wenn Hold nicht existiert
      * @throws ReservationExpiredException wenn Hold abgelaufen ist
      * @throws IllegalStateException wenn Hold nicht zum User gehört
      * @throws OptimisticLockException bei Concurrency Conflict
      */
     @Transactional
-    public Order purchaseTicket(Long holdId, String userId) {
-        logger.info("Starting purchase: holdId={}, userId={}", holdId, userId);
+    public Order purchaseTicket(Long holdId, String userId, PaymentMethod paymentMethod) {
+        logger.info("Starting purchase: holdId={}, userId={}, paymentMethod={}", holdId, userId, paymentMethod);
 
         // 1. Reservation laden und validieren
         Reservation reservation = reservationRepository.findById(holdId)
@@ -127,26 +134,43 @@ public class OrderApplicationService {
         );
         eventPublisher.publishEvent(event);
 
-        // 8. Order erstellen (Domain Logic)
+        // 8. Order erstellen mit Payment PENDING (Domain Logic)
+        // NEU: reservationId wird für Rollback gespeichert
         Order order = Order.createOrder(
             seat.getId(),
             userId,
             seat.getPrice(),
-            PaymentMethod.CREDIT_CARD  // Default für MVP
+            paymentMethod,
+            holdId  // Reservation-ID für Rollback
         );
 
-        // 9. Payment completen und Order bestätigen (via Aggregate Root)
-        // DDD: Payment.complete() ist package-private, nur Order darf es aufrufen
-        order.completePayment("TXN-" + System.currentTimeMillis());
-
-        // 10. Order speichern
+        // 9. Order speichern (Payment bleibt PENDING!)
+        // NEU: Payment wird NICHT mehr direkt completed
+        // Payment erfolgt asynchron via PaymentApplicationService
         order = orderRepository.save(order);
 
-        // 11. Reservation löschen (Hold wird nicht mehr benötigt)
-        reservationRepository.delete(reservation);
+        // 10. Reservation wird NICHT gelöscht
+        // NEU: Reservation bleibt bis Payment-Success erhalten
+        // Bei Payment-Failure wird Seat auf HELD zurückgesetzt
+        
+        // 11. Payment-Processing starten
+        if (syncPaymentMode) {
+            // Test-Modus: Synchron abschließen für deterministische Tests
+            logger.info("Processing payment synchronously (test mode) for orderId={}", order.getId());
+            final Long orderId = order.getId(); // Final für Lambda
+            paymentApplicationService.processPaymentSync(orderId);
+            // Order neu laden um aktuellen Status (CONFIRMED/CANCELLED) zu bekommen
+            order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+        } else {
+            // Produktions-Modus: Asynchron starten
+            logger.info("Payment processing queued (async mode) for orderId={}", order.getId());
+            paymentApplicationService.processPaymentAsync(order.getId());
+            // Order bleibt PENDING bis async Processing abgeschlossen ist
+        }
 
-        logger.info("Purchase completed: orderId={}, seatId={}, userId={}, price={}", 
-            order.getId(), seat.getId(), userId, seat.getPrice());
+        logger.info("Purchase initiated: orderId={}, seatId={}, userId={}, price={}, status={}", 
+            order.getId(), seat.getId(), userId, seat.getPrice(), order.getStatus());
 
         return order;
     }

@@ -1,12 +1,13 @@
 package com.concertcomparison.presentation.dto;
 
+import com.concertcomparison.domain.model.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
 
 /**
  * Request DTO für Ticket-Kauf (US-03).
  * 
  * POST /api/orders
- * Body: { "holdId": 123, "userId": "user@example.com" }
+ * Body: { "holdId": 123, "userId": "user@example.com", "paymentMethod": "CREDIT_CARD" }
  */
 public class PurchaseTicketRequestDTO {
 
@@ -15,6 +16,8 @@ public class PurchaseTicketRequestDTO {
 
     @NotNull(message = "UserId darf nicht null sein")
     private String userId;
+    
+    private PaymentMethod paymentMethod;  // Optional, Default: CREDIT_CARD
 
     // ==================== CONSTRUCTORS ====================
 
@@ -25,6 +28,13 @@ public class PurchaseTicketRequestDTO {
     public PurchaseTicketRequestDTO(Long holdId, String userId) {
         this.holdId = holdId;
         this.userId = userId;
+        this.paymentMethod = PaymentMethod.CREDIT_CARD;  // Default
+    }
+    
+    public PurchaseTicketRequestDTO(Long holdId, String userId, PaymentMethod paymentMethod) {
+        this.holdId = holdId;
+        this.userId = userId;
+        this.paymentMethod = paymentMethod;
     }
 
     // ==================== GETTERS & SETTERS ====================
@@ -43,6 +53,14 @@ public class PurchaseTicketRequestDTO {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+    
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+    
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     @Override

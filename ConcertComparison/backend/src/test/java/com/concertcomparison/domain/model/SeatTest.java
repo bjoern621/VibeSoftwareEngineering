@@ -243,4 +243,106 @@ class SeatTest {
         // Act & Assert
         assertThat(seat.isHoldExpired()).isFalse();
     }
+    
+    // ==================== ROLLBACK TO HELD TESTS ====================
+    
+    @Test
+    @DisplayName("rollbackToHeld() sollte SOLD Seat auf HELD zurücksetzen")
+    void rollbackToHeld_ShouldSetSeatToHeld_WhenSold() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", 10);
+        seat.sell();
+        assertThat(seat.getStatus()).isEqualTo(SeatStatus.SOLD);
+        
+        // Act
+        String newReservationId = "ROLLBACK-456";
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
+        seat.rollbackToHeld(newReservationId, expiresAt);
+        
+        // Assert
+        assertThat(seat.getStatus()).isEqualTo(SeatStatus.HELD);
+        assertThat(seat.getHoldReservationId()).isEqualTo(newReservationId);
+        assertThat(seat.getHoldExpiresAt()).isEqualTo(expiresAt);
+    }
+    
+    @Test
+    @DisplayName("rollbackToHeld() sollte Exception werfen wenn Seat nicht SOLD ist")
+    void rollbackToHeld_ShouldThrowException_WhenNotSold() {
+        // Arrange - AVAILABLE Seat
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        
+        // Act & Assert
+        assertThatThrownBy(() -> seat.rollbackToHeld("res-123", LocalDateTime.now().plusMinutes(5)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("SOLD Seats können auf HELD zurückgesetzt werden");
+    }
+    
+    @Test
+    @DisplayName("rollbackToHeld() sollte Exception werfen bei HELD Status")
+    void rollbackToHeld_ShouldThrowException_WhenAlreadyHeld() {
+        // Arrange - HELD Seat
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", 10);
+        
+        // Act & Assert
+        assertThatThrownBy(() -> seat.rollbackToHeld("res-456", LocalDateTime.now().plusMinutes(5)))
+            .isInstanceOf(IllegalStateException.class);
+    }
+    
+    @Test
+    @DisplayName("rollbackToHeld() sollte Exception werfen bei null ReservationId")
+    void rollbackToHeld_ShouldThrowException_WhenReservationIdNull() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", 10);
+        seat.sell();
+        
+        // Act & Assert
+        assertThatThrownBy(() -> seat.rollbackToHeld(null, LocalDateTime.now().plusMinutes(5)))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("ReservationId");
+    }
+    
+    @Test
+    @DisplayName("rollbackToHeld() sollte Exception werfen bei leerer ReservationId")
+    void rollbackToHeld_ShouldThrowException_WhenReservationIdEmpty() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", 10);
+        seat.sell();
+        
+        // Act & Assert
+        assertThatThrownBy(() -> seat.rollbackToHeld("   ", LocalDateTime.now().plusMinutes(5)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("ReservationId darf nicht leer sein");
+    }
+    
+    @Test
+    @DisplayName("rollbackToHeld() sollte Exception werfen bei null ExpiresAt")
+    void rollbackToHeld_ShouldThrowException_WhenExpiresAtNull() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", 10);
+        seat.sell();
+        
+        // Act & Assert
+        assertThatThrownBy(() -> seat.rollbackToHeld("res-456", null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("ExpiresAt");
+    }
+    
+    @Test
+    @DisplayName("rollbackToHeld() sollte Exception werfen wenn ExpiresAt in Vergangenheit liegt")
+    void rollbackToHeld_ShouldThrowException_WhenExpiresAtInPast() {
+        // Arrange
+        Seat seat = new Seat(CONCERT_ID, SEAT_NUMBER, CATEGORY, BLOCK, ROW, NUMBER, PRICE);
+        seat.hold("res-123", 10);
+        seat.sell();
+        
+        // Act & Assert
+        assertThatThrownBy(() -> seat.rollbackToHeld("res-456", LocalDateTime.now().minusMinutes(1)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("ExpiresAt darf nicht in der Vergangenheit liegen");
+    }
 }

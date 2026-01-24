@@ -3,6 +3,7 @@ package com.concertcomparison.integration;
 import com.concertcomparison.application.service.HoldApplicationService;
 import com.concertcomparison.application.service.OrderApplicationService;
 import com.concertcomparison.application.service.SeatApplicationService;
+import com.concertcomparison.config.TestPaymentConfiguration;
 import com.concertcomparison.domain.model.*;
 import com.concertcomparison.domain.repository.ConcertRepository;
 import com.concertcomparison.domain.repository.SeatRepository;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ import static org.assertj.core.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(TestPaymentConfiguration.class)
 class SeatAvailabilityCacheEvictionIntegrationTest {
 
     @Autowired
@@ -166,7 +169,8 @@ class SeatAvailabilityCacheEvictionIntegrationTest {
         // WHEN: Ticket kaufen
         Order order = orderApplicationService.purchaseTicket(
             Long.valueOf(hold.holdId()), 
-            user.getId().toString()
+            user.getId().toString(),
+            PaymentMethod.CREDIT_CARD
         );
         Thread.sleep(100); // Event-Processing
 

@@ -2,6 +2,7 @@ package com.concertcomparison.presentation.controller;
 
 import com.concertcomparison.application.service.OrderApplicationService;
 import com.concertcomparison.domain.model.Order;
+import com.concertcomparison.domain.model.PaymentMethod;
 import com.concertcomparison.presentation.dto.OrderHistoryItemDTO;
 import com.concertcomparison.presentation.dto.OrderResponseDTO;
 import com.concertcomparison.presentation.dto.PurchaseTicketRequestDTO;
@@ -69,11 +70,15 @@ public class OrderController {
      */
     @PostMapping("/orders")
     public ResponseEntity<OrderResponseDTO> purchaseTicket(@Valid @RequestBody PurchaseTicketRequestDTO request) {
-        logger.info("POST /api/orders - holdId={}, userId={}", request.getHoldId(), request.getUserId());
+        logger.info("POST /api/orders - holdId={}, userId={}, paymentMethod={}", 
+            request.getHoldId(), request.getUserId(), request.getPaymentMethod());
 
         Order order = orderApplicationService.purchaseTicket(
             request.getHoldId(),
-            request.getUserId()
+            request.getUserId(),
+            request.getPaymentMethod() != null 
+                ? request.getPaymentMethod() 
+                : PaymentMethod.CREDIT_CARD  // Default
         );
 
         OrderResponseDTO response = mapToDTO(order);

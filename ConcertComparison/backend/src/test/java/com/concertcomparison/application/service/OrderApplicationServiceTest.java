@@ -1,5 +1,6 @@
 package com.concertcomparison.application.service;
 
+import com.concertcomparison.config.TestPaymentConfiguration;
 import com.concertcomparison.domain.exception.ReservationExpiredException;
 import com.concertcomparison.domain.model.*;
 import com.concertcomparison.domain.repository.OrderRepository;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,7 @@ import static org.assertj.core.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(TestPaymentConfiguration.class)
 @DisplayName("OrderApplicationService Integration Tests")
 class OrderApplicationServiceTest {
 
@@ -109,7 +112,7 @@ class OrderApplicationServiceTest {
         testSeat = seatRepository.save(testSeat);
 
         // Act
-        Order result = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+        Order result = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Assert
         assertThat(result).isNotNull();
@@ -137,7 +140,7 @@ class OrderApplicationServiceTest {
     @DisplayName("purchaseTicket - Hold nicht gefunden")
     void purchaseTicket_ReservationNotFound() {
         // Act & Assert
-        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(999L, USER_ID))
+        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(999L, USER_ID, PaymentMethod.CREDIT_CARD))
             .isInstanceOf(com.concertcomparison.domain.exception.ReservationNotFoundException.class)
             .hasMessageContaining("Reservierung");
 
@@ -158,7 +161,7 @@ class OrderApplicationServiceTest {
         Reservation savedReservation = reservationRepository.save(testReservation);
 
         // Act & Assert
-        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(savedReservation.getId(), USER_ID))
+        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(savedReservation.getId(), USER_ID, PaymentMethod.CREDIT_CARD))
             .isInstanceOf(ReservationExpiredException.class);
 
         // Verify keine Order erstellt
@@ -176,7 +179,7 @@ class OrderApplicationServiceTest {
         Reservation savedReservation = reservationRepository.save(testReservation);
 
         // Act & Assert - Anderer User versucht zu kaufen
-        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(savedReservation.getId(), OTHER_USER_ID))
+        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(savedReservation.getId(), OTHER_USER_ID, PaymentMethod.CREDIT_CARD))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("gehört nicht zum User");
 
@@ -194,7 +197,7 @@ class OrderApplicationServiceTest {
         // testSeat bleibt AVAILABLE (nicht hold() aufgerufen)
 
         // Act & Assert
-        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(savedReservation.getId(), USER_ID))
+        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(savedReservation.getId(), USER_ID, PaymentMethod.CREDIT_CARD))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("ist nicht reserviert");
 
@@ -217,7 +220,7 @@ class OrderApplicationServiceTest {
         testSeat.updateHoldReservationId(String.valueOf(testReservation.getId()));
         testSeat = seatRepository.save(testSeat);
 
-        Order createdOrder = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+        Order createdOrder = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Act
         Order result = orderApplicationService.getOrderById(createdOrder.getId());
@@ -250,7 +253,7 @@ class OrderApplicationServiceTest {
         testSeat.updateHoldReservationId(String.valueOf(testReservation.getId()));
         testSeat = seatRepository.save(testSeat);
 
-        orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+        orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Act
         List<Order> result = orderApplicationService.getOrdersByUserId(USER_ID);
@@ -275,7 +278,7 @@ class OrderApplicationServiceTest {
         testSeat.updateHoldReservationId(String.valueOf(testReservation.getId()));
         testSeat = seatRepository.save(testSeat);
 
-        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Act
         List<OrderHistoryItemDTO> result = orderApplicationService.getOrderHistoryForUser(USER_ID);
@@ -326,7 +329,7 @@ class OrderApplicationServiceTest {
         testSeat.updateHoldReservationId(String.valueOf(reservation1.getId()));
         testSeat = seatRepository.save(testSeat);
 
-        orderApplicationService.purchaseTicket(reservation1.getId(), USER_ID);
+        orderApplicationService.purchaseTicket(reservation1.getId(), USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Erstelle Order für OTHER_USER_ID
         Seat otherSeat = new Seat(testConcert.getId(), "B-2-VIP", "VIP", "B", "2", "2", 79.99);
@@ -340,7 +343,7 @@ class OrderApplicationServiceTest {
         otherSeat.updateHoldReservationId(String.valueOf(reservation2.getId()));
         otherSeat = seatRepository.save(otherSeat);
 
-        orderApplicationService.purchaseTicket(reservation2.getId(), OTHER_USER_ID);
+        orderApplicationService.purchaseTicket(reservation2.getId(), OTHER_USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Act - Hole nur Orders von USER_ID
         List<OrderHistoryItemDTO> result = orderApplicationService.getOrderHistoryForUser(USER_ID);
@@ -363,7 +366,7 @@ class OrderApplicationServiceTest {
         testSeat.updateHoldReservationId(String.valueOf(testReservation.getId()));
         testSeat = seatRepository.save(testSeat);
 
-        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Act
         byte[] qrCode = orderApplicationService.generateTicketQRCode(order.getId(), USER_ID);
@@ -392,7 +395,7 @@ class OrderApplicationServiceTest {
         testSeat.updateHoldReservationId(String.valueOf(testReservation.getId()));
         testSeat = seatRepository.save(testSeat);
 
-        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID);
+        Order order = orderApplicationService.purchaseTicket(testReservation.getId(), USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Act & Assert - OTHER_USER versucht QR Code zu generieren
         assertThatThrownBy(() -> 

@@ -261,6 +261,45 @@ public class Seat {
     }
     
     /**
+     * Setzt einen verkauften Seat zurück auf HELD Status (Payment Rollback).
+     * 
+     * Business Rules:
+     * - Seat muss SOLD sein
+     * - Wird bei fehlgeschlagener Zahlung aufgerufen
+     * - Seat wird mit neuer Reservation-ID reserviert
+     * - Gibt dem User eine zweite Chance für Payment
+     * 
+     * @param reservationId Neue Reservierungs-ID für Re-Payment
+     * @param expiresAt Ablaufzeitpunkt der neuen Reservierung
+     * @throws IllegalStateException wenn Seat nicht SOLD ist
+     * @throws IllegalArgumentException bei ungültigen Parametern
+     */
+    public void rollbackToHeld(String reservationId, LocalDateTime expiresAt) {
+        if (this.status != SeatStatus.SOLD) {
+            throw new IllegalStateException(
+                String.format("Nur SOLD Seats können auf HELD zurückgesetzt werden (aktuell: %s)", 
+                    this.status.getDisplayName())
+            );
+        }
+        
+        Objects.requireNonNull(reservationId, "ReservationId darf nicht null sein");
+        Objects.requireNonNull(expiresAt, "ExpiresAt darf nicht null sein");
+        
+        if (reservationId.trim().isEmpty()) {
+            throw new IllegalArgumentException("ReservationId darf nicht leer sein");
+        }
+        
+        if (expiresAt.isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("ExpiresAt darf nicht in der Vergangenheit liegen");
+        }
+        
+        this.status = SeatStatus.HELD;
+        this.holdReservationId = reservationId;
+        this.holdExpiresAt = expiresAt;
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    /**
      * Prüft, ob die Reservierung abgelaufen ist.
      * 
      * @return true wenn Seat HELD ist und Hold-Zeit abgelaufen ist

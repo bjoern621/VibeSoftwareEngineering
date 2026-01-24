@@ -103,7 +103,7 @@ class OrderApplicationServiceEventIntegrationTest {
         testEventListener.clear(); // Clear createHold event
 
         // When: Ticket kaufen
-        Order order = orderApplicationService.purchaseTicket(Long.parseLong(hold.holdId()), USER_ID);
+        Order order = orderApplicationService.purchaseTicket(Long.parseLong(hold.holdId()), USER_ID, PaymentMethod.CREDIT_CARD);
 
         // Then: Event wurde gepublisht
         await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
@@ -132,7 +132,7 @@ class OrderApplicationServiceEventIntegrationTest {
         // When/Then: Exception und KEIN Event
         Long nonExistentHoldId = 99999L;
         
-        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(nonExistentHoldId, USER_ID))
+        assertThatThrownBy(() -> orderApplicationService.purchaseTicket(nonExistentHoldId, USER_ID, PaymentMethod.CREDIT_CARD))
             .isInstanceOf(com.concertcomparison.domain.exception.ReservationNotFoundException.class);
 
         // Verify: Keine Events gepublisht

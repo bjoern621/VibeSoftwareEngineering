@@ -47,6 +47,13 @@ public class Order {
     private String userId;
     
     /**
+     * ID der ursprünglichen Reservation.
+     * Wird für Payment-Rollback benötigt (SOLD → HELD Transition).
+     */
+    @Column(name = "reservation_id")
+    private Long reservationId;
+    
+    /**
      * Gesamtpreis der Bestellung.
      */
     @Column(name = "total_price", nullable = false)
@@ -97,10 +104,11 @@ public class Order {
     /**
      * Private Constructor für Factory Method.
      */
-    private Order(Long seatId, String userId, Double totalPrice) {
+    private Order(Long seatId, String userId, Double totalPrice, Long reservationId) {
         this.seatId = seatId;
         this.userId = userId;
         this.totalPrice = totalPrice;
+        this.reservationId = reservationId;
         this.purchaseDate = LocalDateTime.now();
         this.status = OrderStatus.PENDING;
         this.createdAt = LocalDateTime.now();
@@ -116,10 +124,11 @@ public class Order {
      * @param userId ID des Käufers
      * @param totalPrice Gesamtpreis
      * @param paymentMethod Zahlungsmethode
+     * @param reservationId ID der ursprünglichen Reservation (für Rollback)
      * @return Neue Order im Status PENDING mit initiiertem Payment
      * @throws IllegalArgumentException bei ungültigen Parametern
      */
-    public static Order createOrder(Long seatId, String userId, Double totalPrice, PaymentMethod paymentMethod) {
+    public static Order createOrder(Long seatId, String userId, Double totalPrice, PaymentMethod paymentMethod, Long reservationId) {
         Objects.requireNonNull(seatId, "SeatId darf nicht null sein");
         Objects.requireNonNull(userId, "UserId darf nicht null sein");
         Objects.requireNonNull(totalPrice, "TotalPrice darf nicht null sein");
@@ -129,7 +138,7 @@ public class Order {
             throw new IllegalArgumentException("TotalPrice muss positiv sein");
         }
         
-        Order order = new Order(seatId, userId, totalPrice);
+        Order order = new Order(seatId, userId, totalPrice, reservationId);
         
         // Payment als Teil des Aggregates erstellen
         Payment payment = Payment.createPayment(totalPrice, paymentMethod);
@@ -298,6 +307,10 @@ public class Order {
     
     public String getUserId() {
         return userId;
+    }
+    
+    public Long getReservationId() {
+        return reservationId;
     }
     
     public Double getTotalPrice() {
