@@ -1,12 +1,15 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import { useHoldTimer } from "../../hooks/useHoldTimer";
+import { useCart } from "../../context/CartContext";
 
 /**
  * SeatSelection Component
  * Displays selected seat with hold confirmation dialog and countdown timer
  *
  * @param {Object} seat - Selected seat data
+ * @param {Object} concert - Concert data (for cart item)
  * @param {boolean} isLoading - Loading state for hold creation
  * @param {Function} onClose - Callback when dialog is closed
  * @param {Function} onConfirm - Callback when hold is confirmed
@@ -14,14 +17,18 @@ import { useHoldTimer } from "../../hooks/useHoldTimer";
  */
 const SeatSelection = ({
     seat,
+    concert,
     isLoading = false,
     onClose,
     onConfirm,
     ttlSeconds = 600,
 }) => {
+    const navigate = useNavigate();
+    const { addItem } = useCart();
     const [holdId, setHoldId] = React.useState(null);
     const [error, setError] = React.useState(null);
     const [confirmed, setConfirmed] = React.useState(false);
+    const [showSuccess, setShowSuccess] = React.useState(false);
 
     // Hold timer hook
     const {
@@ -52,6 +59,19 @@ const SeatSelection = ({
                 setHoldId(result.holdId);
                 setConfirmed(true);
                 start();
+
+                // Add to cart
+                if (concert) {
+                    addItem({
+                        holdId: result.holdId,
+                        seat: seat,
+                        concert: concert,
+                        ttlSeconds: result.ttlSeconds || ttlSeconds,
+                    });
+                    
+                    // Show success message
+                    setShowSuccess(true);
+                }
             }
         } catch (err) {
             console.error("Hold creation error:", err);
@@ -72,15 +92,25 @@ const SeatSelection = ({
         onClose();
     };
 
+    // Handle navigation to cart
+    const handleGoToCart = () => {
+        if (isActive) {
+            stop();
+        }
+        navigate('/cart');
+    };
+
     // Reset state when seat changes
     React.useEffect(() => {
         if (seat) {
             setHoldId(null);
             setConfirmed(false);
             setError(null);
+            setShowSuccess(false);
             reset();
         }
-    }, [seat?.id, reset]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [seat?.id]);
 
     // If no seat selected, don't render
     if (!seat) {
@@ -127,7 +157,9 @@ const SeatSelection = ({
                                 check_circle
                             </span>
                             <p className="text-green-700 dark:text-green-300 font-medium">
-                                Sitzplatz erfolgreich reserviert!
+                                {showSuccess
+                                    ? "Zum Warenkorb hinzugefügt!"
+                                    : "Sitzplatz erfolgreich reserviert!"}
                             </p>
                             <p className="text-sm text-green-600 dark:text-green-400 mt-1">
                                 Reservierungs-ID: {holdId}
@@ -163,13 +195,16 @@ const SeatSelection = ({
                                 onClick={handleClose}
                                 className="flex-1 py-3 px-4 rounded-lg border border-border-light dark:border-border-dark text-text-primary dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             >
-                                Schließen
+                                Weiter suchen
                             </button>
                             <button
-                                onClick={handleClose}
-                                className="flex-1 py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-semibold transition-colors"
+                                onClick={handleGoToCart}
+                                className="flex-1 py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-semibold transition-colors flex items-center justify-center gap-2"
                             >
-                                Zur Kasse
+                                <span className="material-symbols-outlined text-xl">
+                                    shopping_cart
+                                </span>
+                                Zum Warenkorb
                             </button>
                         </div>
                     </div>
@@ -288,6 +323,13 @@ SeatSelection.propTypes = {
         number: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
         price: PropTypes.number,
         status: PropTypes.string,
+    }),
+    concert: PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        name: PropTypes.string,
+        date: PropTypes.string,
+        venue: PropTypes.string,
+        imageUrl: PropTypes.string,
     }),
     isLoading: PropTypes.bool,
     onClose: PropTypes.func.isRequired,

@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ConcertDiscoveryPage from './pages/ConcertDiscoveryPage';
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 
 // Mock the concert service to avoid API calls
 jest.mock('./services/concertService', () => ({
@@ -17,7 +18,9 @@ test('renders concert discovery page', async () => {
   render(
     <MemoryRouter>
       <AuthProvider>
-        <ConcertDiscoveryPage />
+        <CartProvider>
+          <ConcertDiscoveryPage />
+        </CartProvider>
       </AuthProvider>
     </MemoryRouter>
   );

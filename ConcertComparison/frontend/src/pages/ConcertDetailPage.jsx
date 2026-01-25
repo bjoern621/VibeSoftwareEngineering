@@ -381,6 +381,7 @@ const ConcertDetailPage = () => {
             {/* Seat Selection Dialog with Countdown */}
             <SeatSelection
                 seat={selectedSeat}
+                concert={concert}
                 onClose={() => {
                     clearSeatSelection();
                     // Refresh seats to get current status after closing dialog

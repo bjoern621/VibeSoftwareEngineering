@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/changes/005-create-orders-table.yaml
   - include:
       file: db/changelog/changes/006-create-payments-table.yaml
+  - include:
+      file: db/changelog/changes/007-insert-test-data.yaml

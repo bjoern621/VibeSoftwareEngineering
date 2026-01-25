@@ -4,9 +4,11 @@ jest.mock("../../../hooks/useHoldTimer");
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { BrowserRouter } from "react-router-dom";
 import SeatSelection from "../SeatSelection";
 import * as seatService from "../../../services/seatService";
 import { useHoldTimer } from "../../../hooks/useHoldTimer";
+import { CartProvider } from "../../../context/CartContext";
 
 const mockSeat = {
     id: "seat-123",
@@ -16,6 +18,24 @@ const mockSeat = {
     number: "5",
     price: 150.0,
     status: "AVAILABLE",
+};
+
+const mockConcert = {
+    id: "1",
+    name: "Test Concert",
+    date: "2025-06-15T20:00:00",
+    venue: "Test Venue",
+    imageUrl: "https://example.com/concert.jpg",
+};
+
+const renderWithProviders = (ui) => {
+    return render(
+        <BrowserRouter>
+            <CartProvider>
+                {ui}
+            </CartProvider>
+        </BrowserRouter>
+    );
 };
 
 describe("SeatSelection Component", () => {
@@ -39,9 +59,10 @@ describe("SeatSelection Component", () => {
 
     describe("Rendering", () => {
         it("should not render when no seat is selected", () => {
-            const { container } = render(
+            const { container } = renderWithProviders(
                 <SeatSelection
                     seat={null}
+                    concert={mockConcert}
                     onClose={mockOnClose}
                     onConfirm={mockOnConfirm}
                 />,
@@ -50,9 +71,10 @@ describe("SeatSelection Component", () => {
         });
 
         it("should render seat selection form when seat is provided", () => {
-            render(
+            renderWithProviders(
                 <SeatSelection
                     seat={mockSeat}
+                    concert={mockConcert}
                     onClose={mockOnClose}
                     onConfirm={mockOnConfirm}
                 />,
@@ -77,9 +99,10 @@ describe("SeatSelection Component", () => {
                 row: "2",
                 number: "10",
             };
-            render(
+            renderWithProviders(
                 <SeatSelection
                     seat={seatWithoutProperties}
+                    concert={mockConcert}
                     onClose={mockOnClose}
                     onConfirm={mockOnConfirm}
                 />,
@@ -104,9 +127,10 @@ describe("SeatSelection Component", () => {
 
             mockOnConfirm.mockResolvedValue({ holdId: "hold-123" });
 
-            const { rerender } = render(
+            const { rerender } = renderWithProviders(
                 <SeatSelection
                     seat={mockSeat}
+                    concert={mockConcert}
                     onClose={mockOnClose}
                     onConfirm={mockOnConfirm}
                 />,
@@ -128,9 +152,10 @@ describe("SeatSelection Component", () => {
 
     describe("User Interactions", () => {
         it("should call onConfirm when reserve button is clicked", () => {
-            render(
+            renderWithProviders(
                 <SeatSelection
                     seat={mockSeat}
+                    concert={mockConcert}
                     onClose={mockOnClose}
                     onConfirm={mockOnConfirm}
                 />,
@@ -143,9 +168,10 @@ describe("SeatSelection Component", () => {
         });
 
         it("should call onClose when cancel button is clicked", () => {
-            render(
+            renderWithProviders(
                 <SeatSelection
                     seat={mockSeat}
+                    concert={mockConcert}
                     onClose={mockOnClose}
                     onConfirm={mockOnConfirm}
                 />,
@@ -158,9 +184,10 @@ describe("SeatSelection Component", () => {
         });
 
         it("should disable reserve button while loading", () => {
-            render(
+            renderWithProviders(
                 <SeatSelection
                     seat={mockSeat}
+                    concert={mockConcert}
                     isLoading={true}
                     onClose={mockOnClose}
                     onConfirm={mockOnConfirm}
@@ -174,7 +201,7 @@ describe("SeatSelection Component", () => {
             expect(screen.getByText("Wird reserviert...")).toBeInTheDocument();
         });
 
-        it('should call both "Zur Kasse" and onClose when clicking checkout button in success state', async () => {
+        it('should navigate to cart when clicking "Zum Warenkorb" button in success state', async () => {
             const useHoldTimer = require("../../../hooks/useHoldTimer");
             const mockStop = jest.fn();
             useHoldTimer.useHoldTimer.mockReturnValue({
@@ -190,9 +217,10 @@ describe("SeatSelection Component", () => {
 
             mockOnConfirm.mockResolvedValue({ holdId: "hold-123" });
 
-            const { rerender } = render(
+            const { rerender } = renderWithProviders(
                 <SeatSelection
                     seat={mockSeat}
+                    concert={mockConcert}
                     onClose={mockOnClose}
                     onConfirm={mockOnConfirm}
                 />,
@@ -208,11 +236,12 @@ describe("SeatSelection Component", () => {
                 ).toBeInTheDocument();
             });
 
-            // Click checkout button
-            const checkoutButton = screen.getByText("Zur Kasse");
-            fireEvent.click(checkoutButton);
+            // Click "Zum Warenkorb" button
+            const cartButton = screen.getByText("Zum Warenkorb");
+            fireEvent.click(cartButton);
 
-            expect(mockOnClose).toHaveBeenCalled();
+            // Should stop timer (timer cleanup is tested)
+            expect(mockStop).toHaveBeenCalled();
         });
     });
 });

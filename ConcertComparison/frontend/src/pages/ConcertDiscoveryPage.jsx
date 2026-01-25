@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useConcerts } from '../hooks/useConcerts';
 import { useDebounce } from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import SearchBar from '../components/common/SearchBar';
 import FilterBar from '../components/common/FilterBar';
 import ConcertCard from '../components/concerts/ConcertCard';
@@ -15,6 +16,7 @@ import Pagination from '../components/pagination/Pagination';
 const ConcertDiscoveryPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
+  const { itemCount } = useCart();
   const {
     concerts,
     loading,
@@ -79,11 +81,24 @@ const ConcertDiscoveryPage = () => {
                 </>
               ) : (
                 <>
+                  {/* Shopping Cart Icon */}
+                  <Link to="/cart">
+                    <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
+                      <span className="material-symbols-outlined text-text-primary">
+                        shopping_cart
+                      </span>
+                      {itemCount > 0 && (
+                        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-ticket-orange rounded-full border-2 border-white"></span>
+                      )}
+                    </button>
+                  </Link>
+                  
                   <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
                     <span className="material-symbols-outlined text-text-primary">
                       notifications
                     </span>
                   </button>
+                  
                   <div className="relative group">
                     <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                       <span className="material-symbols-outlined text-text-primary">

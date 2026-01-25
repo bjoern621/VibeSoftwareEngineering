@@ -10,6 +10,7 @@ import { BrowserRouter } from "react-router-dom";
 import ConcertDetailPage from "../../pages/ConcertDetailPage";
 import * as concertService from "../../services/concertService";
 import * as seatService from "../../services/seatService";
+import { CartProvider } from "../../context/CartContext";
 
 // Mock useParams and useNavigate
 const mockNavigate = jest.fn();
@@ -80,7 +81,9 @@ describe("ConcertDetailPage Component", () => {
     const renderComponent = () => {
         return render(
             <BrowserRouter>
-                <ConcertDetailPage />
+                <CartProvider>
+                    <ConcertDetailPage />
+                </CartProvider>
             </BrowserRouter>,
         );
     };
