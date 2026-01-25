@@ -92,6 +92,9 @@ describe("useHoldTimer Hook", () => {
 
             act(() => {
                 result.current.start();
+            });
+
+            act(() => {
                 jest.advanceTimersByTime(30000);
             });
 
@@ -112,6 +115,9 @@ describe("useHoldTimer Hook", () => {
 
             act(() => {
                 result.current.start();
+            });
+
+            act(() => {
                 jest.advanceTimersByTime(60000);
             });
 
@@ -264,6 +270,9 @@ describe("useHoldTimer Hook", () => {
 
             act(() => {
                 result.current.start();
+            });
+
+            act(() => {
                 jest.advanceTimersByTime(10000);
             });
 

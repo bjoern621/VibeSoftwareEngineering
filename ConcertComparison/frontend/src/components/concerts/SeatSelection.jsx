@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { useHoldTimer } from "../hooks/useHoldTimer";
+import { useHoldTimer } from "../../hooks/useHoldTimer";
 
 /**
  * SeatSelection Component
@@ -56,9 +56,10 @@ const SeatSelection = ({
         } catch (err) {
             console.error("Hold creation error:", err);
             setError(
-                err.response?.data?.message || err.response?.status === 409
-                    ? "Dieser Sitzplatz wurde bereits reserviert. Bitte wählen Sie einen anderen."
-                    : "Fehler beim Reservieren des Sitzplatzes.",
+                err.response?.data?.message ??
+                    (err.response?.status === 409
+                        ? "Dieser Sitzplatz wurde bereits reserviert. Bitte wählen Sie einen anderen."
+                        : "Fehler beim Reservieren des Sitzplatzes."),
             );
         }
     };
