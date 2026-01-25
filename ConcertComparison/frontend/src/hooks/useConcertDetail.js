@@ -38,7 +38,9 @@ export const useConcertDetail = (concertId) => {
       setSeats(seatsData || []);
     } catch (err) {
       console.error('Error loading concert detail:', err);
-      
+      console.error('Concert ID:', concertId);
+      console.error('Error Details:', err.response?.data || err.message || 'Unbekannter Fehler');
+
       // Handle specific error cases
       if (err.response?.status === 404) {
         setError('Konzert nicht gefunden');
