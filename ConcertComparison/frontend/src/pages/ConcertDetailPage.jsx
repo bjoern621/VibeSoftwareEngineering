@@ -5,6 +5,7 @@ import SeatOverview from "../components/concerts/SeatOverview";
 import { formatDateTime, formatTime } from "../utils/dateFormatter";
 import { formatPrice } from "../utils/priceFormatter";
 import { createSeatHold } from "../services/seatService";
+import SeatSelection from "../components/concerts/SeatSelection";
 
 /**
  * Breadcrumb Navigation Component
@@ -135,125 +136,6 @@ const ConcertInfoCard = ({ concert }) => (
 );
 
 /**
- * Selected Seat Dialog Component
- */
-const SeatDialog = ({ seat, onClose, onConfirm, isLoading }) => {
-    if (!seat) return null;
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                onClick={onClose}
-            />
-
-            {/* Dialog */}
-            <div className="relative bg-card-light dark:bg-card-dark rounded-2xl p-6 max-w-md w-full shadow-xl border border-border-light dark:border-border-dark">
-                {/* Close Button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-text-secondary dark:text-gray-400 hover:text-text-primary dark:hover:text-white transition-colors"
-                >
-                    <span className="material-symbols-outlined">close</span>
-                </button>
-
-                {/* Header */}
-                <div className="text-center mb-6">
-                    <span className="material-symbols-outlined text-primary text-5xl mb-3">
-                        event_seat
-                    </span>
-                    <h3 className="text-xl font-bold text-text-primary dark:text-white">
-                        Sitzplatz auswählen
-                    </h3>
-                </div>
-
-                {/* Seat Details */}
-                <div className="space-y-3 mb-6">
-                    <div className="flex justify-between items-center py-2 border-b border-border-light dark:border-border-dark">
-                        <span className="text-text-secondary dark:text-gray-400">
-                            Block
-                        </span>
-                        <span className="font-medium text-text-primary dark:text-white">
-                            {seat.block || "Allgemein"}
-                        </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-border-light dark:border-border-dark">
-                        <span className="text-text-secondary dark:text-gray-400">
-                            Kategorie
-                        </span>
-                        <span className="font-medium text-text-primary dark:text-white">
-                            {seat.category || "Standard"}
-                        </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-border-light dark:border-border-dark">
-                        <span className="text-text-secondary dark:text-gray-400">
-                            Reihe
-                        </span>
-                        <span className="font-medium text-text-primary dark:text-white">
-                            {seat.row}
-                        </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-border-light dark:border-border-dark">
-                        <span className="text-text-secondary dark:text-gray-400">
-                            Sitzplatz
-                        </span>
-                        <span className="font-medium text-text-primary dark:text-white">
-                            {seat.number}
-                        </span>
-                    </div>
-                    <div className="flex justify-between items-center py-3">
-                        <span className="text-text-secondary dark:text-gray-400">
-                            Preis
-                        </span>
-                        <span className="text-2xl font-bold text-price">
-                            {formatPrice(seat.price)}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 py-3 px-4 rounded-lg border border-border-light dark:border-border-dark text-text-primary dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    >
-                        Abbrechen
-                    </button>
-                    <button
-                        onClick={() => onConfirm(seat)}
-                        disabled={isLoading}
-                        className="flex-1 py-3 px-4 rounded-lg bg-primary hover:bg-primary-dark text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                        {isLoading ? (
-                            <>
-                                <span className="material-symbols-outlined animate-spin">
-                                    progress_activity
-                                </span>
-                                Wird reserviert...
-                            </>
-                        ) : (
-                            <>
-                                <span className="material-symbols-outlined">
-                                    bookmark_add
-                                </span>
-                                Reservieren
-                            </>
-                        )}
-                    </button>
-                </div>
-
-                {/* Info Text */}
-                <p className="text-xs text-text-secondary dark:text-gray-400 text-center mt-4">
-                    Die Reservierung ist 10 Minuten gültig. Schließen Sie den
-                    Kauf in dieser Zeit ab.
-                </p>
-            </div>
-        </div>
-    );
-};
-
-/**
  * Loading Skeleton Component
  */
 const LoadingSkeleton = () => (
@@ -306,6 +188,8 @@ const ConcertDetailPage = () => {
     const navigate = useNavigate();
     const [holdLoading, setHoldLoading] = useState(false);
     const [notification, setNotification] = useState(null);
+    // Get user ID from localStorage or use a default test user ID
+    const userId = localStorage.getItem("userId") || "user_test_123";
 
     const {
         concert,
@@ -353,39 +237,25 @@ const ConcertDetailPage = () => {
     const handleHoldConfirm = async (seat) => {
         setHoldLoading(true);
         try {
-            const reservation = await createSeatHold(seat.id);
+            const reservation = await createSeatHold(seat.id, userId);
 
             // Update seat status locally
             updateSeatStatus(seat.id, "HELD");
-            clearSeatSelection();
 
             // Show success notification
             setNotification({
                 type: "success",
-                message: `Sitzplatz ${seat.row}/${seat.number} erfolgreich reserviert! Reservierung läuft in 10 Minuten ab.`,
+                message: `Sitzplatz ${seat.row}/${seat.number} erfolgreich reserviert!`,
             });
 
             // Auto-hide notification after 5 seconds
             setTimeout(() => setNotification(null), 5000);
 
-            // Optional: Navigate to checkout
-            // navigate(`/checkout/${reservation.id}`);
+            // Return reservation data for SeatSelection component
+            return reservation;
         } catch (err) {
             console.error("Error creating hold:", err);
-
-            const errorMessage =
-                err.response?.status === 409
-                    ? "Dieser Sitzplatz wurde bereits reserviert. Bitte wählen Sie einen anderen."
-                    : err.response?.data?.message ||
-                      "Fehler beim Reservieren des Sitzplatzes.";
-
-            setNotification({
-                type: "error",
-                message: errorMessage,
-            });
-
-            // Refresh seats to get current status
-            refresh();
+            throw err; // Re-throw to let SeatSelection handle error display
         } finally {
             setHoldLoading(false);
         }
@@ -508,12 +378,17 @@ const ConcertDetailPage = () => {
                 )}
             </main>
 
-            {/* Seat Selection Dialog */}
-            <SeatDialog
+            {/* Seat Selection Dialog with Countdown */}
+            <SeatSelection
                 seat={selectedSeat}
-                onClose={clearSeatSelection}
+                onClose={() => {
+                    clearSeatSelection();
+                    // Refresh seats to get current status after closing dialog
+                    refresh();
+                }}
                 onConfirm={handleHoldConfirm}
                 isLoading={holdLoading}
+                ttlSeconds={600} // 10 minutes default TTL
             />
         </div>
     );

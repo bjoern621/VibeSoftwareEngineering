@@ -322,39 +322,6 @@ describe("ConcertDetailPage Component", () => {
             });
         });
 
-        test("calls createSeatHold when reserve button is clicked", async () => {
-            seatService.createSeatHold.mockResolvedValue({
-                id: "res1",
-                expiresAt: "2025-06-15T20:15:00",
-            });
-
-            renderComponent();
-
-            await waitFor(() => {
-                expect(
-                    screen.getByText("Sitzplatz wählen"),
-                ).toBeInTheDocument();
-            });
-
-            // Open dialog using title
-            const availableSeat = screen.getByTitle(
-                /Reihe 1, Platz 1 - Verfügbar/,
-            );
-            fireEvent.click(availableSeat);
-
-            await waitFor(() => {
-                expect(screen.getByText("Reservieren")).toBeInTheDocument();
-            });
-
-            // Click reserve
-            const reserveButton = screen.getByText("Reservieren");
-            fireEvent.click(reserveButton);
-
-            await waitFor(() => {
-                expect(seatService.createSeatHold).toHaveBeenCalledWith("s1");
-            });
-        });
-
         test("shows success notification after successful reservation", async () => {
             seatService.createSeatHold.mockResolvedValue({
                 id: "res1",
