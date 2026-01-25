@@ -19,6 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
 
 /**
  * Spring Security Konfiguration mit JWT Authentication.
@@ -71,6 +75,9 @@ public class SecurityConfiguration {
         http
                 // CSRF deaktivieren (JWT ist CSRF-resistent)
                 .csrf(AbstractHttpConfigurer::disable)
+                
+                // CORS konfigurieren
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 
                 // Session Management: Stateless (keine Server-Sessions)
                 .sessionManagement(session -> 
@@ -171,5 +178,23 @@ public class SecurityConfiguration {
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
+    }
+    
+    /**
+     * CORS Configuration Bean.
+     * 
+     * Erlaubt Frontend-Zugriff von localhost:3000.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 }
