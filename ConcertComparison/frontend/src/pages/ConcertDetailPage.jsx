@@ -88,7 +88,7 @@ const ConcertHeader = ({ concert }) => {
 /**
  * Concert Info Card Component
  */
-const ConcertInfoCard = ({ concert }) => (
+const ConcertInfoCard = ({ concert, minPrice, maxPrice, availableSeats, totalSeats }) => (
     <div className="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-card border border-border-light dark:border-border-dark">
         <h2 className="text-xl font-bold text-text-primary dark:text-white mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">info</span>
@@ -110,11 +110,11 @@ const ConcertInfoCard = ({ concert }) => (
                     Preise ab
                 </p>
                 <p className="text-2xl font-bold text-price">
-                    {formatPrice(concert.minPrice)}
+                    {minPrice > 0 ? formatPrice(minPrice) : 'N/A'}
                 </p>
-                {concert.maxPrice && concert.maxPrice !== concert.minPrice && (
+                {maxPrice > 0 && maxPrice !== minPrice && (
                     <p className="text-sm text-text-secondary dark:text-gray-400">
-                        bis {formatPrice(concert.maxPrice)}
+                        bis {formatPrice(maxPrice)}
                     </p>
                 )}
             </div>
@@ -122,13 +122,13 @@ const ConcertInfoCard = ({ concert }) => (
             {/* Availability */}
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <p className="text-sm text-text-secondary dark:text-gray-400 mb-1">
-                    Verfügbare Plätze
+                    Verfügbarkeit
                 </p>
                 <p className="text-2xl font-bold text-primary">
-                    {concert.availableSeats}
+                    {availableSeats}
                 </p>
                 <p className="text-sm text-text-secondary dark:text-gray-400">
-                    von {concert.totalSeats} Plätzen
+                    Plätze frei
                 </p>
             </div>
         </div>
@@ -205,6 +205,29 @@ const ConcertDetailPage = () => {
         refresh,
     } = useConcertDetail(id);
 
+    // Calculate min and max price from seats
+    const minPrice = useMemo(() => {
+        if (seats.length === 0) return 0;
+        const prices = seats.map(s => s.price || 0).filter(p => p > 0);
+        return prices.length > 0 ? Math.min(...prices) : 0;
+    }, [seats]);
+
+    const maxPrice = useMemo(() => {
+        if (seats.length === 0) return 0;
+        const prices = seats.map(s => s.price || 0).filter(p => p > 0);
+        return prices.length > 0 ? Math.max(...prices) : 0;
+    }, [seats]);
+
+    // Calculate available seats count
+    const availableSeatsCount = useMemo(() => {
+        return seats.filter(seat => seat.status === "AVAILABLE").length;
+    }, [seats]);
+
+    // Calculate total seats count
+    const totalSeatsCount = useMemo(() => {
+        return seats.length;
+    }, [seats]);
+
     // Calculate availability by category for SeatOverview
     const availabilityByCategory = useMemo(() => {
         const categoryStats = {};
@@ -216,6 +239,7 @@ const ConcertDetailPage = () => {
                     available: 0,
                     held: 0,
                     sold: 0,
+                    price: seat.price || 0,
                 };
             }
             if (seat.status === "AVAILABLE") {
@@ -351,7 +375,13 @@ const ConcertDetailPage = () => {
 
                             {/* Concert Info Sidebar (1 column) */}
                             <div className="space-y-6">
-                                <ConcertInfoCard concert={concert} />
+                                <ConcertInfoCard 
+                                    concert={concert} 
+                                    minPrice={minPrice} 
+                                    maxPrice={maxPrice}
+                                    availableSeats={availableSeatsCount}
+                                    totalSeats={totalSeatsCount}
+                                />
 
                                 {/* Quick Actions */}
                                 <div className="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-card border border-border-light dark:border-border-dark">
