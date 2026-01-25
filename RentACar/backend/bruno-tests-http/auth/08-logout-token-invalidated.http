@@ -1,9 +1,0 @@
-### 08 - After Logout: Token Invalidated
-# Converted from bruno-tests/auth/08-logout-token-invalidated.bru
-# Uses same token as used for logout ({{authToken}})
-# Expected: 403 (for blacklisted token) or 401 depending on config
-
-GET http://localhost:8080/api/kunden/profil
-Authorization: Bearer {{authToken}}
-
-###
