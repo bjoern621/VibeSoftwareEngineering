@@ -1,0 +1,730 @@
+databaseChangeLog:
+    - changeSet:
+          id: 007-insert-test-data
+          author: concert-comparison-team
+          comment: "Insert test data with diverse concert scenarios (10 concerts with different booking statuses, VIP seats, etc.)"
+          changes:
+              # ========================================
+              # CONCERT 1: All seats available (Standard only, upcoming)
+              # ========================================
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column:
+                              {
+                                  name: "name",
+                                  value: "Pop Star Live - World Tour",
+                              }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-02-15 20:00:00",
+                              }
+                        - column:
+                              { name: "venue", value: "Olympiahalle München" }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "The biggest pop concert of the year! Join us for an unforgettable evening with chart-topping hits.",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column: { name: "name", value: "Rock Festival 2026" }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-03-10 18:00:00",
+                              }
+                        - column: { name: "venue", value: "Lanxess Arena Köln" }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "Three days of rock music featuring international bands.",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column: { name: "name", value: "Jazz Evening" }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-02-20 19:30:00",
+                              }
+                        - column:
+                              { name: "venue", value: "Philharmonie Berlin" }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "An intimate evening of smooth jazz with world-renowned musicians.",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+
+              # ========================================
+              # CONCERT 4: VIP and Premium seats, some sold
+              # ========================================
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column:
+                              {
+                                  name: "name",
+                                  value: "Symphony Night - Premium Event",
+                              }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-04-05 20:00:00",
+                              }
+                        - column:
+                              {
+                                  name: "venue",
+                                  value: "Elbphilharmonie Hamburg",
+                              }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "Classical music excellence with VIP seating and exclusive access.",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column:
+                              { name: "name", value: "Electronic Dance Party" }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-05-15 22:00:00",
+                              }
+                        - column:
+                              {
+                                  name: "venue",
+                                  value: "Veltins Arena Gelsenkirchen",
+                              }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "The ultimate EDM experience with world-class DJs.",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column: { name: "name", value: "Summer Pop Festival" }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-06-01 16:00:00",
+                              }
+                        - column: { name: "venue", value: "Waldbühne Berlin" }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "Open-air summer festival with pop and indie artists.",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+
+              # ========================================
+              # CONCERT 7: Mostly sold (high demand)
+              # ========================================
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column:
+                              { name: "name", value: "Hip-Hop Legends Tour" }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-02-28 20:00:00",
+                              }
+                        - column:
+                              {
+                                  name: "venue",
+                                  value: "Mercedes-Benz Arena Berlin",
+                              }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "The hottest hip-hop artists perform live!",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column: { name: "name", value: "Metal Mania Concert" }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-03-25 19:00:00",
+                              }
+                        - column: { name: "venue", value: "SAP Arena Mannheim" }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "Heavy metal legends unite for an epic night.",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column: { name: "name", value: "Comedy Night Live" }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-04-20 20:00:00",
+                              }
+                        - column: { name: "venue", value: "Stadthalle Wien" }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "Top comedians delivering non-stop laughs.",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+
+              # ========================================
+              # CONCERT 10: Completely sold out
+              # ========================================
+              - insert:
+                    tableName: concerts
+                    columns:
+                        - column:
+                              { name: "name", value: "Legendary Farewell Tour" }
+                        - column:
+                              {
+                                  name: "event_date",
+                                  value: "2026-03-15 20:00:00",
+                              }
+                        - column:
+                              { name: "venue", value: "Allianz Arena München" }
+                        - column:
+                              {
+                                  name: "description",
+                                  value: "The final concert of a legendary career. Completely sold out!",
+                              }
+                        - column:
+                              {
+                                  name: "created_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column:
+                              {
+                                  name: "updated_at",
+                                  valueComputed: "CURRENT_TIMESTAMP",
+                              }
+                        - column: { name: "version", value: 0 }
+
+    # ========================================
+    # SEATS FOR CONCERT 1 (ID 1): Pop Star Live - All AVAILABLE, Standard seats
+    # ========================================
+    - changeSet:
+          id: 007-concert1-seats
+          author: concert-comparison-team
+          changes:
+              # Standard seats - Block A
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 1, 
+                           CONCAT('A-', seq, '-', row_num) as seat_number,
+                           'Standard' as category,
+                           'A' as block,
+                           CHAR(65 + FLOOR((seq - 1) / 10)) as seat_row,
+                           MOD(seq - 1, 10) + 1 as number,
+                           89.90 as price,
+                           'AVAILABLE' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) s
+                    CROSS JOIN (SELECT 1 row_num UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) r
+                    ORDER BY block, seat_row, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 2 (ID 2): Rock Festival - All AVAILABLE, Standard + Premium
+    # ========================================
+    - changeSet:
+          id: 007-concert2-seats
+          author: concert-comparison-team
+          changes:
+              # Standard seats - Block A, B
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 2, 
+                           CONCAT(block, '-', CHAR(65 + FLOOR((seq - 1) / 10)), '-', MOD(seq - 1, 10) + 1) as seat_number,
+                           'Standard' as category,
+                           block as block,
+                           CHAR(65 + FLOOR((seq - 1) / 10)) as seat_row,
+                           MOD(seq - 1, 10) + 1 as number,
+                           79.90 as price,
+                           'AVAILABLE' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20) s
+                    CROSS JOIN (SELECT 'A' as block UNION SELECT 'B') b
+                    WHERE s.seq <= 15 * 2
+                    ORDER BY block, seat_row, number;
+              # Premium seats - Block C
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 2, 
+                           CONCAT('C-', seq) as seat_number,
+                           'Premium' as category,
+                           'C' as block,
+                           'P' as seat_row,
+                           seq as number,
+                           149.90 as price,
+                           'AVAILABLE' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) s
+                    ORDER BY block, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 3 (ID 3): Jazz Evening - All AVAILABLE, Standard only, smaller venue
+    # ========================================
+    - changeSet:
+          id: 007-concert3-seats
+          author: concert-comparison-team
+          changes:
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 3, 
+                           CONCAT('J-', seq) as seat_number,
+                           'Standard' as category,
+                           'Main' as block,
+                           'A' as seat_row,
+                           seq as number,
+                           59.90 as price,
+                           'AVAILABLE' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20) s
+                    ORDER BY block, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 4 (ID 4): Symphony Night - VIP seats, some SOLD
+    # ========================================
+    - changeSet:
+          id: 007-concert4-seats
+          author: concert-comparison-team
+          changes:
+              # VIP seats - Box A, B (some SOLD)
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 4, 
+                           CONCAT('VIP-', block, '-', seq) as seat_number,
+                           'VIP' as category,
+                           block as block,
+                           'V' as seat_row,
+                           seq as number,
+                           299.90 as price,
+                           CASE WHEN seq <= 3 THEN 'SOLD' ELSE 'AVAILABLE' END as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8) s
+                    CROSS JOIN (SELECT 'A' as block UNION SELECT 'B') b
+                    ORDER BY block, number;
+              # Premium seats - Circle 1, 2 (some SOLD)
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 4, 
+                           CONCAT('P-', block, '-', seq) as seat_number,
+                           'Premium' as category,
+                           block as block,
+                           'P' as seat_row,
+                           seq as number,
+                           199.90 as price,
+                           CASE WHEN seq <= 5 THEN 'SOLD' ELSE 'AVAILABLE' END as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) s
+                    CROSS JOIN (SELECT '1' as block UNION SELECT '2') b
+                    ORDER BY block, number;
+              # Standard seats - Balcony (all AVAILABLE)
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 4, 
+                           CONCAT('B-', seq) as seat_number,
+                           'Standard' as category,
+                           'Balcony' as block,
+                           'B' as seat_row,
+                           seq as number,
+                           129.90 as price,
+                           'AVAILABLE' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15) s
+                    ORDER BY block, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 5 (ID 5): EDM Party - Standard + Premium, some HELD and SOLD
+    # ========================================
+    - changeSet:
+          id: 007-concert5-seats
+          author: concert-comparison-team
+          changes:
+              # VIP Front Row - some SOLD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, hold_reservation_id, hold_expires_at, created_at, updated_at, version)
+                    SELECT 5, 
+                           CONCAT('F-', seq) as seat_number,
+                           'VIP' as category,
+                           'Front' as block,
+                           'F' as seat_row,
+                           seq as number,
+                           349.90 as price,
+                           CASE 
+                             WHEN seq <= 4 THEN 'SOLD'
+                             WHEN seq BETWEEN 5 AND 7 THEN 'HELD'
+                             ELSE 'AVAILABLE'
+                           END as status,
+                           CASE WHEN seq BETWEEN 5 AND 7 THEN CONCAT('RES-', 5, '-', seq) ELSE NULL END as hold_reservation_id,
+                           CASE WHEN seq BETWEEN 5 AND 7 THEN TIMESTAMPADD(MINUTE, 15, CURRENT_TIMESTAMP) ELSE NULL END as hold_expires_at,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) s
+                    ORDER BY block, number;
+              # Premium - mix of AVAILABLE, HELD, SOLD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, hold_reservation_id, hold_expires_at, created_at, updated_at, version)
+                    SELECT 5, 
+                           CONCAT('P-', seq) as seat_number,
+                           'Premium' as category,
+                           'Mid' as block,
+                           'M' as seat_row,
+                           seq as number,
+                           179.90 as price,
+                           CASE 
+                             WHEN seq <= 8 THEN 'SOLD'
+                             WHEN seq BETWEEN 9 AND 15 THEN 'HELD'
+                             ELSE 'AVAILABLE'
+                           END as status,
+                           CASE WHEN seq BETWEEN 9 AND 15 THEN CONCAT('RES-', 5, '-', seq) ELSE NULL END as hold_reservation_id,
+                           CASE WHEN seq BETWEEN 9 AND 15 THEN TIMESTAMPADD(MINUTE, 10, CURRENT_TIMESTAMP) ELSE NULL END as hold_expires_at,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20) s
+                    ORDER BY block, number;
+              # Standard Standing - all AVAILABLE
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 5, 
+                           CONCAT('S-', seq) as seat_number,
+                           'Standard' as category,
+                           'Standing' as block,
+                           'S' as seat_row,
+                           seq as number,
+                           89.90 as price,
+                           'AVAILABLE' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20) s
+                    ORDER BY block, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 6 (ID 6): Summer Pop Festival - All AVAILABLE, Standard + Premium
+    # ========================================
+    - changeSet:
+          id: 007-concert6-seats
+          author: concert-comparison-team
+          changes:
+              # Premium Grandstand
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 6, 
+                           CONCAT('G-', seq) as seat_number,
+                           'Premium' as category,
+                           'Grandstand' as block,
+                           'G' as seat_row,
+                           seq as number,
+                           159.90 as price,
+                           'AVAILABLE' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15) s
+                    ORDER BY block, number;
+              # Standard Lawn
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 6, 
+                           CONCAT('L-', seq) as seat_number,
+                           'Standard' as category,
+                           'Lawn' as block,
+                           'L' as seat_row,
+                           seq as number,
+                           69.90 as price,
+                           'AVAILABLE' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24 UNION SELECT 25) s
+                    ORDER BY block, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 7 (ID 7): Hip-Hop Legends - Mostly SOLD (high demand)
+    # ========================================
+    - changeSet:
+          id: 007-concert7-seats
+          author: concert-comparison-team
+          changes:
+              # VIP - mostly SOLD, few HELD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, hold_reservation_id, hold_expires_at, created_at, updated_at, version)
+                    SELECT 7, 
+                           CONCAT('VIP-', block, '-', seq) as seat_number,
+                           'VIP' as category,
+                           block as block,
+                           'V' as seat_row,
+                           seq as number,
+                           249.90 as price,
+                           CASE 
+                             WHEN seq <= 15 THEN 'SOLD'
+                             WHEN seq BETWEEN 16 AND 18 THEN 'HELD'
+                             ELSE 'AVAILABLE'
+                           END as status,
+                           CASE WHEN seq BETWEEN 16 AND 18 THEN CONCAT('RES-', 7, '-', seq) ELSE NULL END as hold_reservation_id,
+                           CASE WHEN seq BETWEEN 16 AND 18 THEN TIMESTAMPADD(MINUTE, 10, CURRENT_TIMESTAMP) ELSE NULL END as hold_expires_at,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20) s
+                    CROSS JOIN (SELECT 'A' as block UNION SELECT 'B') b
+                    ORDER BY block, number;
+              # Standard - mostly SOLD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 7, 
+                           CONCAT('S-', seq) as seat_number,
+                           'Standard' as category,
+                           'Main' as block,
+                           'M' as seat_row,
+                           seq as number,
+                           99.90 as price,
+                           CASE WHEN seq <= 35 THEN 'SOLD' ELSE 'AVAILABLE' END as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24 UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29 UNION SELECT 30 UNION SELECT 31 UNION SELECT 32 UNION SELECT 33 UNION SELECT 34 UNION SELECT 35 UNION SELECT 36 UNION SELECT 37 UNION SELECT 38 UNION SELECT 39 UNION SELECT 40) s
+                    ORDER BY block, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 8 (ID 8): Metal Mania - Half SOLD, Half AVAILABLE
+    # ========================================
+    - changeSet:
+          id: 007-concert8-seats
+          author: concert-comparison-team
+          changes:
+              # Premium - half SOLD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 8, 
+                           CONCAT('P-', seq) as seat_number,
+                           'Premium' as category,
+                           'Front' as block,
+                           'F' as seat_row,
+                           seq as number,
+                           139.90 as price,
+                           CASE WHEN seq <= 10 THEN 'SOLD' ELSE 'AVAILABLE' END as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20) s
+                    ORDER BY block, number;
+              # Standard - half SOLD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 8, 
+                           CONCAT('S-', seq) as seat_number,
+                           'Standard' as category,
+                           'Main' as block,
+                           'M' as seat_row,
+                           seq as number,
+                           89.90 as price,
+                           CASE WHEN seq <= 25 THEN 'SOLD' ELSE 'AVAILABLE' END as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24 UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29 UNION SELECT 30 UNION SELECT 31 UNION SELECT 32 UNION SELECT 33 UNION SELECT 34 UNION SELECT 35 UNION SELECT 36 UNION SELECT 37 UNION SELECT 38 UNION SELECT 39 UNION SELECT 40 UNION SELECT 41 UNION SELECT 42 UNION SELECT 43 UNION SELECT 44 UNION SELECT 45 UNION SELECT 46 UNION SELECT 47 UNION SELECT 48 UNION SELECT 49 UNION SELECT 50) s
+                    ORDER BY block, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 9 (ID 9): Comedy Night - Mostly AVAILABLE, few SOLD
+    # ========================================
+    - changeSet:
+          id: 007-concert9-seats
+          author: concert-comparison-team
+          changes:
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 9, 
+                           CONCAT('C-', seq) as seat_number,
+                           'Standard' as category,
+                           'Hall' as block,
+                           'H' as seat_row,
+                           seq as number,
+                           79.90 as price,
+                           CASE WHEN seq <= 8 THEN 'SOLD' ELSE 'AVAILABLE' END as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24 UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29 UNION SELECT 30 UNION SELECT 31 UNION SELECT 32 UNION SELECT 33 UNION SELECT 34 UNION SELECT 35 UNION SELECT 36 UNION SELECT 37 UNION SELECT 38 UNION SELECT 39 UNION SELECT 40 UNION SELECT 41 UNION SELECT 42 UNION SELECT 43 UNION SELECT 44 UNION SELECT 45 UNION SELECT 46 UNION SELECT 47 UNION SELECT 48 UNION SELECT 49 UNION SELECT 50) s
+                    ORDER BY block, number;
+
+    # ========================================
+    # SEATS FOR CONCERT 10 (ID 10): Legendary Farewell - Completely SOLD OUT
+    # ========================================
+    - changeSet:
+          id: 007-concert10-seats
+          author: concert-comparison-team
+          changes:
+              # VIP - all SOLD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 10, 
+                           CONCAT('VIP-', block, '-', seq) as seat_number,
+                           'VIP' as category,
+                           block as block,
+                           'V' as seat_row,
+                           seq as number,
+                           399.90 as price,
+                           'SOLD' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20) s
+                    CROSS JOIN (SELECT 'A' as block UNION SELECT 'B' UNION SELECT 'C') b
+                    ORDER BY block, number;
+              # Premium - all SOLD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 10, 
+                           CONCAT('P-', seq) as seat_number,
+                           'Premium' as category,
+                           'Prime' as block,
+                           'P' as seat_row,
+                           seq as number,
+                           249.90 as price,
+                           'SOLD' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24 UNION SELECT 25) s
+                    ORDER BY block, number;
+              # Standard - all SOLD
+              - sql: |
+                    INSERT INTO seats (concert_id, seat_number, category, block, seat_row, number, price, status, created_at, updated_at, version)
+                    SELECT 10, 
+                           CONCAT('S-', seq) as seat_number,
+                           'Standard' as category,
+                           'Main' as block,
+                           'M' as seat_row,
+                           seq as number,
+                           149.90 as price,
+                           'SOLD' as status,
+                           CURRENT_TIMESTAMP as created_at,
+                           CURRENT_TIMESTAMP as updated_at,
+                           0 as version
+                    FROM (SELECT 1 seq UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14 UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19 UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24 UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29 UNION SELECT 30 UNION SELECT 31 UNION SELECT 32 UNION SELECT 33 UNION SELECT 34 UNION SELECT 35 UNION SELECT 36 UNION SELECT 37 UNION SELECT 38 UNION SELECT 39 UNION SELECT 40 UNION SELECT 41 UNION SELECT 42 UNION SELECT 43 UNION SELECT 44 UNION SELECT 45 UNION SELECT 46 UNION SELECT 47 UNION SELECT 48 UNION SELECT 49 UNION SELECT 50 UNION SELECT 51 UNION SELECT 52 UNION SELECT 53 UNION SELECT 54 UNION SELECT 55 UNION SELECT 56 UNION SELECT 57 UNION SELECT 58 UNION SELECT 59 UNION SELECT 60) s
+                    ORDER BY block, number;
