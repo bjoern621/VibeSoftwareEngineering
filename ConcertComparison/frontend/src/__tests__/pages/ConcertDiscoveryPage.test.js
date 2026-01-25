@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import ConcertDiscoveryPage from '../../pages/ConcertDiscoveryPage';
 import * as concertService from '../../services/concertService';
 import { AuthProvider } from '../../context/AuthContext';
+import { CartProvider } from '../../context/CartContext';
 
 // Mock the concert service
 jest.mock('../../services/concertService');
@@ -57,7 +58,9 @@ describe('ConcertDiscoveryPage Integration', () => {
     return render(
       <BrowserRouter>
         <AuthProvider>
-          <ConcertDiscoveryPage />
+          <CartProvider>
+            <ConcertDiscoveryPage />
+          </CartProvider>
         </AuthProvider>
       </BrowserRouter>
     );
