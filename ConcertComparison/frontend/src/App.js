@@ -5,6 +5,8 @@ import ConcertDiscoveryPage from './pages/ConcertDiscoveryPage';
 import ConcertDetailPage from './pages/ConcertDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
 
 function App() {
   return (
@@ -17,6 +19,10 @@ function App() {
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          
+          {/* Legal Pages */}
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         
         {/* Concert Discovery Page */}
         <Route path="/concerts" element={<ConcertDiscoveryPage />} />
