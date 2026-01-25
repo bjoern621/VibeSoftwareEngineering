@@ -109,7 +109,7 @@ const ConcertDiscoveryPage = () => {
                       </span>
                     </button>
                     {/* Dropdown Menu */}
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100]">
                       <div className="py-2">
                         <div className="px-4 py-2 border-b border-gray-100">
                           <p className="text-sm font-semibold text-text-primary">
@@ -117,13 +117,21 @@ const ConcertDiscoveryPage = () => {
                           </p>
                           <p className="text-xs text-text-secondary">{user?.email}</p>
                         </div>
+                        <Link
+                          to="/profile"
+                          className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-gray-50 transition-colors flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-lg">person</span>
+                          Mein Profil
+                        </Link>
                         <button
                           onClick={() => {
                             logout();
                             navigate('/concerts');
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
                         >
+                          <span className="material-symbols-outlined text-lg">logout</span>
                           Abmelden
                         </button>
                       </div>

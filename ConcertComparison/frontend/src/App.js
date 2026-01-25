@@ -2,9 +2,11 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import ConcertDiscoveryPage from './pages/ConcertDiscoveryPage';
 import ConcertDetailPage from './pages/ConcertDetailPage';
 import CartPage from './pages/CartPage';
+import UserProfilePage from './pages/UserProfilePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import TermsPage from './pages/TermsPage';
@@ -35,6 +37,16 @@ function App() {
             
             {/* Cart Page */}
             <Route path="/cart" element={<CartPage />} />
+            
+            {/* User Profile Page (Protected) */}
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <UserProfilePage />
+                </ProtectedRoute>
+              }
+            />
             
             {/* 404 Not Found */}
             <Route
