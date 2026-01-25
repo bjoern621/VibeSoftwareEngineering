@@ -1,14 +1,22 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import ConcertDiscoveryPage from './pages/ConcertDiscoveryPage';
 import ConcertDetailPage from './pages/ConcertDetailPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Default route redirects to concerts */}
-        <Route path="/" element={<Navigate to="/concerts" replace />} />
+      <AuthProvider>
+        <Routes>
+          {/* Default route redirects to concerts */}
+          <Route path="/" element={<Navigate to="/concerts" replace />} />
+          
+          {/* Auth Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         
         {/* Concert Discovery Page */}
         <Route path="/concerts" element={<ConcertDiscoveryPage />} />
@@ -39,6 +47,7 @@ function App() {
           }
         />
       </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
