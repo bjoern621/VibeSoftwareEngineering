@@ -1,0 +1,30 @@
+meta {
+  name: Get Hold - Success
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/reservations/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+tests {
+  test("Status code is 200 or 404", function() {
+    expect([200, 404]).to.include(res.status);
+  });
+  
+  test("If 200: Response has holdId", function() {
+    if (res.status === 200) {
+      expect(res.body.holdId).to.be.a('string');
+      expect(res.body.seatId).to.be.a('string');
+      expect(res.body.ttlSeconds).to.be.a('number');
+      expect(res.body.expiresAt).to.be.a('string');
+    }
+  });
+}

@@ -1,0 +1,200 @@
+package com.concertcomparison.infrastructure.security;
+
+import com.concertcomparison.infrastructure.ratelimit.RateLimitConfig;
+import com.concertcomparison.infrastructure.ratelimit.RateLimitFilter;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
+
+/**
+ * Spring Security Konfiguration mit JWT Authentication.
+ * 
+ * Konfiguriert:
+ * - JWT-basierte Authentifizierung (Stateless Sessions)
+ * - BCrypt Password Encoding
+ * - Endpoint-Autorisierung (Public vs. Protected)
+ * - CORS und CSRF Einstellungen
+ * 
+ * WICHTIG: Diese Konfiguration ist NICHT aktiv im "performance" Profil.
+ * Für Performance-Tests (Gatling) siehe {@link PerformanceSecurityConfiguration}.
+ */
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+@org.springframework.context.annotation.Profile("!performance")
+public class SecurityConfiguration {
+    
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomUserDetailsService userDetailsService;
+    private final RateLimitConfig.RateLimitService rateLimitService;
+    
+    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter,
+                                CustomUserDetailsService userDetailsService,
+                                RateLimitConfig.RateLimitService rateLimitService) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsService = userDetailsService;
+        this.rateLimitService = rateLimitService;
+    }
+    
+    /**
+     * Rate Limit Filter Bean.
+     * 
+     * @return RateLimitFilter für Rate Limiting
+     */
+    @Bean
+    public RateLimitFilter rateLimitFilter(HandlerExceptionResolver handlerExceptionResolver) {
+        return new RateLimitFilter(rateLimitService, handlerExceptionResolver);
+    }
+    
+    /**
+     * Security Filter Chain Konfiguration.
+     * 
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     */
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimitFilter rateLimitFilter) throws Exception {
+        http
+                // CSRF deaktivieren (JWT ist CSRF-resistent)
+                .csrf(AbstractHttpConfigurer::disable)
+                
+                // CORS konfigurieren
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                
+                // Session Management: Stateless (keine Server-Sessions)
+                .sessionManagement(session -> 
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                
+                // Authorization Rules
+                .authorizeHttpRequests(auth -> auth
+                        // Public Endpoints (kein Login erforderlich)
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        
+                        // Concerts - Read-Only (GET) für alle
+                        .requestMatchers(HttpMethod.GET, "/api/concerts/**").permitAll()
+                        
+                        // Concerts - Admin-Only (POST, PUT, DELETE)
+                        .requestMatchers(HttpMethod.POST, "/api/concerts/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/concerts/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/concerts/**").hasRole("ADMIN")
+                        
+                        // Events & Seats - Read-Only für alle
+                        .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/seats/**").permitAll()
+                        
+                        // Seat Hold - User kann Seats reservieren
+                        .requestMatchers(HttpMethod.POST, "/api/seats/*/hold").hasAnyRole("USER", "ADMIN")
+                        
+                        // Admin-Only Endpoints (Events, Seats Bulk)
+                        .requestMatchers(HttpMethod.POST, "/api/events/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/events/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/seats/**").hasRole("ADMIN")
+                        
+                        // User Endpoints (Login erforderlich)
+                        .requestMatchers("/api/reservations/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
+                        
+                        // Alle anderen Requests erfordern Authentifizierung
+                        .anyRequest().authenticated()
+                )
+                
+                // Authentication Entry Point: Return 401 for unauthenticated requests
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"code\":\"AUTHENTICATION_FAILED\",\"message\":\"Authentifizierung erforderlich\",\"status\":401,\"path\":\"" + request.getRequestURI() + "\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.getWriter().write("{\"code\":\"ACCESS_DENIED\",\"message\":\"Zugriff verweigert\",\"status\":403,\"path\":\"" + request.getRequestURI() + "\"}");
+                        })
+                )
+                
+                // Authentication Provider
+                .authenticationProvider(authenticationProvider())
+                
+                // Rate Limit Filter vor JwtAuthenticationFilter
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                
+                // JWT Filter vor UsernamePasswordAuthenticationFilter
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        
+        return http.build();
+    }
+    
+    /**
+     * Password Encoder Bean.
+     * 
+     * BCrypt mit Strength 10.
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(10);
+    }
+    
+    /**
+     * Authentication Provider Bean.
+     * 
+     * Verbindet UserDetailsService mit PasswordEncoder.
+     */
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+    
+    /**
+     * Authentication Manager Bean.
+     * 
+     * Wird für Login (AuthService) benötigt.
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+    
+    /**
+     * CORS Configuration Bean.
+     * 
+     * Erlaubt Frontend-Zugriff von localhost:3000.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
+    }
+}

@@ -19,11 +19,11 @@ jobs:
               uses: docker/setup-buildx-action@v3
 
             - name: Build Docker Compose Stack
-              working-directory: RentACar
+              working-directory: ConcertComparison
               run: docker compose build
 
             - name: Start Docker Compose Stack
-              working-directory: RentACar
+              working-directory: ConcertComparison
               run: |
                   docker compose up -d
                   echo "Waiting for services to start..."
@@ -32,7 +32,7 @@ jobs:
             - name: Check Backend Health
               run: |
                   for i in {1..30}; do
-                    if curl -s http://localhost:8080/api/vehicle-types > /dev/null; then
+                    if curl -s http://localhost:8080/actuator/health > /dev/null; then
                       echo "Backend is healthy!"
                       exit 0
                     fi
@@ -40,7 +40,7 @@ jobs:
                     sleep 2
                   done
                   echo "Backend health check failed"
-                  docker compose -f RentACar/docker-compose.yml logs backend
+                  docker compose -f ConcertComparison/docker-compose.yml logs backend
                   exit 1
 
             - name: Check Frontend Health
@@ -54,7 +54,7 @@ jobs:
                     sleep 2
                   done
                   echo "Frontend health check failed"
-                  docker compose -f RentACar/docker-compose.yml logs frontend
+                  docker compose -f ConcertComparison/docker-compose.yml logs frontend
                   exit 1
 
             - name: Show Running Containers
@@ -63,10 +63,10 @@ jobs:
 
             - name: Show Docker Compose Logs
               if: failure()
-              working-directory: RentACar
+              working-directory: ConcertComparison
               run: docker compose logs
 
             - name: Stop Docker Compose Stack
               if: always()
-              working-directory: RentACar
+              working-directory: ConcertComparison
               run: docker compose down

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ConcertAdmin - User Management</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2228",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+        /* Custom checkbox style */
+        .custom-checkbox {
+            appearance: none;
+            background-color: transparent;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.25em;
+            display: grid;
+            place-content: center;
+        }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox:checked {
+            background-color: #1e75b3;
+            border-color: #1e75b3;
+        }
+        .custom-checkbox:checked::before {
+            transform: scale(1);
+        }
+        
+        .dark .custom-checkbox {
+            border-color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display antialiased">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-surface-light dark:bg-surface-dark border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<!-- Logo -->
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-8 rounded bg-primary/10 text-primary">
+<span class="material-symbols-outlined">confirmation_number</span>
+</div>
+<span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">ConcertAdmin</span>
+</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-6">
+<button class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-6 border-l border-slate-200 dark:border-slate-700">
+<div class="flex flex-col items-end hidden md:flex">
+<span class="text-sm font-semibold text-slate-900 dark:text-white">Admin User</span>
+<span class="text-xs text-slate-500 dark:text-slate-400">Super Admin</span>
+</div>
+<div class="size-9 rounded-full bg-slate-200 bg-cover bg-center" data-alt="User profile picture showing a smiling person" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDY0pDc_xKu_iO6Qsi8cBy0erzs35-uHjhRjUzZcIn_N78bmfrSLVjEPin52Xnuqd_1vxTRd4NzK0_3eSt16WoK2a5-4Acz1LPTzRhtnXohSxSoc5oSpXZhmNOog_0KDIRwv-Ta9ei0Dvp49BtlLZ8bxh-qez96njR_-_abjEJJyijFWHRn01LyeW5SQa-jRx9BwKQsUhVqdxSW19g5zI71-cOVeP1uYgrcPheCDi-rRfDH9DGiI55XZfDtY2m8_peHKKxiUEaDUShA');">
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div>
+<h1 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">User Management</h1>
+<p class="text-slate-500 dark:text-slate-400">Manage access permissions for 10,000+ concurrent users.</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white font-semibold py-2.5 px-5 rounded-lg shadow-sm transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                Add New User
+            </button>
+</div>
+<!-- Content Card -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+<!-- Toolbar -->
+<div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-[#1a2228]">
+<!-- Search -->
+<div class="relative w-full sm:max-w-md">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2.5 border-none rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm" placeholder="Suche nach E-Mail..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+<div class="relative group">
+<button class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 whitespace-nowrap">
+<span>Role: All</span>
+<span class="material-symbols-outlined text-[18px]">arrow_drop_down</span>
+</button>
+</div>
+<div class="relative group">
+<button class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 whitespace-nowrap">
+<span>Status: Active</span>
+<span class="material-symbols-outlined text-[18px]">arrow_drop_down</span>
+</button>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
+<button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Export">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+<th class="p-4 w-12 text-center">
+<input class="custom-checkbox cursor-pointer" type="checkbox"/>
+</th>
+<th class="p-4 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">User</th>
+<th class="p-4 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Email</th>
+<th class="p-4 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Role</th>
+<th class="p-4 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400 text-right">Orders</th>
+<th class="p-4 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">Join Date</th>
+<th class="p-4 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+<td class="p-4 text-center">
+<input class="custom-checkbox cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200 bg-cover bg-center" data-alt="Portrait of Max Mustermann" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAd52ZK1T9Eq9Pbm-0FiqUMJEiKVpSm3n5VtGQSbUmX_ODWahKNNwyrWWTRCLZUoYEYa20v3pP9xWQ0nI9N5KwM9msJ9SgrzD2eGOfe1BtnIaANDHPLhZHTYgeudjly9hV9xgOwxLKeNMwWXPOa29AfZ5v_xGM4O8ozUzCtuiPKEdzdvzLdWgVqGGnz7KmthBL2iVbYUZeEdwugJNGggXktbjuGj_5Bx7ryrsKS_yjbMxtxTe2rqPa-h1PDdnIX_swyYzOBSaVbrmcI');"></div>
+<div class="font-medium text-slate-900 dark:text-white">Max Mustermann</div>
+</div>
+</td>
+<td class="p-4">
+<a class="text-primary hover:text-primary/80 hover:underline" href="mailto:max.m@example.com">max.m@example.com</a>
+</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                                    ADMIN
+                                </span>
+</td>
+<td class="p-4 text-right text-slate-600 dark:text-slate-400 font-medium tabular-nums">42</td>
+<td class="p-4 text-slate-500 dark:text-slate-400 text-sm">12.04.2023</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded transition-colors" title="Edit Role">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Delete User">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+<td class="p-4 text-center">
+<input class="custom-checkbox cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200 bg-cover bg-center" data-alt="Portrait of Lisa Schmidt" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDIr4fx9MCgmxXuKFvWe5u-9a--KN59hGNntB_gmUcraD-6TlHTJqdn0QtKu65Rqr8dHKN4ZT0a9zF7y-9kSCTbBlH3jjoIijho10OHUQbKG2HCIhhHFgVpCOFhMkj0KW2HABEsAUV4G0hEwqwmCr1YtR-iiucd9eZ6kWVCluU1p6RRkvf93T6LSwY7BQ51orByOCVc807QSI0VK5E8z-7bx43Rh0MrYssxOV4TzE1G-BPyiVO20RBwFgOo6bg6d3Z2SwgpmdWS-NOb');"></div>
+<div class="font-medium text-slate-900 dark:text-white">Lisa Schmidt</div>
+</div>
+</td>
+<td class="p-4">
+<a class="text-primary hover:text-primary/80 hover:underline" href="mailto:lisa.s@example.com">lisa.s@example.com</a>
+</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    USER
+                                </span>
+</td>
+<td class="p-4 text-right text-slate-600 dark:text-slate-400 font-medium tabular-nums">1</td>
+<td class="p-4 text-slate-500 dark:text-slate-400 text-sm">15.10.2023</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded transition-colors" title="Edit Role">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Delete User">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+<td class="p-4 text-center">
+<input class="custom-checkbox cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200 bg-cover bg-center" data-alt="Portrait of John Doe" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDL1aEWGRXAzuvCuo-3CfoMIFSUB1IocVmSIuMNLUpZyUVBZyeUR2WiE_-jrSedBOEwukcCT7xJ9FltYFf7qLCOyLllKKKs-J0hy_qt9VzPge7A6_PaNxIPAYB5w5aEm4nDOPLoUkhXVuQ7Y2i5-2qAnk8pc0YIGftyE71JUoZz_vNltkSZyeMRz4axuSZz7U2XEgQAiZkHiAFh7-K4QP8Kc0JrfHSYxKbdggbJULRSnGPteUH8BeG5_qvhm9zcu69mZL40ojAwyzWv');"></div>
+<div class="font-medium text-slate-900 dark:text-white">John Doe</div>
+</div>
+</td>
+<td class="p-4">
+<a class="text-primary hover:text-primary/80 hover:underline" href="mailto:john.d@example.com">john.d@example.com</a>
+</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    USER
+                                </span>
+</td>
+<td class="p-4 text-right text-slate-600 dark:text-slate-400 font-medium tabular-nums">12</td>
+<td class="p-4 text-slate-500 dark:text-slate-400 text-sm">20.09.2023</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded transition-colors" title="Edit Role">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Delete User">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+<td class="p-4 text-center">
+<input class="custom-checkbox cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200 bg-cover bg-center" data-alt="Portrait of Sarah Connor" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCZCSDzxZ3Cd9AWvQI17sRUKiLvcCrtRyZL5-f7HxY58zWZwSBMNDMbj18TLrIBU-IU3cgZI4-qMADur1ZMMZX_JhKN3_-Q4ThecptJrQ2Yuu89SoZKmJkNvlf6mHxsdKfvytZlQaZteoP-ZUA8Ygj_q4GwkwbTWtwtt_-7uXVA-r4dbsDQ2oo-kEfUVAFDDRRVNMb5XU4CAOq1pniH7C3g0OoWO3GWnE4jxGK3-04oRdtE7NstWA2zXoZ7jRnSbw0_LdGhYRkgOldW');"></div>
+<div class="font-medium text-slate-900 dark:text-white">Sarah Connor</div>
+</div>
+</td>
+<td class="p-4">
+<a class="text-primary hover:text-primary/80 hover:underline" href="mailto:sarah.c@example.com">sarah.c@example.com</a>
+</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                    USER
+                                </span>
+</td>
+<td class="p-4 text-right text-slate-600 dark:text-slate-400 font-medium tabular-nums">5</td>
+<td class="p-4 text-slate-500 dark:text-slate-400 text-sm">05.01.2023</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded transition-colors" title="Edit Role">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Delete User">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+<td class="p-4 text-center">
+<input class="custom-checkbox cursor-pointer" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-200 bg-cover bg-center" data-alt="Portrait of Mike Ross" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD0TqDx-Gt8CgxL3Ddjeneb-R_94351Hq6BCoEmuZ6VwOWCs8mMMfoZTC6eqrKkOe6hruPcOi4DciiRMgNGxHwyquJL7no-r7MOUKXmXTR2cF2_0vdC-gEzF3vmIMo8NWi_Df7TzHDLdQ_v6sD_4tUTNsKZyzrNuy-lU507EXsnPL32ZyE2Lbs6S-qzBstvAmmh3bKjNLfRSk2FUb7NsirkJ0CQb4XhFuvaE0gUD940pQiIqy033o3L8CQlHzVVPruh6Li2IlMv3VJY');"></div>
+<div class="font-medium text-slate-900 dark:text-white">Mike Ross</div>
+</div>
+</td>
+<td class="p-4">
+<a class="text-primary hover:text-primary/80 hover:underline" href="mailto:mike.r@example.com">mike.r@example.com</a>
+</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                                    ADMIN
+                                </span>
+</td>
+<td class="p-4 text-right text-slate-600 dark:text-slate-400 font-medium tabular-nums">89</td>
+<td class="p-4 text-slate-500 dark:text-slate-400 text-sm">11.11.2022</td>
+<td class="p-4 text-right">
+<div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-500 hover:text-primary hover:bg-primary/10 rounded transition-colors" title="Edit Role">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Delete User">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer Pagination -->
+<div class="px-5 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+<p class="text-sm text-slate-500 dark:text-slate-400">
+                    Showing <span class="font-medium text-slate-900 dark:text-white">1</span> to <span class="font-medium text-slate-900 dark:text-white">10</span> of <span class="font-medium text-slate-900 dark:text-white">12,450</span> results
+                </p>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-500 disabled:opacity-50 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors" disabled="">
+                        Previous
+                    </button>
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-primary hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        1
+                    </button>
+<button class="px-3 py-1.5 rounded-lg border border-transparent text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        2
+                    </button>
+<button class="px-3 py-1.5 rounded-lg border border-transparent text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        3
+                    </button>
+<span class="px-2 text-slate-400">...</span>
+<button class="px-3 py-1.5 rounded-lg border border-transparent text-sm font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        1245
+                    </button>
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                        Next
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

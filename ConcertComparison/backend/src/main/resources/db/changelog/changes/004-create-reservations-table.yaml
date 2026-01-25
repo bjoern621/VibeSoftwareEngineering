@@ -1,0 +1,83 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-reservations-table
+      author: concert-comparison-team
+      changes:
+        - createTable:
+            tableName: reservations
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_reservations
+              - column:
+                  name: seat_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValue: 0
+        - addForeignKeyConstraint:
+            baseTableName: reservations
+            baseColumnNames: seat_id
+            constraintName: fk_reservations_seat
+            referencedTableName: seats
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            indexName: idx_reservation_seat
+            tableName: reservations
+            columns:
+              - column:
+                  name: seat_id
+        - createIndex:
+            indexName: idx_reservation_user
+            tableName: reservations
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_reservation_expires
+            tableName: reservations
+            columns:
+              - column:
+                  name: expires_at
+        - createIndex:
+            indexName: idx_reservation_status
+            tableName: reservations
+            columns:
+              - column:
+                  name: status
+      rollback:
+        - dropTable:
+            tableName: reservations

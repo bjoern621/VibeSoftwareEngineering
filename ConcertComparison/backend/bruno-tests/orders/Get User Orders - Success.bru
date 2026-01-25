@@ -1,0 +1,35 @@
+meta {
+  name: Get User Orders - Success
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/orders/user/testuser@example.com
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.body).to.be.an('array');
+  });
+  
+  test("If orders exist, they have valid structure", function() {
+    if (res.body.length > 0) {
+      const order = res.body[0];
+      expect(order.orderId).to.be.a('string');
+      expect(order.userId).to.be.a('string');
+      expect(order.seatId).to.be.a('string');
+      expect(order.totalPrice).to.be.a('number');
+    }
+  });
+}

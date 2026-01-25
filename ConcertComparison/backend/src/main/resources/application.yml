@@ -1,0 +1,7 @@
+# Endpoint-specific rate limits for Concert Comparison
+
+ratelimit:
+  endpoint-limits:
+    "/api/auth/login": 5
+    "/api/reservations": 10
+    "/api/orders": 30

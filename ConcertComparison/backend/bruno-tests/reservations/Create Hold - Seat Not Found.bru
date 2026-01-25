@@ -1,0 +1,36 @@
+meta {
+  name: Create Hold - Seat Not Found
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/seats/99999/hold
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "userId": "user_test_123"
+  }
+}
+
+tests {
+  test("Status code is 404", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Response has error code", function() {
+    expect(res.body.code).to.equal("SEAT_NOT_FOUND");
+  });
+  
+  test("Response has error message", function() {
+    expect(res.body.message).to.be.a('string');
+    expect(res.body.message.length).to.be.greaterThan(0);
+  });
+}

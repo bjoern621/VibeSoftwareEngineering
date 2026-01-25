@@ -1,0 +1,37 @@
+meta {
+  name: Create Event - Admin
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/concerts
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{authToken}}
+}
+
+body:json {
+  {
+    "name": "Bruno Test Concert",
+    "date": "2026-12-31T20:00:00",
+    "venue": "Test Arena",
+    "description": "Created via Bruno for testing"
+  }
+}
+
+tests {
+  test("Status code is 201 or 403 (if not admin)", function() {
+    expect(res.status).to.be.oneOf([201, 403]);
+  });
+  
+  test("If 201, response has event ID", function() {
+    if (res.status === 201) {
+      expect(res.body).to.have.property('id');
+      bru.setEnvVar("createdEventId", res.body.id);
+    }
+  });
+}

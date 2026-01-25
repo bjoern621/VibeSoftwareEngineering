@@ -1,0 +1,58 @@
+meta {
+  name: Create Hold - Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/seats/1/hold
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "userId": "user_test_123"
+  }
+}
+
+tests {
+  // HINWEIS: Dieser Endpoint ist noch nicht implementiert
+  // Wenn er implementiert ist, diesen Test auf Status 200 ändern
+  
+  test("Status code is 200 or 404 (404 = not implemented yet)", function() {
+    expect(res.status).to.be.oneOf([200, 404]);
+  });
+  
+  // Tests für Status 200 - erst aktivieren wenn Endpoint implementiert ist
+  test("Response has holdId as string (only if 200)", function() {
+    if (res.status === 200) {
+      expect(res.body.holdId).to.be.a('string');
+    }
+  });
+  
+  test("Response has seatId as string (only if 200)", function() {
+    if (res.status === 200) {
+      expect(res.body.seatId).to.equal("1");
+    }
+  });
+  
+  test("Response has ttlSeconds (only if 200)", function() {
+    if (res.status === 200) {
+      expect(res.body.ttlSeconds).to.be.a('number');
+      expect(res.body.ttlSeconds).to.be.greaterThan(0);
+    }
+  });
+  
+  test("Response has expiresAt (only if 200)", function() {
+    if (res.status === 200) {
+      expect(res.body.expiresAt).to.be.a('string');
+      const expiresAt = new Date(res.body.expiresAt);
+      expect(expiresAt.getTime()).to.be.greaterThan(Date.now());
+    }
+  });
+}

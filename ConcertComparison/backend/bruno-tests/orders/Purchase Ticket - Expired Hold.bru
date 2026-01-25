@@ -1,0 +1,38 @@
+meta {
+  name: Purchase Ticket - Expired Hold
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/orders
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "holdId": "88888",
+    "userId": "testuser@example.com"
+  }
+}
+
+tests {
+  // HINWEIS: Dieser Test kann ohne Setup nur 404 oder 409 prüfen
+  
+  test("Status code is 404 or 409", function() {
+    expect(res.status).to.be.oneOf([404, 409]);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.body.message).to.be.a('string');
+  });
+}

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Concert Discovery Home</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e75b3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                        "price": "#FF7F0E",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for horizontal lists */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#121517] dark:text-white font-display min-h-screen flex flex-col">
+<!-- Sticky Header -->
+<header class="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#1a2630]/95 backdrop-blur-md border-b border-[#f0f3f4] dark:border-gray-800">
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-4">
+<!-- Logo & Brand -->
+<div class="flex items-center gap-2 md:gap-4 shrink-0 cursor-pointer">
+<div class="size-8 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-4xl">confirmation_number</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight hidden md:block">ConcertFinder</h1>
+</div>
+<!-- Search Bar -->
+<div class="flex-1 max-w-2xl mx-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[#657886] dark:text-gray-400">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2.5 border-none rounded-lg bg-[#f0f3f4] dark:bg-[#253341] text-sm md:text-base text-[#121517] dark:text-white placeholder-[#657886] focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search for artists, venues, or events..." type="text"/>
+</div>
+</div>
+<!-- User Actions -->
+<div class="flex items-center gap-3 md:gap-6 shrink-0">
+<button class="relative p-2 text-[#657886] hover:text-primary dark:text-gray-400 dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2630]"></span>
+</button>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="size-9 rounded-full bg-cover bg-center border border-[#f0f3f4] dark:border-gray-700" data-alt="User profile picture showing a smiling person" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBwzLx3XTRp47tegYkGP4M27llO6U_kPFfcOTsrzLefEFZiIAdD1kYQZYgOP2bxNDYafRPvZyKhlkJkIdE_XN0v7kny7lNL_sreGXDFtrl8rRNbMFyKsNYl0HJztr5UzvcTZsXaxEbB2K_oU6NDdpLZVbKmCHhWU_svBzEF5bbPuYyULAoV5Nnr8GVZVGZWBdUC6Lznum05jqJI4uCffabxZZIbJxHnnYgFdHsNkH5rz6JTrcp-AVqMYAWloIySNp4jUal3I4T2nipM');">
+</div>
+<span class="material-symbols-outlined text-[#657886] group-hover:text-primary transition-colors hidden sm:block">expand_more</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Sticky Filters -->
+<div class="sticky top-[65px] z-40 w-full bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-[#e5e7eb] dark:border-gray-800 shadow-sm">
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center gap-4">
+<!-- Filter Pills -->
+<div class="flex-1 flex gap-3 overflow-x-auto hide-scrollbar pb-1 items-center">
+<button class="flex items-center h-9 px-4 rounded-full bg-primary text-white text-sm font-medium whitespace-nowrap shadow-sm hover:shadow-md transition-all">
+                    All Events
+                </button>
+<button class="flex items-center h-9 px-4 rounded-full bg-white dark:bg-[#253341] border border-[#e5e7eb] dark:border-gray-700 hover:border-primary text-[#121517] dark:text-gray-300 text-sm font-medium whitespace-nowrap transition-all">
+                    This Week
+                </button>
+<button class="flex items-center h-9 px-4 rounded-full bg-white dark:bg-[#253341] border border-[#e5e7eb] dark:border-gray-700 hover:border-primary text-[#121517] dark:text-gray-300 text-sm font-medium whitespace-nowrap transition-all">
+                    Weekend
+                </button>
+<button class="flex items-center h-9 px-4 rounded-full bg-white dark:bg-[#253341] border border-[#e5e7eb] dark:border-gray-700 hover:border-primary text-[#121517] dark:text-gray-300 text-sm font-medium whitespace-nowrap transition-all">
+                    Popular
+                    <span class="material-symbols-outlined text-base ml-1">trending_up</span>
+</button>
+<button class="flex items-center h-9 px-4 rounded-full bg-white dark:bg-[#253341] border border-[#e5e7eb] dark:border-gray-700 hover:border-primary text-[#121517] dark:text-gray-300 text-sm font-medium whitespace-nowrap transition-all">
+                    Rock
+                </button>
+<button class="flex items-center h-9 px-4 rounded-full bg-white dark:bg-[#253341] border border-[#e5e7eb] dark:border-gray-700 hover:border-primary text-[#121517] dark:text-gray-300 text-sm font-medium whitespace-nowrap transition-all">
+                    Pop
+                </button>
+<button class="flex items-center h-9 px-4 rounded-full bg-white dark:bg-[#253341] border border-[#e5e7eb] dark:border-gray-700 hover:border-primary text-[#121517] dark:text-gray-300 text-sm font-medium whitespace-nowrap transition-all">
+                    Electronic
+                </button>
+</div>
+<!-- Sort Dropdown -->
+<div class="hidden md:flex items-center pl-4 border-l border-gray-200 dark:border-gray-700 shrink-0">
+<button class="flex items-center gap-2 text-sm font-medium text-[#657886] hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">sort</span>
+                    Sort by: Date
+                </button>
+</div>
+</div>
+</div>
+<!-- Main Grid Content -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-4 md:px-8 py-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+<!-- Card 1: Selling Fast / Primary -->
+<article class="group bg-white dark:bg-[#1a2630] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full border border-transparent hover:border-primary/20">
+<div class="relative aspect-[3/2] overflow-hidden">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Crowd at a large rock concert with stage lights" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8NnEodMyjUviHDiu7dBr8lZbMPJ8miO0BAegqrASQagAG4oTUBV5fcRBdxHHTMpbJgDlmCYHRaqflBlHVVUTGP5bctkvObnl87O4u44UN_tmmZz9jyNXLx2RaxvX7A8Ye9fhlbEGUKDLA1O0gq8bN2sr2yxZdTPfEWZtisjUxhT5Mr11SNhnxirt_MmhrNx3R07l-dEzi1BzQoBTVYP9oXu9Q52q_0ANvvmNt9PjpafuHYlbp3Ortm9zZRB-7BQCEAukBNZYnogW2');">
+</div>
+<!-- Badge -->
+<div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span> Selling Fast
+                    </div>
+<!-- Like Button Overlay -->
+<button class="absolute top-3 right-3 p-2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full text-white transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex-1">
+<h3 class="text-lg font-bold text-[#121517] dark:text-white leading-tight mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                            The Rolling Stones - Hackney Diamonds Tour
+                        </h3>
+<div class="space-y-2 mb-4">
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">calendar_month</span>
+<span class="text-sm">Fri, Oct 24 • 20:00</span>
+</div>
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">location_on</span>
+<span class="text-sm line-clamp-1">Olympiastadion, Berlin</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-[#f0f3f4] dark:border-gray-700">
+<div class="flex justify-between items-end mb-3">
+<div class="flex flex-col">
+<span class="text-xs text-[#657886] dark:text-gray-500 font-medium">Starting from</span>
+<span class="text-xl font-bold text-price">€89.50</span>
+</div>
+<button class="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium rounded-lg transition-colors">
+                                Buy Tickets
+                            </button>
+</div>
+<!-- Progress Bar Section -->
+<div class="space-y-1.5">
+<div class="flex justify-between text-xs font-medium">
+<span class="text-red-600 dark:text-red-400">Only 150 tickets left</span>
+<span class="text-[#657886] dark:text-gray-500">85% Sold</span>
+</div>
+<div class="h-1.5 w-full bg-[#e5e7eb] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-orange-500 to-red-500 w-[85%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 2: Limited / High Demand -->
+<article class="group bg-white dark:bg-[#1a2630] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full border border-transparent hover:border-primary/20">
+<div class="relative aspect-[3/2] overflow-hidden">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Pop singer performing on stage with colorful lights" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDALpb51OzWdAodEfV7VF7KFKIeETeS3JHcYyd0UgZbqRVnnD2LCifHB0y80E2W2ndWjt84oPhlaOSQKVlUSufisuqGRCFjR5oa4_7bEtSIpKUKiA5JQvvaXMFziV2Cchdiw3EFZ10d2DsypNfCF-iB_bNuyYTI1WKsL_MlroodQ3WXv-L1LqFwOxVZ_zw2IBneyf00WJNQ2XNaR0s0a6VaXBLTd-bWcDqlssrLYzsyCNkO9dYeVsy7SI-1l5O6SO3FJrAgCXqK9nsx');">
+</div>
+<div class="absolute top-3 left-3 bg-orange-400 text-white text-xs font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
+                        Limited
+                    </div>
+<button class="absolute top-3 right-3 p-2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full text-white transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex-1">
+<h3 class="text-lg font-bold text-[#121517] dark:text-white leading-tight mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                            Taylor Swift - The Eras Tour
+                        </h3>
+<div class="space-y-2 mb-4">
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">calendar_month</span>
+<span class="text-sm">Sat, Nov 15 • 19:30</span>
+</div>
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">location_on</span>
+<span class="text-sm line-clamp-1">Volksparkstadion, Hamburg</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-[#f0f3f4] dark:border-gray-700">
+<div class="flex justify-between items-end mb-3">
+<div class="flex flex-col">
+<span class="text-xs text-[#657886] dark:text-gray-500 font-medium">Starting from</span>
+<span class="text-xl font-bold text-price">€120.00</span>
+</div>
+<button class="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium rounded-lg transition-colors">
+                                Buy Tickets
+                            </button>
+</div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-xs font-medium">
+<span class="text-orange-600 dark:text-orange-400">High Demand</span>
+<span class="text-[#657886] dark:text-gray-500">92% Sold</span>
+</div>
+<div class="h-1.5 w-full bg-[#e5e7eb] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-orange-500 w-[92%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 3: New / Available -->
+<article class="group bg-white dark:bg-[#1a2630] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full border border-transparent hover:border-primary/20">
+<div class="relative aspect-[3/2] overflow-hidden">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Solo acoustic guitarist performing intimately" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAxE6kJszn6rk1TIQLY1GxNKcSIXuN5Pg2xNgN9TSbVr4iKQ5E3zwh2LhIT3nURlO_GereHthAm78hJZ7VFf-D6Oo1MFo2rks1fsCKUDcQAzyDXABf-zk73dY0shyMpGBblRj-VHdp2NqeY5rOt67K8YaQDMTbiRYgRu_nNRRmANQCDK-2tHSqdmA4kGSYRwoG31GUleK4jVD_B-IxICiZk1W1AMjibtOrFgWG5NMyLfjSicikE_amtwy_7kRzWeq8IHl2wbT5pwbKC');">
+</div>
+<div class="absolute top-3 left-3 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
+                        New Show
+                    </div>
+<button class="absolute top-3 right-3 p-2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full text-white transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex-1">
+<h3 class="text-lg font-bold text-[#121517] dark:text-white leading-tight mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                            Ed Sheeran - Mathematics Tour
+                        </h3>
+<div class="space-y-2 mb-4">
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">calendar_month</span>
+<span class="text-sm">Sun, Dec 05 • 20:00</span>
+</div>
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">location_on</span>
+<span class="text-sm line-clamp-1">Deutsche Bank Park, Frankfurt</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-[#f0f3f4] dark:border-gray-700">
+<div class="flex justify-between items-end mb-3">
+<div class="flex flex-col">
+<span class="text-xs text-[#657886] dark:text-gray-500 font-medium">Starting from</span>
+<span class="text-xl font-bold text-price">€75.00</span>
+</div>
+<button class="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium rounded-lg transition-colors">
+                                Buy Tickets
+                            </button>
+</div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-xs font-medium">
+<span class="text-green-600 dark:text-green-400">Available</span>
+<span class="text-[#657886] dark:text-gray-500">45% Sold</span>
+</div>
+<div class="h-1.5 w-full bg-[#e5e7eb] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-green-500 w-[45%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 4: Sold Out -->
+<article class="group bg-white dark:bg-[#1a2630] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full border border-transparent hover:border-primary/20 opacity-80 hover:opacity-100">
+<div class="relative aspect-[3/2] overflow-hidden grayscale">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Band performing with fireworks in background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWiWNnOBL4AeVmZV7p0TxtA0pVhBq4pkhFe8AaFzJpKUl9tSbMMkg0K1vKs-NwZhvyQbLnmyTjqDw02JnY7Gc79BGMXyG_o07hHR-AnPAlJgIyup_OyMObf2o4TyU02MnXtR-I9Req85KhGPcfDJFd28EhaqgyKTzOFW89GkUxMMiyU9gBBAQ8CQ7S8P7Azi32ziIhNyHWxFVe4Tz0aTte1eG-QI262oRZD0616T97sikqaQwDobmZfjmM5N0Lnn9O71-Jt8CsbfVm');">
+</div>
+<div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+<div class="bg-white/10 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg font-bold text-lg uppercase tracking-widest">
+                            Sold Out
+                        </div>
+</div>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex-1">
+<h3 class="text-lg font-bold text-[#657886] dark:text-gray-400 leading-tight mb-3 line-clamp-2">
+                            Coldplay - Music of the Spheres
+                        </h3>
+<div class="space-y-2 mb-4">
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-500">
+<span class="material-symbols-outlined text-lg mt-0.5">calendar_month</span>
+<span class="text-sm">Tue, Jan 14 • 19:00</span>
+</div>
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-500">
+<span class="material-symbols-outlined text-lg mt-0.5">location_on</span>
+<span class="text-sm line-clamp-1">Merkur Spiel-Arena, Düsseldorf</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-[#f0f3f4] dark:border-gray-700">
+<div class="flex justify-between items-end mb-3">
+<div class="flex flex-col">
+<span class="text-xs text-[#657886] dark:text-gray-500 font-medium">Was starting from</span>
+<span class="text-xl font-bold text-gray-400 line-through">€99.00</span>
+</div>
+<button class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed" disabled="">
+                                Waitlist
+                            </button>
+</div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-xs font-medium">
+<span class="text-gray-500">Sold Out</span>
+<span class="text-gray-500">100% Sold</span>
+</div>
+<div class="h-1.5 w-full bg-[#e5e7eb] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-gray-400 w-full rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 5: High Demand -->
+<article class="group bg-white dark:bg-[#1a2630] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full border border-transparent hover:border-primary/20">
+<div class="relative aspect-[3/2] overflow-hidden">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Dark moody concert lighting with artist silhouette" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAGNziHYU8Hh-94pc-RttSBQEMuBPNv8XBKF07Srlz4l1jL0ZVY_D9rRxEuVjw7EKuo42gFfl1pvaHyJ0-CXAQkIkVQK0s0xoswTW1bxSWNZx0SOjFlDl2GTVvGuXTkLKa_PRc4Vq88tpxYwz8yVex2h5G2jFuql4XG4fCHcJ8wsq0_EjL6gl1fXyWiwaYM3Txk8nYe_JCuLIJjugfHvYqfdeshMvF08qwhJnfWvn7FCDcDdJ9kFftd-K8F4ub01wKEEkPARwGnueIm');">
+</div>
+<div class="absolute top-3 left-3 bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider">
+                        Trending
+                    </div>
+<button class="absolute top-3 right-3 p-2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full text-white transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex-1">
+<h3 class="text-lg font-bold text-[#121517] dark:text-white leading-tight mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                            The Weeknd - After Hours
+                        </h3>
+<div class="space-y-2 mb-4">
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">calendar_month</span>
+<span class="text-sm">Fri, Feb 28 • 21:00</span>
+</div>
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">location_on</span>
+<span class="text-sm line-clamp-1">Lanxess Arena, Cologne</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-[#f0f3f4] dark:border-gray-700">
+<div class="flex justify-between items-end mb-3">
+<div class="flex flex-col">
+<span class="text-xs text-[#657886] dark:text-gray-500 font-medium">Starting from</span>
+<span class="text-xl font-bold text-price">€105.00</span>
+</div>
+<button class="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium rounded-lg transition-colors">
+                                Buy Tickets
+                            </button>
+</div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-xs font-medium">
+<span class="text-purple-600 dark:text-purple-400">Trending Fast</span>
+<span class="text-[#657886] dark:text-gray-500">75% Sold</span>
+</div>
+<div class="h-1.5 w-full bg-[#e5e7eb] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-purple-500 w-[75%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Card 6: Selling Fast -->
+<article class="group bg-white dark:bg-[#1a2630] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full border border-transparent hover:border-primary/20">
+<div class="relative aspect-[3/2] overflow-hidden">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Close up of a female singer with microphone" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCsrDFQ4kmHUGiLUBz5lUSraQ9v-Nzr6i3uFSBMPkH8uXYZiZ8UFkoxQEb0Urk4jRF6jwrPNdkLC0WAPJ4KpdtrLe_4YBYPP6eIBVjGCVQHC4HvznH1ywccKS4wb8tP56Fvv039o9IQu5NU9AnpHE8TwG3QR2vjeLttWyzTgxtD29VPpCjYxi_Z9xfUecaudG25UzDTemF3hkhV_Nzhv43kibYbPxqGXIFrB_S6iB2ZxRk9-KRl-5UsAy3oB2NmbKBYl7xW2Lu4OC6y');">
+</div>
+<div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-lg uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span> Last Tickets
+                    </div>
+<button class="absolute top-3 right-3 p-2 bg-black/40 hover:bg-black/60 backdrop-blur rounded-full text-white transition-colors">
+<span class="material-symbols-outlined text-lg">favorite</span>
+</button>
+</div>
+<div class="p-5 flex flex-col flex-1">
+<div class="flex-1">
+<h3 class="text-lg font-bold text-[#121517] dark:text-white leading-tight mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+                            Billie Eilish - Happier Than Ever
+                        </h3>
+<div class="space-y-2 mb-4">
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">calendar_month</span>
+<span class="text-sm">Thu, Mar 12 • 20:30</span>
+</div>
+<div class="flex items-start gap-2.5 text-[#657886] dark:text-gray-400">
+<span class="material-symbols-outlined text-lg mt-0.5">location_on</span>
+<span class="text-sm line-clamp-1">Mercedes-Benz Arena, Berlin</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-[#f0f3f4] dark:border-gray-700">
+<div class="flex justify-between items-end mb-3">
+<div class="flex flex-col">
+<span class="text-xs text-[#657886] dark:text-gray-500 font-medium">Starting from</span>
+<span class="text-xl font-bold text-price">€95.00</span>
+</div>
+<button class="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium rounded-lg transition-colors">
+                                Buy Tickets
+                            </button>
+</div>
+<div class="space-y-1.5">
+<div class="flex justify-between text-xs font-medium">
+<span class="text-red-600 dark:text-red-400">Almost Gone</span>
+<span class="text-[#657886] dark:text-gray-500">98% Sold</span>
+</div>
+<div class="h-1.5 w-full bg-[#e5e7eb] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-red-600 w-[98%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</article>
+</div>
+</main>
+</body></html>

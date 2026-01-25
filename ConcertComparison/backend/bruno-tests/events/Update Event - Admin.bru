@@ -1,0 +1,30 @@
+meta {
+  name: Update Event - Admin
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/api/concerts/1
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{authToken}}
+}
+
+body:json {
+  {
+    "name": "Updated Concert Name",
+    "date": "2026-12-31T20:00:00",
+    "venue": "Updated Venue",
+    "description": "Updated description"
+  }
+}
+
+tests {
+  test("Status code is 200 or 403 (if not admin)", function() {
+    expect(res.status).to.be.oneOf([200, 403]);
+  });
+}

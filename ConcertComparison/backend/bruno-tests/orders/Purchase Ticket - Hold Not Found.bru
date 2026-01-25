@@ -1,0 +1,36 @@
+meta {
+  name: Purchase Ticket - Hold Not Found
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/orders
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "holdId": "999999",
+    "userId": "testuser@example.com"
+  }
+}
+
+tests {
+  test("Status code is 404", function() {
+    expect(res.status).to.equal(404);
+  });
+  
+  test("Response has error message", function() {
+    expect(res.body.message).to.be.a('string');
+  });
+}

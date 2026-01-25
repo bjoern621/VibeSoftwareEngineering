@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/concerts/2/seats
+  url: {{baseUrl}}/api/events/2/seats
   body: none
   auth: none
 }
@@ -16,6 +16,6 @@ tests {
   });
   
   test("Response has concertId", function() {
-    expect(res.body.concertId).to.equal(2);
+    expect(res.body.concertId).to.equal("2");
   });
 }

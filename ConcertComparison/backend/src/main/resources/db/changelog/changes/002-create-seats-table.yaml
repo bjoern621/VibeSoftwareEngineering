@@ -1,0 +1,105 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-seats-table
+      author: concert-comparison-team
+      changes:
+        - createTable:
+            tableName: seats
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_seats
+              - column:
+                  name: concert_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: seat_number
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: block
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: seat_row
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: number
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price
+                  type: DOUBLE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: hold_reservation_id
+                  type: VARCHAR(100)
+              - column:
+                  name: hold_expires_at
+                  type: TIMESTAMP
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValue: 0
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: seats
+            baseColumnNames: concert_id
+            constraintName: fk_seats_concert
+            referencedTableName: concerts
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            indexName: idx_concert_id
+            tableName: seats
+            columns:
+              - column:
+                  name: concert_id
+        - createIndex:
+            indexName: idx_concert_status
+            tableName: seats
+            columns:
+              - column:
+                  name: concert_id
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_hold_expires
+            tableName: seats
+            columns:
+              - column:
+                  name: hold_expires_at
+      rollback:
+        - dropTable:
+            tableName: seats
