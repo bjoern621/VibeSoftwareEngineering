@@ -1,6 +1,8 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useConcerts } from '../hooks/useConcerts';
 import { useDebounce } from '../hooks/useDebounce';
+import { useAuth } from '../context/AuthContext';
 import SearchBar from '../components/common/SearchBar';
 import FilterBar from '../components/common/FilterBar';
 import ConcertCard from '../components/concerts/ConcertCard';
@@ -11,6 +13,8 @@ import Pagination from '../components/pagination/Pagination';
  * Main page for browsing and filtering concerts
  */
 const ConcertDiscoveryPage = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
   const {
     concerts,
     loading,
@@ -36,9 +40,9 @@ const ConcertDiscoveryPage = () => {
   }, [debouncedSearch]);
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark">
+    <div className="min-h-screen bg-background-light">
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-white dark:bg-card-dark shadow-md">
+      <header className="sticky top-0 z-20 bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-4">
             {/* Logo */}
@@ -58,18 +62,60 @@ const ConcertDiscoveryPage = () => {
               placeholder="Suche nach Konzerten, Künstlern, Venues..."
             />
 
-            {/* User Actions (Placeholder for now) */}
+            {/* User Actions */}
             <div className="flex items-center gap-2">
-              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <span className="material-symbols-outlined text-text-primary dark:text-white">
-                  notifications
-                </span>
-              </button>
-              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <span className="material-symbols-outlined text-text-primary dark:text-white">
-                  account_circle
-                </span>
-              </button>
+              {!isAuthenticated ? (
+                <>
+                  <Link to="/login">
+                    <button className="px-4 py-2 rounded-lg text-text-primary hover:bg-gray-100 transition-colors font-medium text-sm">
+                      Anmelden
+                    </button>
+                  </Link>
+                  <Link to="/register">
+                    <button className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors font-medium text-sm">
+                      Registrieren
+                    </button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <span className="material-symbols-outlined text-text-primary">
+                      notifications
+                    </span>
+                  </button>
+                  <div className="relative group">
+                    <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                      <span className="material-symbols-outlined text-text-primary">
+                        account_circle
+                      </span>
+                      <span className="text-sm font-medium text-text-primary hidden md:inline">
+                        {user?.firstName || 'User'}
+                      </span>
+                    </button>
+                    {/* Dropdown Menu */}
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                      <div className="py-2">
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <p className="text-sm font-semibold text-text-primary">
+                            {user?.firstName} {user?.lastName}
+                          </p>
+                          <p className="text-xs text-text-secondary">{user?.email}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            logout();
+                            navigate('/concerts');
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          Abmelden
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

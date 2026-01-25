@@ -3,9 +3,11 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ConcertDiscoveryPage from '../../pages/ConcertDiscoveryPage';
 import * as concertService from '../../services/concertService';
+import { AuthProvider } from '../../context/AuthContext';
 
 // Mock the concert service
 jest.mock('../../services/concertService');
+jest.mock('../../services/authService');
 
 // Mock useNavigate
 const mockNavigate = jest.fn();
@@ -54,7 +56,9 @@ describe('ConcertDiscoveryPage Integration', () => {
   const renderPage = () => {
     return render(
       <BrowserRouter>
-        <ConcertDiscoveryPage />
+        <AuthProvider>
+          <ConcertDiscoveryPage />
+        </AuthProvider>
       </BrowserRouter>
     );
   };
