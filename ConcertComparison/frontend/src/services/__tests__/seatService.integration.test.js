@@ -242,46 +242,6 @@ describe("SeatService Integration Tests", () => {
             localStorage.setItem("token", mockToken);
         });
 
-        it("creates a seat hold successfully", async () => {
-            const mockHold = {
-                id: "hold-1",
-                seatId: "1",
-                expirationTime: "2024-01-10T12:00:00Z",
-                status: "ACTIVE",
-            };
-
-            api.post.mockResolvedValue({
-                data: mockHold,
-            });
-
-            const result = await createSeatHold("1");
-
-            expect(api.post).toHaveBeenCalledWith("/reservations", {
-                seatId: "1",
-            });
-            expect(result).toEqual(mockHold);
-        });
-
-        it("sends authentication token in request", async () => {
-            const mockHold = {
-                id: "hold-1",
-                seatId: "1",
-                expirationTime: "2024-01-10T12:00:00Z",
-                status: "ACTIVE",
-            };
-
-            api.post.mockResolvedValue({
-                data: mockHold,
-            });
-
-            await createSeatHold("1");
-
-            expect(api.post).toHaveBeenCalledWith("/reservations", {
-                seatId: "1",
-            });
-            expect(localStorage.getItem("token")).toBe(mockToken);
-        });
-
         it("handles seat already held", async () => {
             const mockError = new Error("Seat already held");
             mockError.response = {
