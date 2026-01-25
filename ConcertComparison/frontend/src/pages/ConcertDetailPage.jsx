@@ -5,6 +5,7 @@ import SeatMap from '../components/concerts/SeatMap';
 import { formatDateTime, formatTime } from '../utils/dateFormatter';
 import { formatPrice } from '../utils/priceFormatter';
 import { createSeatHold } from '../services/seatService';
+import CheckoutButton from '../components/checkout/CheckoutButton';
 
 /**
  * Breadcrumb Navigation Component
@@ -302,6 +303,9 @@ const ConcertDetailPage = () => {
     refresh,
   } = useConcertDetail(id);
 
+  const isHoldActive = true; // Placeholder for actual hold status logic
+  const holdId = 'example-hold-id'; // Placeholder for actual hold ID
+
   /**
    * Handle seat hold confirmation
    */
@@ -440,6 +444,11 @@ const ConcertDetailPage = () => {
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Checkout Button - Placeholder for Hold ID and Status */}
+            <div className="mt-8">
+              <CheckoutButton holdId={holdId} isHoldActive={isHoldActive} />
             </div>
           </>
         )}
