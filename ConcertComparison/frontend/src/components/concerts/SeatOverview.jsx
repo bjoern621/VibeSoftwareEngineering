@@ -64,9 +64,16 @@ const CategoryAvailabilityCard = ({ availability, category }) => {
 
     return (
         <div className="bg-card-light dark:bg-card-dark rounded-xl p-4 border border-border-light dark:border-border-dark">
-            <h4 className="font-semibold text-text-primary dark:text-white mb-3">
-                {category}
-            </h4>
+            <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-text-primary dark:text-white">
+                    {category}
+                </h4>
+                {availability.price > 0 && (
+                    <span className="text-lg font-bold text-primary">
+                        {formatPrice(availability.price)}
+                    </span>
+                )}
+            </div>
             <div className="grid grid-cols-4 gap-2">
                 <div className="text-center">
                     <p className="text-lg font-bold text-green-600 dark:text-green-400">

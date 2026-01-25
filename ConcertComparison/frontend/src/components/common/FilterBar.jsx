@@ -24,7 +24,7 @@ const FilterBar = ({ activeFilter, onFilterChange, activeSort, onSortChange }) =
   const activeSortOption = SORT_OPTIONS.find((opt) => opt.id === activeSort) || SORT_OPTIONS[0];
 
   return (
-    <div className="sticky top-0 z-10 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark py-4">
+    <div className="sticky top-0 z-10 bg-white dark:bg-background-dark border-b border-gray-200 dark:border-border-dark py-4">
       <div className="flex items-center gap-4">
         {/* Filter Pills */}
         <div className="flex-1 overflow-x-auto scrollbar-hide">

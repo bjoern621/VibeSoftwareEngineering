@@ -27,7 +27,7 @@ const Breadcrumb = ({ concertName }) => (
 );
 
 /**
- * Concert Header Component - Hero section with concert image and basic info
+ * Concert Header Component - Kompaktes Hero mit key info
  */
 const ConcertHeader = ({ concert }) => {
     const [imageError, setImageError] = useState(false);
@@ -37,7 +37,7 @@ const ConcertHeader = ({ concert }) => {
             : concert.imageUrl;
 
     return (
-        <div className="relative rounded-2xl overflow-hidden mb-8">
+        <div className="relative rounded-xl overflow-hidden mb-6">
             {/* Background Image with Overlay */}
             <div className="absolute inset-0">
                 <img
@@ -46,38 +46,38 @@ const ConcertHeader = ({ concert }) => {
                     onError={() => setImageError(true)}
                     className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
             </div>
 
-            {/* Content */}
-            <div className="relative p-8 md:p-12 min-h-[300px] flex flex-col justify-end">
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+            {/* Content - Kompakter */}
+            <div className="relative p-6 md:p-8 min-h-[200px] flex flex-col justify-end">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3">
                     {concert.name}
                 </h1>
 
-                <div className="flex flex-wrap gap-4 md:gap-6 text-white/90">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm md:text-base text-white/90">
                     {/* Date & Time */}
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined">
+                    <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                        <span className="material-symbols-outlined text-lg">
                             calendar_today
                         </span>
-                        <span>{formatDateTime(concert.date)}</span>
+                        <span className="font-medium">{formatDateTime(concert.date)}</span>
                     </div>
 
                     {/* Time */}
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined">
+                    <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                        <span className="material-symbols-outlined text-lg">
                             schedule
                         </span>
-                        <span>{formatTime(concert.date)} Uhr</span>
+                        <span className="font-medium">{formatTime(concert.date)} Uhr</span>
                     </div>
 
                     {/* Venue */}
-                    <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined">
+                    <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                        <span className="material-symbols-outlined text-lg">
                             location_on
                         </span>
-                        <span>{concert.venue}</span>
+                        <span className="font-medium">{concert.venue}</span>
                     </div>
                 </div>
             </div>
@@ -88,47 +88,53 @@ const ConcertHeader = ({ concert }) => {
 /**
  * Concert Info Card Component
  */
-const ConcertInfoCard = ({ concert }) => (
-    <div className="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-card border border-border-light dark:border-border-dark">
-        <h2 className="text-xl font-bold text-text-primary dark:text-white mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">info</span>
-            Konzertinformationen
+const ConcertInfoCard = ({ concert, minPrice, maxPrice, availableSeats, totalSeats }) => (
+    <div className="bg-white dark:bg-card-dark rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+        <h2 className="text-lg font-bold text-text-primary dark:text-white mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-xl">event_note</span>
+            Event Details
         </h2>
 
         {/* Description */}
         {concert.description && (
-            <p className="text-text-secondary dark:text-gray-400 mb-6 leading-relaxed">
+            <p className="text-sm text-text-secondary dark:text-gray-400 mb-5 leading-relaxed">
                 {concert.description}
             </p>
         )}
 
-        {/* Info Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Info Grid - Verbessert */}
+        <div className="space-y-3">
             {/* Price Range */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <p className="text-sm text-text-secondary dark:text-gray-400 mb-1">
-                    Preise ab
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-lg p-4 border border-primary/20">
+                <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium text-text-secondary dark:text-gray-400 uppercase tracking-wide">
+                        Ticketpreise
+                    </p>
+                    <span className="material-symbols-outlined text-primary text-lg">sell</span>
+                </div>
+                <p className="text-2xl font-bold text-primary">
+                    {minPrice > 0 ? formatPrice(minPrice) : 'N/A'}
                 </p>
-                <p className="text-2xl font-bold text-price">
-                    {formatPrice(concert.minPrice)}
-                </p>
-                {concert.maxPrice && concert.maxPrice !== concert.minPrice && (
-                    <p className="text-sm text-text-secondary dark:text-gray-400">
-                        bis {formatPrice(concert.maxPrice)}
+                {maxPrice > 0 && maxPrice !== minPrice && (
+                    <p className="text-sm text-text-secondary dark:text-gray-400 mt-1">
+                        bis {formatPrice(maxPrice)}
                     </p>
                 )}
             </div>
 
             {/* Availability */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <p className="text-sm text-text-secondary dark:text-gray-400 mb-1">
-                    Verfügbare Plätze
+            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
+                <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium text-text-secondary dark:text-gray-400 uppercase tracking-wide">
+                        Verfügbarkeit
+                    </p>
+                    <span className="material-symbols-outlined text-green-600 dark:text-green-400 text-lg">event_available</span>
+                </div>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {availableSeats}
                 </p>
-                <p className="text-2xl font-bold text-primary">
-                    {concert.availableSeats}
-                </p>
-                <p className="text-sm text-text-secondary dark:text-gray-400">
-                    von {concert.totalSeats} Plätzen
+                <p className="text-sm text-text-secondary dark:text-gray-400 mt-1">
+                    von {totalSeats} Plätzen frei
                 </p>
             </div>
         </div>
@@ -205,6 +211,29 @@ const ConcertDetailPage = () => {
         refresh,
     } = useConcertDetail(id);
 
+    // Calculate min and max price from seats
+    const minPrice = useMemo(() => {
+        if (seats.length === 0) return 0;
+        const prices = seats.map(s => s.price || 0).filter(p => p > 0);
+        return prices.length > 0 ? Math.min(...prices) : 0;
+    }, [seats]);
+
+    const maxPrice = useMemo(() => {
+        if (seats.length === 0) return 0;
+        const prices = seats.map(s => s.price || 0).filter(p => p > 0);
+        return prices.length > 0 ? Math.max(...prices) : 0;
+    }, [seats]);
+
+    // Calculate available seats count
+    const availableSeatsCount = useMemo(() => {
+        return seats.filter(seat => seat.status === "AVAILABLE").length;
+    }, [seats]);
+
+    // Calculate total seats count
+    const totalSeatsCount = useMemo(() => {
+        return seats.length;
+    }, [seats]);
+
     // Calculate availability by category for SeatOverview
     const availabilityByCategory = useMemo(() => {
         const categoryStats = {};
@@ -216,6 +245,7 @@ const ConcertDetailPage = () => {
                     available: 0,
                     held: 0,
                     sold: 0,
+                    price: seat.price || 0,
                 };
             }
             if (seat.status === "AVAILABLE") {
@@ -351,7 +381,13 @@ const ConcertDetailPage = () => {
 
                             {/* Concert Info Sidebar (1 column) */}
                             <div className="space-y-6">
-                                <ConcertInfoCard concert={concert} />
+                                <ConcertInfoCard 
+                                    concert={concert} 
+                                    minPrice={minPrice} 
+                                    maxPrice={maxPrice}
+                                    availableSeats={availableSeatsCount}
+                                    totalSeats={totalSeatsCount}
+                                />
 
                                 {/* Quick Actions */}
                                 <div className="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-card border border-border-light dark:border-border-dark">

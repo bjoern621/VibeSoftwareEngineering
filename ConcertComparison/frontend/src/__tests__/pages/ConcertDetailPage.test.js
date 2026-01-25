@@ -158,11 +158,13 @@ describe("ConcertDetailPage Component", () => {
             renderComponent();
 
             await waitFor(() => {
-                // Check for availability counts - may have multiple elements
-                const summarySection = document.querySelector(
-                    ".grid.grid-cols-1.sm\\:grid-cols-2",
-                );
-                expect(summarySection).toBeInTheDocument();
+                // Check for availability - 2 AVAILABLE out of 4 total seats
+                expect(screen.getByText(/von 4 Plätzen frei/i)).toBeInTheDocument();
+                // Check that price range is displayed 
+                const priceElements = screen.getAllByText(/89,50 €/);
+                expect(priceElements.length).toBeGreaterThan(0);
+                const maxPriceElements = screen.getAllByText(/299,00 €/);
+                expect(maxPriceElements.length).toBeGreaterThan(0);
             });
         });
     });
