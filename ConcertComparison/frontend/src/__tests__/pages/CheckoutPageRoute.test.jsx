@@ -247,7 +247,11 @@ describe('CheckoutPage', () => {
       fireEvent.click(checkoutButton);
 
       await waitFor(() => {
-        expect(purchaseBulkTickets).toHaveBeenCalledWith(['hold-1', 'hold-2']);
+        expect(purchaseBulkTickets).toHaveBeenCalledWith(
+          ['hold-1', 'hold-2'],
+          'max@test.de',
+          'CREDIT_CARD'
+        );
       });
 
       await waitFor(() => {

@@ -11,6 +11,19 @@ import ConcertDetailPage from "../../pages/ConcertDetailPage";
 import * as concertService from "../../services/concertService";
 import * as seatService from "../../services/seatService";
 import { CartProvider } from "../../context/CartContext";
+import { AuthProvider } from "../../context/AuthContext";
+
+// Mock authService to prevent real API calls during tests
+jest.mock("../../services/authService", () => ({
+    __esModule: true,
+    default: {
+        isAuthenticated: () => false,
+        getProfile: () => Promise.resolve(null),
+        login: jest.fn(),
+        logout: jest.fn(),
+        register: jest.fn(),
+    },
+}));
 
 // Mock useParams and useNavigate
 const mockNavigate = jest.fn();
@@ -81,9 +94,11 @@ describe("ConcertDetailPage Component", () => {
     const renderComponent = () => {
         return render(
             <BrowserRouter>
-                <CartProvider>
-                    <ConcertDetailPage />
-                </CartProvider>
+                <AuthProvider>
+                    <CartProvider>
+                        <ConcertDetailPage />
+                    </CartProvider>
+                </AuthProvider>
             </BrowserRouter>,
         );
     };
