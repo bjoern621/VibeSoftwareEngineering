@@ -146,19 +146,22 @@ public class ConcertApplicationService {
         logger.warn("Deleting concert with ID: {}", concertId);
         
         // Prüfe ob Concert existiert
-        concertRepository.findById(concertId)
-            .orElseThrow(() -> new ConcertNotFoundException(concertId));
+        if (!concertRepository.existsById(concertId)) {
+            throw new ConcertNotFoundException(concertId);
+        }
         
         // NOTE: In echter Anwendung sollte hier auch geprüft werden,
         // ob für dieses Concert noch aktive Reservierungen existieren.
         // Falls ja, sollte die Löschung abgelehnt werden.
         
-        // Alle Seats für das Concert löschen (Cascade nicht via JPA, sondern explizit)
-        List<Seat> seats = seatRepository.findByConcertId(concertId);
-        // Delete würde hier implementiert, aktuell nicht in SeatRepository definiert
-        // seatRepository.deleteAll(seats);
+        // Alle Seats für das Concert löschen
+        int deletedSeats = seatRepository.deleteAllByConcertId(concertId);
+        logger.info("Deleted {} seats for concert ID: {}", deletedSeats, concertId);
         
-        logger.info("Concert and {} associated seats deleted: {}", seats.size(), concertId);
+        // Concert löschen
+        concertRepository.deleteById(concertId);
+        
+        logger.info("Concert successfully deleted: {}", concertId);
     }
     
     /**
@@ -213,6 +216,51 @@ public class ConcertApplicationService {
         List<Seat> saved = seatRepository.saveAllBatch(seatsToCreate);
         
         logger.info("Successfully created {} seats for concert ID: {}", saved.size(), concertId);
+    }
+    
+    /**
+     * Ersetzt ALLE Sitzplätze eines Concerts (Delete + Create).
+     * 
+     * Löscht erst alle vorhandenen Sitze, dann erstellt die neuen.
+     * WARNUNG: Vorhandene Reservierungen (HELD, SOLD) werden auch gelöscht!
+     * 
+     * @param concertId ID des Concerts
+     * @param seatDTOs Liste der neuen Seats
+     * @throws IllegalArgumentException wenn Concert nicht gefunden oder keine Seats vorhanden
+     */
+    @CacheEvict(value = "seatAvailability", allEntries = true)
+    public void replaceSeats(Long concertId, List<CreateSeatRequestDTO> seatDTOs) {
+        // Validierung: Mindestens 1 Seat erforderlich
+        if (seatDTOs == null || seatDTOs.isEmpty()) {
+            logger.warn("replaceSeats called with null or empty seat list for concert ID: {}", concertId);
+            throw new IllegalArgumentException("Mindestens 1 Sitzplatz erforderlich");
+        }
+        
+        // Prüfe ob Concert existiert
+        concertRepository.findById(concertId)
+            .orElseThrow(() -> new IllegalArgumentException("Concert mit ID " + concertId + " nicht gefunden"));
+        
+        // 1. Lösche alle vorhandenen Seats
+        int deletedCount = seatRepository.deleteAllByConcertId(concertId);
+        logger.info("Deleted {} existing seats for concert ID: {}", deletedCount, concertId);
+        
+        // 2. Erstelle neue Seats
+        List<Seat> seatsToCreate = seatDTOs.stream()
+            .map(dto -> new Seat(
+                concertId,
+                dto.getSeatNumber(),
+                dto.getCategory(),
+                dto.getBlock(),
+                dto.getRow(),
+                dto.getNumber(),
+                dto.getPrice()
+            ))
+            .collect(Collectors.toList());
+        
+        List<Seat> saved = seatRepository.saveAllBatch(seatsToCreate);
+        
+        logger.info("Successfully replaced seats for concert ID: {}. Deleted: {}, Created: {}", 
+                   concertId, deletedCount, saved.size());
     }
     
     /**

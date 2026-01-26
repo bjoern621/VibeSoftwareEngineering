@@ -242,6 +242,69 @@ public class ConcertController {
     }
     
     /**
+     * PUT /api/concerts/{id}/seats
+     * 
+     * Ersetzt ALLE Sitzplätze eines Concerts (Delete + Create).
+     * Löscht erst alle vorhandenen Sitze, dann erstellt die neuen.
+     * 
+     * @param concertId ID des Concerts
+     * @param request CreateSeatsRequestDTO mit neuer Seat-Liste
+     * @return ResponseEntity mit HTTP 200 OK
+     */
+    @PutMapping("/{id}/seats")
+    @Operation(
+        summary = "Sitzplätze für Konzert ersetzen",
+        description = "Ersetzt ALLE Sitzplätze eines Konzerts. " +
+                     "Löscht erst alle vorhandenen Sitze, dann erstellt die neuen. " +
+                     "WARNUNG: Vorhandene Reservierungen werden ungültig! " +
+                     "Requires ADMIN role."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Sitzplätze erfolgreich ersetzt"
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Ungültige Eingabedaten",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Konzert nicht gefunden",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Zugriff verweigert (nicht ADMIN-Rolle)",
+            content = @Content
+        )
+    })
+    public ResponseEntity<String> replaceSeats(
+        @Parameter(description = "Concert-ID", example = "1")
+        @PathVariable(value = "id") Long concertId,
+        @Valid @RequestBody CreateSeatsRequestDTO request
+    ) {
+        logger.warn("Admin request: Replacing ALL seats for concert ID - {} with {} new seats", 
+                   concertId, request.getSeats().size());
+        
+        try {
+            concertApplicationService.replaceSeats(concertId, request.getSeats());
+            
+            String responseMessage = String.format(
+                "Erfolgreich alle Sitzplätze für Konzert %d ersetzt. Neue Anzahl: %d",
+                concertId,
+                request.getSeats().size()
+            );
+            
+            return ResponseEntity.ok(responseMessage);
+        } catch (IllegalArgumentException ex) {
+            logger.error("Error: {}", ex.getMessage());
+            throw ex;
+        }
+    }
+
+    /**
      * POST /api/concerts/{id}/seats
      * 
      * Erstellt mehrere Sitzplätze für ein Concert (Bulk Operation).

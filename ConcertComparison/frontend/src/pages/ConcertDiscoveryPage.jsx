@@ -4,6 +4,7 @@ import { useConcerts } from '../hooks/useConcerts';
 import { useDebounce } from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import authService from '../services/authService';
 import SearchBar from '../components/common/SearchBar';
 import FilterBar from '../components/common/FilterBar';
 import ConcertCard from '../components/concerts/ConcertCard';
@@ -124,10 +125,19 @@ const ConcertDiscoveryPage = () => {
                           <span className="material-symbols-outlined text-lg">person</span>
                           Mein Profil
                         </Link>
+                        {authService.getUserRole() === 'ADMIN' && (
+                          <Link
+                            to="/admin"
+                            className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-gray-50 transition-colors flex items-center gap-2"
+                          >
+                            <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+                            Admin Panel
+                          </Link>
+                        )}
                         <button
                           onClick={() => {
                             logout();
-                            navigate('/concerts');
+                            navigate('/login');
                           }}
                           className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
                         >

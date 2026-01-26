@@ -25,10 +25,18 @@ const ConcertCard = ({ concert }) => {
 
   const isSoldOut = concert.availableSeats === 0;
 
-  // Placeholder image if no image URL or error loading (use local static SVG to avoid external requests)
-  const imageSrc = imageError || !concert.imageUrl
+  // Generiere ein Konzertbild basierend auf der Concert-ID
+  // Verwendet picsum.photos für konsistente, schöne Bilder
+  const generateConcertImage = (id, name) => {
+    // Verwende die ID als Seed für konsistente Bilder pro Konzert
+    const seed = id || name?.length || 1;
+    return `https://picsum.photos/seed/${seed}/600/400`;
+  };
+
+  // Placeholder image if no image URL or error loading
+  const imageSrc = imageError 
     ? '/placeholder_concert.svg'
-    : concert.imageUrl;
+    : concert.imageUrl || generateConcertImage(concert.id, concert.name);
 
   return (
     <div
