@@ -391,26 +391,30 @@ class ConcertApplicationServiceTest {
         @DisplayName("Sollte Concert erfolgreich löschen")
         void shouldDeleteConcertSuccessfully() {
             // Arrange
-            when(concertRepository.findById(1L)).thenReturn(Optional.of(concertToDelete));
-            when(seatRepository.findByConcertId(1L)).thenReturn(new ArrayList<>());
+            when(concertRepository.existsById(1L)).thenReturn(true);
+            when(seatRepository.deleteAllByConcertId(1L)).thenReturn(0);
             
             // Act
             concertApplicationService.deleteConcert(1L);
             
             // Assert
-            verify(concertRepository, times(1)).findById(1L);
+            verify(concertRepository, times(1)).existsById(1L);
+            verify(seatRepository, times(1)).deleteAllByConcertId(1L);
+            verify(concertRepository, times(1)).deleteById(1L);
         }
         
         @Test
         @DisplayName("Sollte fehlschlagen wenn Concert nicht existiert")
         void shouldFailWhenConcertNotFound() {
             // Arrange
-            when(concertRepository.findById(999L)).thenReturn(Optional.empty());
+            when(concertRepository.existsById(999L)).thenReturn(false);
             
             // Act & Assert
             assertThatThrownBy(() -> concertApplicationService.deleteConcert(999L))
                 .isInstanceOf(com.concertcomparison.domain.exception.ConcertNotFoundException.class)
                 .hasMessageContaining("Konzert");
+            
+            verify(concertRepository, never()).deleteById(any());
         }
     }
     

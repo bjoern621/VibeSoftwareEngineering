@@ -93,8 +93,8 @@ describe('ManageSeatsPage', () => {
 
     // Prüfe dass die Vorschau angezeigt wird
     await waitFor(() => {
-      // Standard-Konfiguration: 5 Reihen × 10 Sitze = 50 Sitzplätze
-      expect(screen.getByText(/50 Sitzplätze erstellen/)).toBeInTheDocument();
+      // Standard-Konfiguration: Block 1 (A-B=20) + Block 2 (C-E=30) + Block 3 (F-J=50) = 100 Sitzplätze
+      expect(screen.getByText(/100 Sitzplätze aktualisieren/)).toBeInTheDocument();
     });
   });
 
@@ -107,15 +107,15 @@ describe('ManageSeatsPage', () => {
       expect(screen.getByText('Neue Sitzplätze hinzufügen')).toBeInTheDocument();
     });
 
-    // Klicke auf Erstellen-Button
-    fireEvent.click(screen.getByRole('button', { name: /Sitzplätze erstellen/i }));
+    // Klicke auf Aktualisieren-Button
+    fireEvent.click(screen.getByRole('button', { name: /Sitzplätze aktualisieren/i }));
 
     await waitFor(() => {
       expect(adminService.createSeats).toHaveBeenCalledWith('concert-123', expect.any(Array));
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/wurden erfolgreich erstellt/i)).toBeInTheDocument();
+      expect(screen.getByText(/wurden aktualisiert/i)).toBeInTheDocument();
     });
   });
 
@@ -167,7 +167,7 @@ describe('ManageSeatsPage', () => {
       expect(screen.getByText('Neue Sitzplätze hinzufügen')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Sitzplätze erstellen/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Sitzplätze aktualisieren/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/konnten nicht erstellt werden/i)).toBeInTheDocument();
