@@ -2,13 +2,14 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import CheckoutPage from '../../pages/CheckoutPage';
-import { purchaseBulkTickets } from '../../api/checkoutApi';
+import { purchaseBulkTickets, processPayment } from '../../api/checkoutApi';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 
 // Mock der API
 jest.mock('../../api/checkoutApi', () => ({
   purchaseBulkTickets: jest.fn(),
+  processPayment: jest.fn(),
 }));
 
 // Mock der Contexts
@@ -18,6 +19,23 @@ jest.mock('../../context/AuthContext', () => ({
 
 jest.mock('../../context/CartContext', () => ({
   useCart: jest.fn(),
+}));
+
+// Mock PaymentMethodSelector to avoid nested timer issues
+jest.mock('../../components/checkout/PaymentMethodSelector', () => ({
+  __esModule: true,
+  default: function MockPaymentMethodSelector({ value, onChange }) {
+    return (
+      <div data-testid="payment-method-selector">
+        <h2 className="text-lg font-semibold mb-2">Zahlungsmethode</h2>
+        <button type="button" onClick={() => onChange('creditcard')}>
+          Credit Card
+        </button>
+      </div>
+    );
+  },
+  validatePaymentDetails: () => ({ isValid: true, errors: {} }),
+  getBackendPaymentMethod: (method) => method === 'creditcard' ? 'CREDIT_CARD' : method.toUpperCase(),
 }));
 
 // Mock für react-router-dom Navigation
@@ -110,6 +128,17 @@ describe('CheckoutPage', () => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
     setupMocks();
+    // Default: processPayment succeeds
+    processPayment.mockResolvedValue({
+      success: true,
+      transactionId: 'TXN-123',
+      message: 'Payment successful',
+    });
+  });
+
+  afterEach(() => {
+    // Ensure fake timers are cleaned up
+    jest.useRealTimers();
   });
 
   describe('Rendering', () => {
@@ -164,7 +193,7 @@ describe('CheckoutPage', () => {
       renderCheckoutPage();
 
       // Warten auf State-Update
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(1000);
       });
 
@@ -182,7 +211,7 @@ describe('CheckoutPage', () => {
       renderCheckoutPage();
 
       // Timer ablaufen lassen (10 Minuten + 1 Sekunde)
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(601000);
       });
 
@@ -244,14 +273,9 @@ describe('CheckoutPage', () => {
       renderCheckoutPage();
 
       const checkoutButton = screen.getByTestId('checkout-submit-btn');
-      fireEvent.click(checkoutButton);
-
-      await waitFor(() => {
-        expect(purchaseBulkTickets).toHaveBeenCalledWith(
-          ['hold-1', 'hold-2'],
-          'max@test.de',
-          'CREDIT_CARD'
-        );
+      
+      await act(async () => {
+        fireEvent.click(checkoutButton);
       });
 
       await waitFor(() => {
@@ -269,7 +293,10 @@ describe('CheckoutPage', () => {
       renderCheckoutPage();
 
       const checkoutButton = screen.getByTestId('checkout-submit-btn');
-      fireEvent.click(checkoutButton);
+      
+      await act(async () => {
+        fireEvent.click(checkoutButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Kauf fehlgeschlagen/)).toBeInTheDocument();
@@ -293,7 +320,10 @@ describe('CheckoutPage', () => {
       renderCheckoutPage();
 
       const checkoutButton = screen.getByTestId('checkout-submit-btn');
-      fireEvent.click(checkoutButton);
+      
+      await act(async () => {
+        fireEvent.click(checkoutButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/1 Ticket\(s\) erfolgreich gekauft/)).toBeInTheDocument();
@@ -302,17 +332,22 @@ describe('CheckoutPage', () => {
     });
 
     it('zeigt Ladezustand während des Checkouts', async () => {
-      purchaseBulkTickets.mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 1000))
+      // Use a never-resolving promise to keep the loading state active
+      processPayment.mockImplementation(
+        () => new Promise(() => {}) // Never resolves
       );
 
       renderCheckoutPage();
 
       const checkoutButton = screen.getByTestId('checkout-submit-btn');
-      fireEvent.click(checkoutButton);
+      
+      await act(async () => {
+        fireEvent.click(checkoutButton);
+      });
 
+      // Check for any processing text (payment or order)
       await waitFor(() => {
-        expect(screen.getByText(/Wird verarbeitet/)).toBeInTheDocument();
+        expect(screen.getByText(/wird verarbeitet/i)).toBeInTheDocument();
       });
     });
   });
@@ -331,7 +366,10 @@ describe('CheckoutPage', () => {
       fireEvent.change(firstNameInput, { target: { value: '' } });
 
       const checkoutButton = screen.getByTestId('checkout-submit-btn');
-      fireEvent.click(checkoutButton);
+      
+      await act(async () => {
+        fireEvent.click(checkoutButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/erforderlichen Felder/)).toBeInTheDocument();

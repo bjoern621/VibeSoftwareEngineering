@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import BillingForm from '../components/checkout/BillingForm';
-import PaymentMethodSelector from '../components/checkout/PaymentMethodSelector';
+import PaymentMethodSelector, { validatePaymentDetails, getBackendPaymentMethod } from '../components/checkout/PaymentMethodSelector';
 import OrderSummary from '../components/checkout/OrderSummary';
 import CheckoutTimer from '../components/checkout/CheckoutTimer';
-import { purchaseBulkTickets } from '../api/checkoutApi';
+import { purchaseBulkTickets, processPayment } from '../api/checkoutApi';
 
 /**
  * CheckoutPage - Hauptseite für den Checkout-Prozess
@@ -41,10 +41,20 @@ const CheckoutPage = () => {
     zip: '',
   });
   const [paymentMethod, setPaymentMethod] = useState('creditcard');
+  const [paymentDetails, setPaymentDetails] = useState({});
+  const [paymentErrors, setPaymentErrors] = useState({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState(''); // 'payment' | 'order'
   const [error, setError] = useState(null);
   const [holdExpired, setHoldExpired] = useState(false);
   const [purchaseComplete, setPurchaseComplete] = useState(false);  // Flag um Redirect zu blockieren
+
+  // Handler für Zahlungsdetails - stabil via useCallback
+  const handlePaymentDetailsChange = useCallback((details) => {
+    setPaymentDetails(details);
+    // Fehler zurücksetzen wenn User Eingaben macht
+    setPaymentErrors({});
+  }, []);
 
   // Benutzer auf Login umleiten, wenn nicht authentifiziert
   useEffect(() => {
@@ -129,7 +139,7 @@ const CheckoutPage = () => {
 
   /**
    * Checkout-Handler
-   * Führt den Kaufprozess durch
+   * Führt den Kaufprozess durch: 1) Payment validieren, 2) Payment verarbeiten, 3) Order erstellen
    */
   const handleCheckout = async () => {
     // Validierung: Hold noch aktiv?
@@ -143,6 +153,14 @@ const CheckoutPage = () => {
       setError('Bitte füllen Sie alle erforderlichen Felder aus.');
       return;
     }
+
+    // Validierung: Zahlungsdetails
+    const paymentValidation = validatePaymentDetails(paymentMethod, paymentDetails);
+    if (!paymentValidation.isValid) {
+      setPaymentErrors(paymentValidation.errors);
+      setError('Bitte überprüfen Sie Ihre Zahlungsdaten.');
+      return;
+    }
     
     // UserId für Backend (entweder aus User-Objekt oder aus Formular)
     const userId = user?.email || billingDetails.email;
@@ -153,14 +171,24 @@ const CheckoutPage = () => {
 
     setIsProcessing(true);
     setError(null);
+    setPaymentErrors({});
 
     try {
+      // Schritt 1: Payment verarbeiten (Mock)
+      setProcessingStep('payment');
+      const paymentResult = await processPayment(paymentDetails, paymentMethod, total);
+      
+      if (!paymentResult.success) {
+        setError(paymentResult.message || 'Zahlung fehlgeschlagen.');
+        setIsProcessing(false);
+        setProcessingStep('');
+        return;
+      }
+
+      // Schritt 2: Order im Backend erstellen
+      setProcessingStep('order');
       const holdIds = getAllHoldIds();
-      // Map frontend payment method to backend enum
-      const backendPaymentMethod = paymentMethod === 'creditcard' ? 'CREDIT_CARD' 
-        : paymentMethod === 'paypal' ? 'PAYPAL' 
-        : paymentMethod === 'sofort' ? 'BANK_TRANSFER'
-        : 'CREDIT_CARD';
+      const backendPaymentMethod = getBackendPaymentMethod(paymentMethod);
       
       const results = await purchaseBulkTickets(holdIds, userId, backendPaymentMethod);
 
@@ -184,6 +212,8 @@ const CheckoutPage = () => {
               totalAmount: total,
               billingDetails,
               paymentMethod,
+              transactionId: paymentResult.transactionId,
+              paymentMessage: paymentResult.message,
             },
           });
         } else {
@@ -202,6 +232,7 @@ const CheckoutPage = () => {
       setError(err.message || 'Ein unerwarteter Fehler ist aufgetreten.');
     } finally {
       setIsProcessing(false);
+      setProcessingStep('');
     }
   };
 
@@ -292,14 +323,14 @@ const CheckoutPage = () => {
 
             {/* Payment Method */}
             <div className="bg-white dark:bg-[#1a2634] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">credit_card</span>
-                Zahlungsmethode
-              </h2>
               <PaymentMethodSelector
                 value={paymentMethod}
                 onChange={setPaymentMethod}
+                paymentDetails={paymentDetails}
+                onPaymentDetailsChange={handlePaymentDetailsChange}
+                errors={paymentErrors}
                 disabled={holdExpired || isProcessing}
+                totalAmount={total}
               />
             </div>
 
@@ -380,7 +411,13 @@ const CheckoutPage = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    <span>Wird verarbeitet...</span>
+                    <span>
+                      {processingStep === 'payment' 
+                        ? 'Zahlung wird verarbeitet...' 
+                        : processingStep === 'order'
+                        ? 'Bestellung wird erstellt...'
+                        : 'Wird verarbeitet...'}
+                    </span>
                   </>
                 ) : holdExpired ? (
                   <>

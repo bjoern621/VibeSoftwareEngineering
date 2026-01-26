@@ -30,6 +30,76 @@ export async function purchaseTicket(holdId, userId, paymentMethod = 'CREDIT_CAR
 }
 
 /**
+ * Mock payment processing with simulated delay
+ * In real implementation, this would call a payment gateway
+ * @param {object} paymentDetails - Payment form data (card info, PayPal email, etc.)
+ * @param {string} paymentMethod - Payment method ('creditcard', 'paypal', 'bitcoin')
+ * @param {number} amount - Amount to charge
+ * @returns {Promise<object>} - { success: boolean, transactionId: string, message?: string }
+ */
+export async function processPayment(paymentDetails, paymentMethod, amount) {
+  // Simulate payment gateway delay (1.5-3 seconds)
+  const delay = 1500 + Math.random() * 1500;
+  await new Promise(resolve => setTimeout(resolve, delay));
+  
+  // Generate mock transaction ID
+  const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  
+  // Mock validation based on payment method
+  switch (paymentMethod) {
+    case 'creditcard': {
+      const cardNum = (paymentDetails.cardNumber || '').replace(/\s/g, '');
+      // Simulate card decline for test card numbers starting with 4000000000000002
+      if (cardNum === '4000000000000002') {
+        return {
+          success: false,
+          message: 'Karte wurde abgelehnt. Bitte verwenden Sie eine andere Zahlungsmethode.',
+        };
+      }
+      return {
+        success: true,
+        transactionId,
+        message: `Zahlung erfolgreich mit Karte ****${cardNum.slice(-4)}`,
+      };
+    }
+    
+    case 'paypal': {
+      if (!paymentDetails.isConnected) {
+        return {
+          success: false,
+          message: 'PayPal-Konto nicht verbunden.',
+        };
+      }
+      return {
+        success: true,
+        transactionId,
+        message: `Zahlung erfolgreich über PayPal (${paymentDetails.email})`,
+      };
+    }
+    
+    case 'bitcoin': {
+      if (!paymentDetails.hasConfirmed) {
+        return {
+          success: false,
+          message: 'Bitcoin-Zahlung nicht bestätigt.',
+        };
+      }
+      return {
+        success: true,
+        transactionId,
+        message: `Bitcoin-Zahlung bestätigt: ${paymentDetails.btcAmount} BTC`,
+      };
+    }
+    
+    default:
+      return {
+        success: false,
+        message: 'Ungültige Zahlungsmethode.',
+      };
+  }
+}
+
+/**
  * Purchase multiple tickets in bulk
  * Note: Backend doesn't support bulk purchase, so we make sequential calls
  * @param {string[]} holdIds - Array of hold IDs
