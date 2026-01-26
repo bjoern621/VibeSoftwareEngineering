@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useConcertDetail } from "../hooks/useConcertDetail";
 import { useAuth } from "../context/AuthContext";
 import SeatOverview from "../components/concerts/SeatOverview";
+import ConnectionStatusBadge from "../components/common/ConnectionStatusBadge";
 import { formatDateTime, formatTime } from "../utils/dateFormatter";
 import { formatPrice } from "../utils/priceFormatter";
 import { createSeatHold } from "../services/seatService";
@@ -211,6 +212,12 @@ const ConcertDetailPage = () => {
         clearSeatSelection,
         updateSeatStatus,
         refresh,
+        // SSE Status
+        connectionStatus,
+        isConnected,
+        isReconnecting,
+        sseHasError,
+        sseReconnect,
     } = useConcertDetail(id);
 
     // Calculate min and max price from seats
@@ -362,12 +369,18 @@ const ConcertDetailPage = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Seat Overview (2 columns) */}
                             <div className="lg:col-span-2">
-                                <h2 className="text-2xl font-bold text-text-primary dark:text-white mb-6 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-primary">
-                                        event_seat
-                                    </span>
-                                    Sitzplatz wählen
-                                </h2>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-bold text-text-primary dark:text-white flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-primary">
+                                            event_seat
+                                        </span>
+                                        Sitzplatz wählen
+                                    </h2>
+                                    <ConnectionStatusBadge
+                                        status={connectionStatus}
+                                        onReconnect={sseReconnect}
+                                    />
+                                </div>
                                 <SeatOverview
                                     seats={seats}
                                     availabilityByCategory={

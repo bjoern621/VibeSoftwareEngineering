@@ -13,6 +13,70 @@ import * as seatService from "../../services/seatService";
 import { CartProvider } from "../../context/CartContext";
 import { AuthProvider } from "../../context/AuthContext";
 
+// Mock EventSource für SSE Tests
+class MockEventSource {
+    static instances = [];
+    static lastCallbacks = null;
+
+    constructor(url) {
+        this.url = url;
+        this.readyState = 0;
+        this.onopen = null;
+        this.onmessage = null;
+        this.onerror = null;
+        this._listeners = {};
+        MockEventSource.instances.push(this);
+    }
+
+    addEventListener(event, callback) {
+        if (!this._listeners[event]) {
+            this._listeners[event] = [];
+        }
+        this._listeners[event].push(callback);
+    }
+
+    removeEventListener(event, callback) {
+        if (this._listeners[event]) {
+            this._listeners[event] = this._listeners[event].filter(cb => cb !== callback);
+        }
+    }
+
+    close() {
+        this.readyState = 2;
+    }
+
+    simulateOpen() {
+        this.readyState = 1;
+        if (this.onopen) {
+            this.onopen({ type: 'open' });
+        }
+    }
+
+    simulateError() {
+        if (this.onerror) {
+            this.onerror({ type: 'error' });
+        }
+    }
+
+    simulateSeatUpdate(data) {
+        const event = { data: JSON.stringify(data) };
+        if (this._listeners['seat_update']) {
+            this._listeners['seat_update'].forEach(cb => cb(event));
+        }
+    }
+
+    static reset() {
+        MockEventSource.instances = [];
+    }
+
+    static getLastInstance() {
+        return MockEventSource.instances[MockEventSource.instances.length - 1];
+    }
+}
+
+// EventSource global mocken
+const originalEventSource = global.EventSource;
+
 // Mock authService to prevent real API calls during tests
 jest.mock("../../services/authService", () => ({
     __esModule: true,
@@ -33,9 +97,18 @@ jest.mock("react-router-dom", () => ({
     useNavigate: () => mockNavigate,
 }));
 
-// Mock services
+// Mock services - preserve SSE functions from seatService
 jest.mock("../../services/concertService");
-jest.mock("../../services/seatService");
+jest.mock("../../services/seatService", () => {
+    const actual = jest.requireActual("../../services/seatService");
+    return {
+        ...actual,
+        fetchConcertSeats: jest.fn(),
+        fetchSeatAvailability: jest.fn(),
+        createSeatHold: jest.fn(),
+        cancelSeatHold: jest.fn(),
+    };
+});
 
 describe("ConcertDetailPage Component", () => {
     const mockConcert = {
@@ -97,16 +170,36 @@ describe("ConcertDetailPage Component", () => {
                 <AuthProvider>
                     <CartProvider>
                         <ConcertDetailPage />
-                    </CartProvider>
+                    </CartProvider>>
                 </AuthProvider>
             </BrowserRouter>,
         );
     };
 
+    // Set up MockEventSource for all tests in this suite
+    beforeAll(() => {
+        global.EventSource = MockEventSource;
+    });
+
+    afterAll(() => {
+        global.EventSource = originalEventSource;
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
+        MockEventSource.reset();
         concertService.fetchConcertById.mockResolvedValue(mockConcert);
         seatService.fetchConcertSeats.mockResolvedValue(mockSeats);
+    });
+
+    afterEach(() => {
+        // Cleanup alle SSE Verbindungen
+        MockEventSource.instances.forEach(instance => {
+            if (instance.readyState !== 2) {
+                instance.close();
+            }
+        });
+        MockEventSource.reset();
     });
 
     describe("Loading State", () => {
@@ -501,6 +594,147 @@ describe("ConcertDetailPage Component", () => {
                     2,
                 );
                 expect(seatService.fetchConcertSeats).toHaveBeenCalledTimes(2);
+            });
+        });
+    });
+
+    describe("SSE Live Updates", () => {
+        test("shows connection status badge after loading", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByText("Sitzplatz wählen")).toBeInTheDocument();
+            });
+
+            // SSE Verbindung wird hergestellt
+            await waitFor(() => {
+                expect(MockEventSource.instances.length).toBeGreaterThan(0);
+            });
+
+            // Simuliere erfolgreiche Verbindung
+            const eventSource = MockEventSource.getLastInstance();
+            eventSource.simulateOpen();
+
+            // Connection Status Badge sollte "Live" anzeigen
+            await waitFor(() => {
+                expect(screen.getByText("Live")).toBeInTheDocument();
+            });
+        });
+
+        test("updates seat status when SSE event received", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByText("Sitzplatz wählen")).toBeInTheDocument();
+            });
+
+            // Warte auf SSE Verbindung
+            await waitFor(() => {
+                expect(MockEventSource.instances.length).toBeGreaterThan(0);
+            });
+
+            const eventSource = MockEventSource.getLastInstance();
+            eventSource.simulateOpen();
+
+            // Prüfe initialen Status - s1 ist AVAILABLE
+            const availableSeat = screen.getByTitle(/Reihe 1, Platz 1 - Verfügbar/);
+            expect(availableSeat).toBeInTheDocument();
+
+            // Simuliere seat_update Event: s1 wird zu SOLD
+            eventSource.simulateSeatUpdate({
+                seatId: "s1",
+                status: "SOLD",
+                timestamp: "2026-01-26T10:00:00Z",
+            });
+
+            // Sitz sollte jetzt als Verkauft angezeigt werden (nicht mehr klickbar)
+            await waitFor(() => {
+                const soldSeat = screen.getByTitle(/Reihe 1, Platz 1 - Verkauft/);
+                expect(soldSeat).toBeInTheDocument();
+                expect(soldSeat).toBeDisabled();
+            });
+        });
+
+        test("shows reconnecting status on connection error", async () => {
+            jest.useFakeTimers();
+
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByText("Sitzplatz wählen")).toBeInTheDocument();
+            });
+
+            await waitFor(() => {
+                expect(MockEventSource.instances.length).toBeGreaterThan(0);
+            });
+
+            const eventSource = MockEventSource.getLastInstance();
+            eventSource.simulateOpen();
+
+            await waitFor(() => {
+                expect(screen.getByText("Live")).toBeInTheDocument();
+            });
+
+            // Simuliere Verbindungsfehler
+            eventSource.simulateError();
+
+            // Status sollte auf "Reconnecting" wechseln
+            await waitFor(() => {
+                expect(screen.getByText(/Verbindung wird wiederhergestellt/)).toBeInTheDocument();
+            });
+
+            jest.useRealTimers();
+        });
+
+        test("establishes SSE connection to correct endpoint", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByText("Sitzplatz wählen")).toBeInTheDocument();
+            });
+
+            await waitFor(() => {
+                expect(MockEventSource.instances.length).toBeGreaterThan(0);
+            });
+
+            const eventSource = MockEventSource.getLastInstance();
+            
+            // Prüfe dass die URL das richtige Format hat
+            expect(eventSource.url).toContain("/events/1/seats/stream");
+        });
+
+        test("updates availability count when seat status changes via SSE", async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                expect(screen.getByText("Sitzplatz wählen")).toBeInTheDocument();
+            });
+
+            // Initial: 2 von 4 Plätzen verfügbar (s1 und s4)
+            await waitFor(() => {
+                expect(screen.getByText(/von 4 Plätzen frei/i)).toBeInTheDocument();
+            });
+
+            await waitFor(() => {
+                expect(MockEventSource.instances.length).toBeGreaterThan(0);
+            });
+
+            const eventSource = MockEventSource.getLastInstance();
+            eventSource.simulateOpen();
+
+            // Simuliere: s1 wird verkauft
+            eventSource.simulateSeatUpdate({
+                seatId: "s1",
+                status: "SOLD",
+                timestamp: "2026-01-26T10:00:00Z",
+            });
+
+            // Jetzt sollte nur noch 1 von 4 Plätzen frei sein
+            await waitFor(() => {
+                expect(screen.getByText(/von 4 Plätzen frei/i)).toBeInTheDocument();
+                // Die Zahl "1" sollte irgendwo in der Verfügbarkeitsanzeige erscheinen
+                const availabilityElement = screen.getByText(/von 4 Plätzen frei/i).closest('div');
+                expect(availabilityElement.textContent).toMatch(/1/);
             });
         });
     });
