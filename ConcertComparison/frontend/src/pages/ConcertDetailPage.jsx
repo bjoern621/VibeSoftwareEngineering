@@ -211,6 +211,12 @@ const ConcertDetailPage = () => {
         clearSeatSelection,
         updateSeatStatus,
         refresh,
+        // SSE Status
+        connectionStatus,
+        isConnected,
+        isReconnecting,
+        sseHasError,
+        sseReconnect,
     } = useConcertDetail(id);
 
     // Calculate min and max price from seats
@@ -295,21 +301,31 @@ const ConcertDetailPage = () => {
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            {/* Header with Back Button */}
+            {/* Header with Back Button and Cart */}
             <header className="sticky top-0 z-40 bg-card-light dark:bg-card-dark border-b border-border-light dark:border-border-dark">
-                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
-                    <button
-                        onClick={() => navigate("/concerts")}
-                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        aria-label="Zurück zur Übersicht"
-                    >
-                        <span className="material-symbols-outlined text-text-primary dark:text-white">
-                            arrow_back
+                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => navigate("/concerts")}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            aria-label="Zurück zur Übersicht"
+                        >
+                            <span className="material-symbols-outlined text-text-primary dark:text-white">
+                                arrow_back
+                            </span>
+                        </button>
+                        <span className="text-lg font-semibold text-text-primary dark:text-white">
+                            Konzertdetails
                         </span>
+                    </div>
+                    <button
+                        onClick={() => navigate("/cart")}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+                        aria-label="Zum Warenkorb"
+                    >
+                        <span className="material-symbols-outlined">shopping_cart</span>
+                        <span className="hidden sm:inline">Warenkorb</span>
                     </button>
-                    <span className="text-lg font-semibold text-text-primary dark:text-white">
-                        Konzertdetails
-                    </span>
                 </div>
             </header>
 

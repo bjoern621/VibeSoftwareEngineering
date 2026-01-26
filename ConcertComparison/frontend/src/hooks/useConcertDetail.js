@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchConcertById } from '../services/concertService';
 import { fetchConcertSeats } from '../services/seatService';
+import { useSeatSSE } from './useSeatSSE';
 
 /**
  * Custom hook for fetching and managing concert detail data
+ * Includes real-time seat updates via SSE
  * @param {string} concertId - The concert ID to fetch
- * @returns {Object} - Concert data, seats, loading state, error, and refresh function
+ * @param {Object} options - Configuration options
+ * @param {boolean} options.enableSSE - Whether to enable SSE for live updates (default: true)
+ * @returns {Object} - Concert data, seats, loading state, error, SSE status, and refresh function
  */
-export const useConcertDetail = (concertId) => {
+export const useConcertDetail = (concertId, options = {}) => {
+  const { enableSSE = true } = options;
   const [concert, setConcert] = useState(null);
   const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -81,13 +86,28 @@ export const useConcertDetail = (concertId) => {
    * @param {string} seatId - Seat ID to update
    * @param {string} newStatus - New status (AVAILABLE, HELD, SOLD)
    */
-  const updateSeatStatus = (seatId, newStatus) => {
+  const updateSeatStatus = useCallback((seatId, newStatus) => {
     setSeats((prevSeats) =>
       prevSeats.map((seat) =>
         seat.id === seatId ? { ...seat, status: newStatus } : seat
       )
     );
-  };
+  }, []);
+
+  /**
+   * SSE Hook für Echtzeit-Updates
+   * Aktiviert nur wenn nicht im Lade-Zustand und SSE aktiviert ist
+   */
+  const {
+    connectionStatus,
+    isConnected,
+    isReconnecting,
+    hasError: sseHasError,
+    reconnect: sseReconnect,
+  } = useSeatSSE(concertId, {
+    enabled: enableSSE && !loading && !!concertId,
+    onSeatUpdate: updateSeatStatus,
+  });
 
   /**
    * Refresh concert data
@@ -130,5 +150,11 @@ export const useConcertDetail = (concertId) => {
     clearSeatSelection,
     updateSeatStatus,
     refresh,
+    // SSE Status
+    connectionStatus,
+    isConnected,
+    isReconnecting,
+    sseHasError,
+    sseReconnect,
   };
 };

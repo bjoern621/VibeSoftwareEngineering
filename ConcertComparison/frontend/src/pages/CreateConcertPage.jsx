@@ -366,45 +366,6 @@ const CreateConcertPage = () => {
             )}
           </div>
 
-          {/* Image URL */}
-          <div>
-            <label
-              htmlFor="imageUrl"
-              className="block text-sm font-medium text-text-primary mb-2"
-            >
-              Bild-URL (optional)
-            </label>
-            <input
-              type="url"
-              id="imageUrl"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-              className={`w-full px-4 py-3 rounded-lg border ${
-                errors.imageUrl
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-border-light focus:ring-primary'
-              } focus:outline-none focus:ring-2`}
-              disabled={loading}
-            />
-            {errors.imageUrl && (
-              <p className="mt-1 text-sm text-red-600">{errors.imageUrl}</p>
-            )}
-            {formData.imageUrl && !errors.imageUrl && (
-              <div className="mt-2">
-                <img
-                  src={formData.imageUrl}
-                  alt="Vorschau"
-                  className="h-32 w-auto rounded-lg object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
           {/* Submit Buttons */}
           <div className="flex items-center justify-end space-x-4 pt-4 border-t border-border-light">
             <button
