@@ -574,30 +574,6 @@ describe("ConcertDetailPage Component", () => {
         });
     });
 
-    describe("Refresh Functionality", () => {
-        test("refresh button reloads concert data", async () => {
-            renderComponent();
-
-            await waitFor(() => {
-                const titles = screen.getAllByText("Metallica Live 2025");
-                expect(titles.length).toBeGreaterThanOrEqual(1);
-            });
-
-            const refreshButton = screen.getByText(
-                "Verfügbarkeit aktualisieren",
-            );
-            fireEvent.click(refreshButton);
-
-            await waitFor(() => {
-                // Should have been called once on mount and once on refresh
-                expect(concertService.fetchConcertById).toHaveBeenCalledTimes(
-                    2,
-                );
-                expect(seatService.fetchConcertSeats).toHaveBeenCalledTimes(2);
-            });
-        });
-    });
-
     describe("SSE Live Updates", () => {
         test("establishes SSE connection after loading", async () => {
             renderComponent();

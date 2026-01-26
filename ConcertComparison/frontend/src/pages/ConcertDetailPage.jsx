@@ -38,7 +38,7 @@ const ConcertHeader = ({ concert }) => {
             : concert.imageUrl;
 
     return (
-        <div className="relative rounded-xl overflow-hidden mb-6">
+        <div className="relative rounded-xl overflow-hidden mb-6 min-h-[250px] md:min-h-[300px]">
             {/* Background Image with Overlay */}
             <div className="absolute inset-0">
                 <img
@@ -51,7 +51,7 @@ const ConcertHeader = ({ concert }) => {
             </div>
 
             {/* Content - Kompakter */}
-            <div className="relative p-6 md:p-8 min-h-[200px] flex flex-col justify-end">
+            <div className="relative p-6 md:p-8 h-full flex flex-col justify-end">
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3">
                     {concert.name}
                 </h1>
@@ -202,8 +202,6 @@ const ConcertDetailPage = () => {
     const {
         concert,
         seats,
-        seatsByBlock,
-        availability,
         loading,
         error,
         selectedSeat,
@@ -211,12 +209,6 @@ const ConcertDetailPage = () => {
         clearSeatSelection,
         updateSeatStatus,
         refresh,
-        // SSE Status
-        connectionStatus,
-        isConnected,
-        isReconnecting,
-        sseHasError,
-        sseReconnect,
     } = useConcertDetail(id);
 
     // Calculate min and max price from seats
@@ -406,26 +398,6 @@ const ConcertDetailPage = () => {
                                     availableSeats={availableSeatsCount}
                                     totalSeats={totalSeatsCount}
                                 />
-
-                                {/* Quick Actions */}
-                                <div className="bg-card-light dark:bg-card-dark rounded-xl p-6 shadow-card border border-border-light dark:border-border-dark">
-                                    <h3 className="text-lg font-bold text-text-primary dark:text-white mb-4">
-                                        Schnellauswahl
-                                    </h3>
-                                    <p className="text-sm text-text-secondary dark:text-gray-400 mb-4">
-                                        Klicken Sie auf einen blauen Sitzplatz
-                                        im Saalplan, um ihn zu reservieren.
-                                    </p>
-                                    <button
-                                        onClick={refresh}
-                                        className="w-full py-3 px-4 rounded-lg border border-border-light dark:border-border-dark text-text-primary dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <span className="material-symbols-outlined">
-                                            refresh
-                                        </span>
-                                        Verfügbarkeit aktualisieren
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </>
