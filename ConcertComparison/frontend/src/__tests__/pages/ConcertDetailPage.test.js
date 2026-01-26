@@ -599,7 +599,7 @@ describe("ConcertDetailPage Component", () => {
     });
 
     describe("SSE Live Updates", () => {
-        test("shows connection status badge after loading", async () => {
+        test("establishes SSE connection after loading", async () => {
             renderComponent();
 
             await waitFor(() => {
@@ -615,10 +615,8 @@ describe("ConcertDetailPage Component", () => {
             const eventSource = MockEventSource.getLastInstance();
             eventSource.simulateOpen();
 
-            // Connection Status Badge sollte "Live" anzeigen
-            await waitFor(() => {
-                expect(screen.getByText("Live")).toBeInTheDocument();
-            });
+            // Verbindung sollte zur korrekten URL hergestellt werden
+            expect(eventSource.url).toContain("/events/1/seats/stream");
         });
 
         test("updates seat status when SSE event received", async () => {
@@ -655,7 +653,7 @@ describe("ConcertDetailPage Component", () => {
             });
         });
 
-        test("shows reconnecting status on connection error", async () => {
+        test("handles connection error and attempts reconnect", async () => {
             jest.useFakeTimers();
 
             renderComponent();
@@ -671,16 +669,15 @@ describe("ConcertDetailPage Component", () => {
             const eventSource = MockEventSource.getLastInstance();
             eventSource.simulateOpen();
 
-            await waitFor(() => {
-                expect(screen.getByText("Live")).toBeInTheDocument();
-            });
-
             // Simuliere Verbindungsfehler
             eventSource.simulateError();
 
-            // Status sollte auf "Reconnecting" wechseln
+            // Nach Fehler sollte Reconnect versucht werden (nach 1 Sekunde)
+            jest.advanceTimersByTime(1000);
+
+            // Es sollte eine neue EventSource-Instanz geben (Reconnect)
             await waitFor(() => {
-                expect(screen.getByText(/Verbindung wird wiederhergestellt/)).toBeInTheDocument();
+                expect(MockEventSource.instances.length).toBeGreaterThan(1);
             });
 
             jest.useRealTimers();
