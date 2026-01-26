@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AdminRoute from './components/auth/AdminRoute';
 import ConcertDiscoveryPage from './pages/ConcertDiscoveryPage';
 import ConcertDetailPage from './pages/ConcertDetailPage';
 import CartPage from './pages/CartPage';
@@ -13,6 +14,9 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import CreateConcertPage from './pages/CreateConcertPage';
+import ManageSeatsPage from './pages/ManageSeatsPage';
 
 function App() {
   return (
@@ -65,6 +69,48 @@ function App() {
                 <ProtectedRoute>
                   <UserProfilePage />
                 </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Routes (Admin Only) */}
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboardPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/concerts"
+              element={
+                <AdminRoute>
+                  <AdminDashboardPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/concerts/new"
+              element={
+                <AdminRoute>
+                  <CreateConcertPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/concerts/:id/edit"
+              element={
+                <AdminRoute>
+                  <CreateConcertPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/concerts/:id/seats"
+              element={
+                <AdminRoute>
+                  <ManageSeatsPage />
+                </AdminRoute>
               }
             />
             

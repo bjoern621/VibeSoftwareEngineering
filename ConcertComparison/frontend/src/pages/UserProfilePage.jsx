@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import authService from '../services/authService';
 import UserProfileData from '../components/profile/UserProfileData';
 import OrderHistorySection from '../components/profile/OrderHistorySection';
 
@@ -61,6 +62,15 @@ const UserProfilePage = () => {
               >
                 Mein Profil
               </Link>
+              {authService.getUserRole() === 'ADMIN' && (
+                <Link
+                  to="/admin"
+                  className="text-sm font-medium text-text-secondary hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+                  Admin
+                </Link>
+              )}
             </nav>
 
             {/* Right Side: Search & Profile */}

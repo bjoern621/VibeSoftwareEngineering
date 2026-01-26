@@ -7,6 +7,7 @@ import com.concertcomparison.domain.repository.SeatAvailabilityAggregate;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -150,6 +151,17 @@ public interface JpaSeatRepository extends JpaRepository<Seat, Long>, SeatReposi
      */
     @Override
     long countByConcertId(Long concertId);
+    
+    /**
+     * {@inheritDoc}
+     * 
+     * Löscht alle Seats für ein bestimmtes Konzert.
+     * Nutzt Bulk DELETE für Performance.
+     */
+    @Modifying
+    @Query("DELETE FROM Seat s WHERE s.concertId = :concertId")
+    @Override
+    int deleteAllByConcertId(@Param("concertId") Long concertId);
     
     /**
      * Projection Interface für DB-Aggregation Query.

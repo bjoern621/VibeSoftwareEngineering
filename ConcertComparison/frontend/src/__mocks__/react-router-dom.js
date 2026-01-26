@@ -7,6 +7,9 @@ module.exports = {
   Routes: ({ children }) => React.createElement(React.Fragment, null, children),
   Route: () => null,
   Navigate: () => null,
-  Link: ({ children }) => React.createElement('a', null, children),
+  Link: ({ children, to }) => React.createElement('a', { href: to }, children),
+  NavLink: ({ children, to }) => React.createElement('a', { href: to }, children),
   useNavigate: () => () => {},
+  useLocation: () => ({ pathname: '/', state: null }),
+  useParams: () => ({}),
 };

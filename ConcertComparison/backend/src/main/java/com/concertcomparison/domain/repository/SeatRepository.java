@@ -128,6 +128,17 @@ public interface SeatRepository {
     void delete(Seat seat);
     
     /**
+     * Löscht alle Seats für ein bestimmtes Konzert.
+     * 
+     * Verwendet für das Ersetzen aller Sitzplätze (PUT /concerts/{id}/seats).
+     * WARNUNG: Löscht auch Seats mit Status HELD oder SOLD!
+     * 
+     * @param concertId ID des Konzerts
+     * @return Anzahl der gelöschten Seats
+     */
+    int deleteAllByConcertId(Long concertId);
+    
+    /**
      * Prüft, ob ein Seat mit der gegebenen ID existiert.
      * 
      * @param id Seat-ID
