@@ -28,15 +28,12 @@ const SeatSelection = ({
     const [holdId, setHoldId] = React.useState(null);
     const [error, setError] = React.useState(null);
     const [confirmed, setConfirmed] = React.useState(false);
-    const [showSuccess, setShowSuccess] = React.useState(false);
 
     // Hold timer hook
     const {
-        timeLeft,
         formattedTime,
         progressPercentage,
         isActive,
-        isExpired,
         start,
         stop,
         reset,
@@ -68,9 +65,6 @@ const SeatSelection = ({
                         concert: concert,
                         ttlSeconds: result.ttlSeconds || ttlSeconds,
                     });
-                    
-                    // Show success message
-                    setShowSuccess(true);
                 }
             }
         } catch (err) {
@@ -106,7 +100,6 @@ const SeatSelection = ({
             setHoldId(null);
             setConfirmed(false);
             setError(null);
-            setShowSuccess(false);
             reset();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -157,9 +150,7 @@ const SeatSelection = ({
                                 check_circle
                             </span>
                             <p className="text-green-700 dark:text-green-300 font-medium">
-                                {showSuccess
-                                    ? "Zum Warenkorb hinzugefügt!"
-                                    : "Sitzplatz erfolgreich reserviert!"}
+                                Reservierung erfolgreich!
                             </p>
                             <p className="text-sm text-green-600 dark:text-green-400 mt-1">
                                 Reservierungs-ID: {holdId}

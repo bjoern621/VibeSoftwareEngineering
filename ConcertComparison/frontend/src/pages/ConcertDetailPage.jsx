@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useConcertDetail } from "../hooks/useConcertDetail";
 import { useAuth } from "../context/AuthContext";
 import SeatOverview from "../components/concerts/SeatOverview";
-import ConnectionStatusBadge from "../components/common/ConnectionStatusBadge";
 import { formatDateTime, formatTime } from "../utils/dateFormatter";
 import { formatPrice } from "../utils/priceFormatter";
 import { createSeatHold } from "../services/seatService";
@@ -302,21 +301,31 @@ const ConcertDetailPage = () => {
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark">
-            {/* Header with Back Button */}
+            {/* Header with Back Button and Cart */}
             <header className="sticky top-0 z-40 bg-card-light dark:bg-card-dark border-b border-border-light dark:border-border-dark">
-                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
-                    <button
-                        onClick={() => navigate("/concerts")}
-                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                        aria-label="Zurück zur Übersicht"
-                    >
-                        <span className="material-symbols-outlined text-text-primary dark:text-white">
-                            arrow_back
+                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => navigate("/concerts")}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            aria-label="Zurück zur Übersicht"
+                        >
+                            <span className="material-symbols-outlined text-text-primary dark:text-white">
+                                arrow_back
+                            </span>
+                        </button>
+                        <span className="text-lg font-semibold text-text-primary dark:text-white">
+                            Konzertdetails
                         </span>
+                    </div>
+                    <button
+                        onClick={() => navigate("/cart")}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+                        aria-label="Zum Warenkorb"
+                    >
+                        <span className="material-symbols-outlined">shopping_cart</span>
+                        <span className="hidden sm:inline">Warenkorb</span>
                     </button>
-                    <span className="text-lg font-semibold text-text-primary dark:text-white">
-                        Konzertdetails
-                    </span>
                 </div>
             </header>
 
@@ -369,18 +378,12 @@ const ConcertDetailPage = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Seat Overview (2 columns) */}
                             <div className="lg:col-span-2">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-2xl font-bold text-text-primary dark:text-white flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-primary">
-                                            event_seat
-                                        </span>
-                                        Sitzplatz wählen
-                                    </h2>
-                                    <ConnectionStatusBadge
-                                        status={connectionStatus}
-                                        onReconnect={sseReconnect}
-                                    />
-                                </div>
+                                <h2 className="text-2xl font-bold text-text-primary dark:text-white mb-6 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary">
+                                        event_seat
+                                    </span>
+                                    Sitzplatz wählen
+                                </h2>
                                 <SeatOverview
                                     seats={seats}
                                     availabilityByCategory={
