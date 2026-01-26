@@ -6,6 +6,8 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import ConcertDiscoveryPage from './pages/ConcertDiscoveryPage';
 import ConcertDetailPage from './pages/ConcertDetailPage';
 import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 import UserProfilePage from './pages/UserProfilePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -37,6 +39,24 @@ function App() {
             
             {/* Cart Page */}
             <Route path="/cart" element={<CartPage />} />
+            
+            {/* Checkout Pages (Protected) */}
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/checkout/success"
+              element={
+                <ProtectedRoute>
+                  <CheckoutSuccessPage />
+                </ProtectedRoute>
+              }
+            />
             
             {/* User Profile Page (Protected) */}
             <Route

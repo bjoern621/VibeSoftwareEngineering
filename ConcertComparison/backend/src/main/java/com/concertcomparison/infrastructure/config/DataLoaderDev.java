@@ -90,6 +90,17 @@ public class DataLoaderDev implements CommandLineRunner {
         } else {
             log.info("✓ Admin user already exists: {}", adminEmail);
         }
+        
+        // Normaler Test-User
+        String userEmail = "user@example.com";
+        if (userRepository.findByEmail(userEmail).isEmpty()) {
+            String hashedPassword = passwordEncoder.encode("userpassword123");
+            User user = User.createUser(userEmail, hashedPassword, "Test", "User");
+            userRepository.save(user);
+            log.info("✓ Test user created: {}", userEmail);
+        } else {
+            log.info("✓ Test user already exists: {}", userEmail);
+        }
     }
     
     /**

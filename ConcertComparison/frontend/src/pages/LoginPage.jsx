@@ -184,6 +184,37 @@ const LoginPage = () => {
               {loading ? 'Wird angemeldet...' : 'Anmelden'}
             </button>
 
+            {/* DEV Quick Login Buttons - TODO: Remove before production */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200">
+                <p className="text-xs text-yellow-700 font-semibold mb-3 text-center">⚡ DEV Quick Login</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ email: 'admin@example.com', password: 'adminpassword123', rememberMe: false });
+                      setTimeout(() => document.querySelector('form').requestSubmit(), 100);
+                    }}
+                    className="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                    disabled={loading}
+                  >
+                    🔐 Admin Login
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ email: 'user@example.com', password: 'userpassword123', rememberMe: false });
+                      setTimeout(() => document.querySelector('form').requestSubmit(), 100);
+                    }}
+                    className="flex-1 py-2 px-3 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    disabled={loading}
+                  >
+                    👤 User Login
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Footer Link */}
             <p className="text-center text-sm text-[#657886] mt-4">
               Noch kein Konto?{' '}

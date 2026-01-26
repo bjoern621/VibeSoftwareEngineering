@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useConcertDetail } from "../hooks/useConcertDetail";
+import { useAuth } from "../context/AuthContext";
 import SeatOverview from "../components/concerts/SeatOverview";
 import { formatDateTime, formatTime } from "../utils/dateFormatter";
 import { formatPrice } from "../utils/priceFormatter";
@@ -192,10 +193,11 @@ const ErrorState = ({ error, onRetry }) => (
 const ConcertDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [holdLoading, setHoldLoading] = useState(false);
     const [notification, setNotification] = useState(null);
-    // Get user ID from localStorage or use a default test user ID
-    const userId = localStorage.getItem("userId") || "user_test_123";
+    // Get user email from auth context - this must match the checkout user!
+    const userId = user?.email || localStorage.getItem("userId") || "anonymous";
 
     const {
         concert,

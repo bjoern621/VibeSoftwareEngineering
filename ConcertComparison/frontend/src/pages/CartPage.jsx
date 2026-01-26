@@ -5,7 +5,6 @@ import { useCart } from '../context/CartContext';
 import CartItem from '../components/cart/CartItem';
 import CartSummary from '../components/cart/CartSummary';
 import CartTimer from '../components/cart/CartTimer';
-import { purchaseBulkTickets } from '../api/checkoutApi';
 
 /**
  * CartPage Component
@@ -27,66 +26,28 @@ const CartPage = () => {
     getAllHoldIds,
   } = useCart();
 
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutError, setCheckoutError] = useState(null);
 
   /**
-   * Handle bulk checkout
+   * Handle checkout - navigate to checkout page
    */
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!isAuthenticated) {
-      navigate('/login', { state: { from: '/cart' } });
+      navigate('/login', { state: { from: '/checkout' } });
       return;
     }
 
-    setIsCheckingOut(true);
-    setCheckoutError(null);
-
-    try {
-      const holdIds = getAllHoldIds();
-      const results = await purchaseBulkTickets(holdIds);
-
-      // Check results
-      const successCount = results.filter(r => r.success).length;
-      const failCount = results.filter(r => !r.success).length;
-
-      if (successCount > 0) {
-        // Remove successfully purchased items from cart
-        results.forEach(result => {
-          if (result.success) {
-            removeItem(result.holdId);
-          }
-        });
-
-        if (failCount === 0) {
-          // All purchases successful
-          clearCart();
-          navigate('/checkout/success', {
-            state: {
-              orders: results.map(r => r.data),
-              totalAmount: total,
-            },
-          });
-        } else {
-          // Partial success
-          setCheckoutError(
-            `${successCount} Ticket(s) erfolgreich gekauft. ${failCount} fehlgeschlagen. Bitte überprüfen Sie Ihren Warenkorb.`
-          );
-        }
-      } else {
-        // All failed
-        setCheckoutError(
-          'Kauf fehlgeschlagen. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.'
-        );
+    // Prüfen ob noch aktive Holds vorhanden sind
+    if (oldestItem) {
+      const expiresAt = new Date(oldestItem.expiresAt);
+      if (expiresAt <= new Date()) {
+        setCheckoutError('Ihre Reservierung ist abgelaufen. Bitte reservieren Sie erneut.');
+        return;
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      setCheckoutError(
-        error.message || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.'
-      );
-    } finally {
-      setIsCheckingOut(false);
     }
+
+    // Zur Checkout-Seite navigieren
+    navigate('/checkout');
   };
 
   /**
@@ -228,7 +189,7 @@ const CartPage = () => {
               total={total}
               itemCount={itemCount}
               onCheckout={handleCheckout}
-              isLoading={isCheckingOut}
+              isLoading={false}
             />
           </div>
         )}
