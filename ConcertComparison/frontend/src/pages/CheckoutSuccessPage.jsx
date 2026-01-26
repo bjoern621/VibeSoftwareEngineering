@@ -12,7 +12,14 @@ const CheckoutSuccessPage = () => {
   const { isAuthenticated, user } = useAuth();
 
   // Bestelldaten aus Navigation State
-  const { orders = [], totalAmount = 0, billingDetails = {}, paymentMethod = '' } = location.state || {};
+  const { 
+    orders = [], 
+    totalAmount = 0, 
+    billingDetails = {}, 
+    paymentMethod = '',
+    transactionId = '',
+    paymentMessage = '',
+  } = location.state || {};
 
   // Umleiten wenn keine Bestelldaten vorhanden
   useEffect(() => {
@@ -26,9 +33,61 @@ const CheckoutSuccessPage = () => {
     const methods = {
       creditcard: 'Kreditkarte',
       paypal: 'PayPal',
+      bitcoin: 'Bitcoin',
       crypto: 'Kryptowährung',
     };
     return methods[method] || method;
+  };
+
+  /**
+   * Mock Ticket-Download Handler
+   * Generiert ein Mock-PDF mit Ticket-Details
+   */
+  const handleDownloadTicket = (order) => {
+    // Mock: Generiere einen Blob mit Ticket-Daten
+    const ticketContent = `
+╔═══════════════════════════════════════════════════════════╗
+║                     CONCERT TICKET                        ║
+╠═══════════════════════════════════════════════════════════╣
+║  Event:    ${order?.eventName || order?.concert?.name || 'Concert Event'}
+║  Order ID: ${order?.id || 'N/A'}
+║  Date:     ${order?.eventDate ? new Date(order.eventDate).toLocaleDateString('de-DE') : 'TBD'}
+║  Venue:    ${order?.venue || 'Concert Hall'}
+║  Category: ${order?.seatCategory || order?.seat?.category || 'Standard'}
+║  Seat:     ${order?.seatInfo || (order?.seat ? `Row ${order.seat.row}, Seat ${order.seat.number}` : 'General Admission')}
+║  Holder:   ${billingDetails?.firstName || ''} ${billingDetails?.lastName || ''}
+╠═══════════════════════════════════════════════════════════╣
+║  Transaction: ${transactionId || 'N/A'}
+║  Status:      CONFIRMED ✓
+╚═══════════════════════════════════════════════════════════╝
+
+Please present this ticket at the venue entrance.
+Valid for one-time entry only.
+
+───────────────────────────────────────────────────────────
+            Thank you for your purchase!
+            TicketMaster.Clone © 2024
+───────────────────────────────────────────────────────────
+    `.trim();
+
+    const blob = new Blob([ticketContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ticket-${order?.id || 'unknown'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  /**
+   * Download alle Tickets als einzelne Dateien
+   */
+  const handleDownloadAllTickets = () => {
+    orders.forEach((order, index) => {
+      setTimeout(() => handleDownloadTicket(order), index * 200);
+    });
   };
 
   // Datum formatieren
@@ -172,13 +231,13 @@ const CheckoutSuccessPage = () => {
 
                 {/* Ticket Download Button */}
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <Link
-                    to={`/profile?order=${order?.id}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 dark:bg-primary/20 text-primary rounded-lg hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
+                  <button
+                    onClick={() => handleDownloadTicket(order)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     <span className="material-symbols-outlined">download</span>
-                    Ticket anzeigen / herunterladen
-                  </Link>
+                    Ticket herunterladen
+                  </button>
                 </div>
               </div>
             ))}
@@ -207,6 +266,12 @@ const CheckoutSuccessPage = () => {
                     <span className="text-slate-900 dark:text-white">{formatPaymentMethod(paymentMethod)}</span>
                   </div>
                 )}
+                {transactionId && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500 dark:text-slate-400">Transaktions-ID</span>
+                    <span className="text-slate-900 dark:text-white font-mono text-xs">{transactionId}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500 dark:text-slate-400">Anzahl Tickets</span>
                   <span className="text-slate-900 dark:text-white">{orders.length}</span>
@@ -233,6 +298,15 @@ const CheckoutSuccessPage = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {orders.length > 0 && (
+            <button
+              onClick={handleDownloadAllTickets}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
+            >
+              <span className="material-symbols-outlined">download</span>
+              {orders.length === 1 ? 'Ticket herunterladen' : `Alle ${orders.length} Tickets herunterladen`}
+            </button>
+          )}
           <Link
             to="/profile"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors"
